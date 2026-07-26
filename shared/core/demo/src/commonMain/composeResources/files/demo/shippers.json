@@ -1,0 +1,8 @@
+[
+  { "id": "shp-almajal", "nameEn": "Al Majal Logistics", "nameAr": "المجال للخدمات اللوجستية", "rating": 4.7, "loadsPosted": 312, "phone": "+966501112233" },
+  { "id": "shp-tamween", "nameEn": "Tamween Supply Co.", "nameAr": "تموين للتوريد", "rating": 4.4, "loadsPosted": 189, "phone": "+966502223344" },
+  { "id": "shp-binladin", "nameEn": "Rawabi Trading", "nameAr": "روابي للتجارة", "rating": 4.6, "loadsPosted": 274, "phone": "+966503334455" },
+  { "id": "shp-najm", "nameEn": "Najm Freight", "nameAr": "نجم للشحن", "rating": 4.2, "loadsPosted": 96, "phone": "+966504445566" },
+  { "id": "shp-cold", "nameEn": "ColdChain KSA", "nameAr": "سلسلة التبريد", "rating": 4.8, "loadsPosted": 143, "phone": "+966505556677" },
+  { "id": "shp-petro", "nameEn": "PetroTrans", "nameAr": "بترو ترانس", "rating": 4.5, "loadsPosted": 208, "phone": "+966506667788" }
+]

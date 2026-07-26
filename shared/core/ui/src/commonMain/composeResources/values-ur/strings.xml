@@ -1,0 +1,61 @@
+<resources>
+    <string name="app_name">سرداب آپریٹرز</string>
+
+    <string name="common_next">اگلا</string>
+    <string name="common_back">واپس</string>
+    <string name="common_continue">جاری رکھیں</string>
+    <string name="common_confirm">تصدیق کریں</string>
+    <string name="common_cancel">منسوخ کریں</string>
+    <string name="common_finish">مکمل کریں</string>
+
+    <string name="onboarding_welcome_title">چلائیں۔ بولی لگائیں۔ کمائیں۔</string>
+    <string name="onboarding_welcome_subtitle">سعودی کیریئرز کے لیے سمارٹ لوڈ مارکیٹ۔</string>
+    <string name="choose_language">اپنی زبان منتخب کریں</string>
+    <string name="get_started">شروع کریں</string>
+
+    <string name="phone_title">اپنا فون نمبر درج کریں</string>
+    <string name="phone_subtitle">ہم آپ کو تصدیقی کوڈ بھیجیں گے۔</string>
+    <string name="phone_label">فون نمبر</string>
+    <string name="phone_error">درست ۹ ہندسوں کا نمبر درج کریں</string>
+
+    <string name="otp_title">اپنے نمبر کی تصدیق کریں</string>
+    <string name="otp_subtitle">۶ ہندسوں کا کوڈ درج کریں۔</string>
+    <string name="otp_hint_demo">ڈیمو: کوئی بھی ۶ ہندسے کام کریں گے</string>
+    <string name="verify">تصدیق کریں</string>
+    <string name="resend_code">کوڈ دوبارہ بھیجیں</string>
+
+    <string name="nafath_title">قومی تصدیق</string>
+    <string name="nafath_verifying">نفاذ کے ذریعے آپ کی شناخت کی تصدیق ہو رہی ہے…</string>
+    <string name="nafath_verified_as">بطور تصدیق شدہ</string>
+
+    <string name="docs_title">اپنی دستاویزات اپ لوڈ کریں</string>
+    <string name="docs_subtitle">تصویر لیں یا گیلری سے منتخب کریں۔</string>
+    <string name="doc_national_id">قومی شناخت</string>
+    <string name="doc_license">ڈرائیونگ لائسنس</string>
+    <string name="doc_vehicle_reg">گاڑی کی رجسٹریشن</string>
+    <string name="upload">اپ لوڈ</string>
+    <string name="uploading">اپ لوڈ ہو رہا ہے…</string>
+    <string name="verified">تصدیق شدہ ✓</string>
+
+    <string name="vehicle_title">آپ کی گاڑی</string>
+    <string name="vehicle_subtitle">ہمیں بتائیں آپ کیا چلاتے ہیں۔</string>
+    <string name="vehicle_type">گاڑی کی قسم</string>
+    <string name="plate_number">پلیٹ نمبر</string>
+    <string name="capacity_tons">گنجائش (ٹن)</string>
+
+    <string name="vt_flatbed">فلیٹ بیڈ</string>
+    <string name="vt_curtain">کرٹن سائیڈر</string>
+    <string name="vt_reefer">ریفر</string>
+    <string name="vt_container">۴۰ فٹ کنٹینر</string>
+    <string name="vt_dry_van">ڈرائی وین</string>
+    <string name="vt_van_3t">۳ ٹن وین</string>
+    <string name="vt_lowbed">لو بیڈ</string>
+    <string name="vt_tanker">ٹینکر</string>
+
+    <string name="tab_loads">لوڈز</string>
+    <string name="tab_trip">سفر</string>
+    <string name="tab_wallet">والٹ</string>
+    <string name="tab_profile">پروفائل</string>
+    <string name="coming_soon">جلد آ رہا ہے</string>
+    <string name="section_in_progress">یہ حصہ اگلے بلڈ میں آئے گا۔</string>
+</resources>

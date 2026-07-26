@@ -1,0 +1,287 @@
+<resources>
+    <string name="app_name">Sirdab Operators</string>
+
+    <!-- Common -->
+    <string name="common_next">Next</string>
+    <string name="common_back">Back</string>
+    <string name="common_continue">Continue</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_finish">Finish</string>
+
+    <!-- Splash / language -->
+    <string name="onboarding_welcome_title">Drive. Bid. Earn.</string>
+    <string name="onboarding_welcome_subtitle">The smart load marketplace for Saudi carriers.</string>
+    <string name="choose_language">Choose your language</string>
+    <string name="get_started">Get started</string>
+
+    <!-- Phone -->
+    <string name="phone_title">Enter your phone number</string>
+    <string name="phone_subtitle">We&apos;ll send you a verification code.</string>
+    <string name="phone_label">Phone number</string>
+    <string name="phone_error">Enter a valid 9-digit number</string>
+
+    <!-- OTP -->
+    <string name="otp_title">Verify your number</string>
+    <string name="otp_subtitle">Enter the 6-digit code we sent you.</string>
+    <string name="otp_hint_demo">Demo: any 6 digits will work</string>
+    <string name="verify">Verify</string>
+    <string name="resend_code">Resend code</string>
+
+    <!-- Nafath -->
+    <string name="nafath_title">National verification</string>
+    <string name="nafath_verifying">Verifying your identity with Nafath…</string>
+    <string name="nafath_verified_as">Verified as</string>
+
+    <!-- Documents -->
+    <string name="docs_title">Upload your documents</string>
+    <string name="docs_subtitle">Snap a photo or pick from your gallery.</string>
+    <string name="doc_national_id">National ID</string>
+    <string name="doc_license">Driving license</string>
+    <string name="doc_vehicle_reg">Vehicle registration</string>
+    <string name="upload">Upload</string>
+    <string name="uploading">Uploading…</string>
+    <string name="verified">Verified ✓</string>
+
+    <!-- Vehicle -->
+    <string name="vehicle_title">Your vehicle</string>
+    <string name="vehicle_subtitle">Tell us what you drive.</string>
+    <string name="vehicle_type">Vehicle type</string>
+    <string name="plate_number">Plate number</string>
+    <string name="capacity_tons">Capacity (tons)</string>
+
+    <!-- Vehicle types -->
+    <string name="vt_flatbed">Flatbed</string>
+    <string name="vt_curtain">Curtain-sider</string>
+    <string name="vt_reefer">Reefer</string>
+    <string name="vt_container">40ft Container</string>
+    <string name="vt_dry_van">Dry van</string>
+    <string name="vt_van_3t">3t Van</string>
+    <string name="vt_lowbed">Lowbed</string>
+    <string name="vt_tanker">Tanker</string>
+
+    <!-- Main tabs -->
+    <string name="tab_loads">Loads</string>
+    <string name="tab_trip">Trip</string>
+    <string name="tab_wallet">Wallet</string>
+    <string name="tab_profile">Profile</string>
+    <string name="coming_soon">Coming soon</string>
+    <string name="section_in_progress">This section arrives in the next build.</string>
+
+    <!-- Units -->
+    <string name="unit_km">km</string>
+    <string name="unit_sar">SAR</string>
+    <string name="unit_ton">t</string>
+
+    <!-- Load board -->
+    <string name="lb_title">Available loads</string>
+    <string name="lb_filter">Filter</string>
+    <string name="lb_instant_book">Instant Book</string>
+    <string name="lb_empty">No loads match your filters</string>
+    <string name="lb_suggested">Suggested</string>
+    <string name="lb_away">away</string>
+    <string name="filter_title">Filter loads</string>
+    <string name="filter_vehicle">Vehicle type</string>
+    <string name="filter_all">All types</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_clear">Clear</string>
+
+    <!-- Load detail -->
+    <string name="ld_title">Load details</string>
+    <string name="ld_cargo">Cargo</string>
+    <string name="ld_weight">Weight</string>
+    <string name="ld_pickup">Pickup window</string>
+    <string name="ld_dropoff">Drop-off window</string>
+    <string name="ld_distance">Distance</string>
+    <string name="ld_shipper">Shipper</string>
+    <string name="ld_handling">Handling</string>
+    <string name="ld_temperature">Temperature</string>
+    <string name="ld_place_bid">Place a bid</string>
+    <string name="ld_book_now">Book now</string>
+    <string name="ld_cert_required">Certification required — your profile isn’t certified for this load</string>
+    <string name="ld_loads_posted">loads posted</string>
+
+    <!-- Cargo types -->
+    <string name="cargo_general">General</string>
+    <string name="cargo_reefer">Refrigerated</string>
+    <string name="cargo_hazmat">Hazardous</string>
+    <string name="cargo_oversized">Oversized</string>
+    <string name="cargo_container">Container</string>
+    <string name="cargo_livestock">Livestock</string>
+
+    <!-- Handling flags -->
+    <string name="flag_fragile">Fragile</string>
+    <string name="flag_reefer_temp">Temperature-controlled</string>
+    <string name="flag_hazmat">Hazmat</string>
+    <string name="flag_oversized_permit">Oversized permit</string>
+    <string name="flag_multi_stop">Multi-stop</string>
+    <string name="flag_tail_lift">Tail lift</string>
+
+    <!-- Bid composer -->
+    <string name="bc_title">Your bid</string>
+    <string name="bc_rate_label">Your rate</string>
+    <string name="bc_breakdown">Cost breakdown</string>
+    <string name="bc_distance_cost">Distance cost</string>
+    <string name="bc_fuel">Fuel</string>
+    <string name="bc_tolls">Tolls</string>
+    <string name="bc_commission">Commission</string>
+    <string name="bc_net_profit">Net profit</string>
+    <string name="bc_win_prob">Win probability</string>
+    <string name="bc_submit">Submit bid</string>
+    <string name="bc_win_high">High</string>
+    <string name="bc_win_medium">Medium</string>
+    <string name="bc_win_low">Low</string>
+
+    <!-- My bids -->
+    <string name="mb_title">My bids</string>
+    <string name="mb_pending">Pending</string>
+    <string name="mb_won">Won</string>
+    <string name="mb_lost">Lost</string>
+    <string name="mb_countered">Countered</string>
+    <string name="mb_withdrawn">Withdrawn</string>
+    <string name="mb_empty">You haven’t placed any bids yet</string>
+    <string name="mb_counter_offer">Shipper counter</string>
+    <string name="mb_accept">Accept</string>
+    <string name="mb_reject">Reject</string>
+    <string name="mb_your_bid">Your bid</string>
+
+    <!-- Notifications -->
+    <string name="notif_outbid_title">You’ve been outbid</string>
+    <string name="notif_outbid_body">A competing carrier bid lower on your load.</string>
+    <string name="notif_counter_title">Counteroffer received</string>
+    <string name="notif_counter_body">The shipper proposed a new rate.</string>
+    <string name="notif_awarded_title">Load awarded 🎉</string>
+    <string name="notif_awarded_body">You won the load. Head to your trip.</string>
+    <string name="notif_rejected_title">Bid not accepted</string>
+    <string name="notif_rejected_body">The shipper went with another carrier.</string>
+
+    <!-- Demo control panel -->
+    <string name="demo_title">Demo controls</string>
+    <string name="demo_reset">Reset demo state</string>
+    <string name="demo_time">Time speed</string>
+    <string name="demo_force_outcome">Force next bid outcome</string>
+    <string name="demo_outcome_auto">Auto</string>
+    <string name="demo_outcome_win">Win</string>
+    <string name="demo_outcome_counter">Counter</string>
+    <string name="demo_outcome_lose">Lose</string>
+    <string name="demo_inject">Inject a load</string>
+    <string name="demo_fire_notif">Fire test notification</string>
+    <string name="demo_persona">Persona</string>
+
+    <!-- Trip -->
+    <string name="trip_title">Active trip</string>
+    <string name="trip_no_active_title">No active trip</string>
+    <string name="trip_no_active_body">Win a load and your trip appears here.</string>
+    <string name="trip_eta">ETA</string>
+    <string name="trip_min">min</string>
+    <string name="trip_detention">Detention</string>
+    <string name="trip_detention_note">Auto-billed after free time</string>
+    <string name="trip_call_shipper">Call shipper</string>
+    <string name="trip_progress">Progress</string>
+
+    <!-- Trip status -->
+    <string name="st_assigned">Assigned</string>
+    <string name="st_enroute_pickup">To pickup</string>
+    <string name="st_at_pickup">At pickup</string>
+    <string name="st_loading">Loading</string>
+    <string name="st_enroute_dropoff">En route</string>
+    <string name="st_at_dropoff">At drop-off</string>
+    <string name="st_unloading">Unloading</string>
+    <string name="st_pod_pending">Delivery proof</string>
+    <string name="st_completed">Completed</string>
+
+    <!-- Trip actions -->
+    <string name="act_navigate_pickup">Navigate to pickup</string>
+    <string name="act_arrived_pickup">Confirm arrival</string>
+    <string name="act_start_loading">Start loading</string>
+    <string name="act_depart">Depart to drop-off</string>
+    <string name="act_arrived_dropoff">Confirm arrival</string>
+    <string name="act_start_unloading">Start unloading</string>
+    <string name="act_capture_pod">Capture proof of delivery</string>
+    <string name="act_completed">Trip completed</string>
+
+    <!-- POD -->
+    <string name="pod_title">Proof of delivery</string>
+    <string name="pod_photos">Photos</string>
+    <string name="pod_add_photo">Add photo</string>
+    <string name="pod_recipient">Recipient name</string>
+    <string name="pod_seal">Seal number</string>
+    <string name="pod_signature">Recipient signature</string>
+    <string name="pod_clear">Clear</string>
+    <string name="pod_submit">Complete delivery</string>
+
+    <!-- Wallet -->
+    <string name="wallet_title">Wallet</string>
+    <string name="wallet_available">Available</string>
+    <string name="wallet_pending">Pending</string>
+    <string name="wallet_transactions">Transactions</string>
+    <string name="wallet_payout">Request payout</string>
+    <string name="wallet_payout_note">Settled within 48 hours</string>
+    <string name="wallet_empty">No transactions yet</string>
+    <string name="txn_settled">Settled</string>
+    <string name="txn_pending">Pending</string>
+
+    <!-- Backhaul notification -->
+    <string name="notif_backhaul_title">Backhaul available</string>
+    <string name="notif_backhaul_body">A return load is available near your drop-off — no empty running.</string>
+    <string name="notif_trip_done_title">Delivery complete 🎉</string>
+    <string name="notif_trip_done_body">Payment is on the way to your wallet.</string>
+
+    <!-- Profile -->
+    <string name="profile_score">Carrier score</string>
+    <string name="profile_trips">Trips</string>
+    <string name="profile_ontime">On-time</string>
+    <string name="profile_vehicle">Vehicle</string>
+    <string name="profile_documents">Document vault</string>
+    <string name="profile_settings">Settings</string>
+    <string name="profile_language">Language</string>
+    <string name="profile_persona">Demo persona</string>
+    <string name="profile_history">Trip history &amp; earnings</string>
+    <string name="profile_autobid">Auto-bid rule</string>
+    <string name="profile_capacity">Capacity</string>
+
+    <!-- Document types + status -->
+    <string name="doc_insurance">Insurance</string>
+    <string name="doc_operating_card">Operating card</string>
+    <string name="docstat_verified">Verified</string>
+    <string name="docstat_verifying">Verifying</string>
+    <string name="docstat_expiring">Expiring soon</string>
+    <string name="docstat_expired">Expired</string>
+    <string name="docstat_missing">Missing</string>
+    <string name="doc_days_left">days left</string>
+
+    <!-- Personas -->
+    <string name="persona_flatbed">Flatbed operator</string>
+    <string name="persona_van">3t van driver</string>
+    <string name="persona_new">New driver</string>
+
+    <!-- Notifications inbox -->
+    <string name="notif_inbox_title">Notifications</string>
+    <string name="notif_inbox_empty">No notifications yet</string>
+
+    <!-- Trip history + earnings -->
+    <string name="history_title">History &amp; earnings</string>
+    <string name="history_earnings">Earnings (last weeks)</string>
+    <string name="history_completed_trips">Completed trips</string>
+    <string name="history_empty">No completed trips yet</string>
+
+    <!-- Auto-bid -->
+    <string name="autobid_title">Auto-bid rule</string>
+    <string name="autobid_desc">Automatically place a bid when a load on your saved lane appears.</string>
+    <string name="autobid_origin">Origin</string>
+    <string name="autobid_dest">Destination</string>
+    <string name="autobid_vehicle">Vehicle</string>
+    <string name="autobid_max_rate">Max rate (SAR)</string>
+    <string name="autobid_enable">Enable auto-bid</string>
+    <string name="autobid_save">Save rule</string>
+    <string name="autobid_active">Auto-bid is active</string>
+
+    <!-- Demo scenarios -->
+    <string name="demo_scenarios">Jump to scenario</string>
+    <string name="scn_new_driver">New driver</string>
+    <string name="scn_browsing">Browsing</string>
+    <string name="scn_bid_pending">Bid pending</string>
+    <string name="scn_trip">Trip 60%</string>
+    <string name="scn_pod">POD pending</string>
+    <string name="scn_paid">Paid</string>
+</resources>

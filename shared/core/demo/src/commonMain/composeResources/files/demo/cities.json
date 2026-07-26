@@ -1,0 +1,11 @@
+[
+  { "id": "riyadh", "nameEn": "Riyadh", "nameAr": "الرياض", "lat": 24.7136, "lng": 46.6753 },
+  { "id": "dammam", "nameEn": "Dammam", "nameAr": "الدمام", "lat": 26.4207, "lng": 50.0888 },
+  { "id": "dammam_port", "nameEn": "Dammam Port", "nameAr": "ميناء الدمام", "lat": 26.5049, "lng": 50.2085 },
+  { "id": "jeddah", "nameEn": "Jeddah", "nameAr": "جدة", "lat": 21.4858, "lng": 39.1925 },
+  { "id": "makkah", "nameEn": "Makkah", "nameAr": "مكة المكرمة", "lat": 21.3891, "lng": 39.8579 },
+  { "id": "madinah", "nameEn": "Madinah", "nameAr": "المدينة المنورة", "lat": 24.4686, "lng": 39.6142 },
+  { "id": "qassim", "nameEn": "Qassim", "nameAr": "القصيم", "lat": 26.3590, "lng": 43.9818 },
+  { "id": "jubail", "nameEn": "Jubail", "nameAr": "الجبيل", "lat": 27.0174, "lng": 49.6225 },
+  { "id": "abha", "nameEn": "Abha", "nameAr": "أبها", "lat": 18.2465, "lng": 42.5117 }
+]
