@@ -4,13 +4,56 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/buildSrc" name="buildSrc">
+                <projects>
+                  <project path="$PROJECT_DIR$/buildSrc" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
         <option name="testRunner" value="CHOOSE_PER_TEST" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/androidApp" />
+            <option value="$PROJECT_DIR$/buildSrc" />
             <option value="$PROJECT_DIR$/composeApp" />
+            <option value="$PROJECT_DIR$/shared" />
+            <option value="$PROJECT_DIR$/shared/core" />
+            <option value="$PROJECT_DIR$/shared/core/demo" />
+            <option value="$PROJECT_DIR$/shared/core/model" />
+            <option value="$PROJECT_DIR$/shared/core/navigation" />
+            <option value="$PROJECT_DIR$/shared/core/platform" />
+            <option value="$PROJECT_DIR$/shared/core/preferences" />
+            <option value="$PROJECT_DIR$/shared/core/ui" />
+            <option value="$PROJECT_DIR$/shared/core/util" />
+            <option value="$PROJECT_DIR$/shared/feature" />
+            <option value="$PROJECT_DIR$/shared/feature/bidding" />
+            <option value="$PROJECT_DIR$/shared/feature/bidding/api" />
+            <option value="$PROJECT_DIR$/shared/feature/bidding/impl" />
+            <option value="$PROJECT_DIR$/shared/feature/loadboard" />
+            <option value="$PROJECT_DIR$/shared/feature/loadboard/api" />
+            <option value="$PROJECT_DIR$/shared/feature/loadboard/impl" />
+            <option value="$PROJECT_DIR$/shared/feature/notifications" />
+            <option value="$PROJECT_DIR$/shared/feature/notifications/api" />
+            <option value="$PROJECT_DIR$/shared/feature/notifications/impl" />
+            <option value="$PROJECT_DIR$/shared/feature/onboarding" />
+            <option value="$PROJECT_DIR$/shared/feature/onboarding/api" />
+            <option value="$PROJECT_DIR$/shared/feature/onboarding/impl" />
+            <option value="$PROJECT_DIR$/shared/feature/profile" />
+            <option value="$PROJECT_DIR$/shared/feature/profile/api" />
+            <option value="$PROJECT_DIR$/shared/feature/profile/impl" />
+            <option value="$PROJECT_DIR$/shared/feature/trip" />
+            <option value="$PROJECT_DIR$/shared/feature/trip/api" />
+            <option value="$PROJECT_DIR$/shared/feature/trip/impl" />
+            <option value="$PROJECT_DIR$/shared/feature/wallet" />
+            <option value="$PROJECT_DIR$/shared/feature/wallet/api" />
+            <option value="$PROJECT_DIR$/shared/feature/wallet/impl" />
           </set>
         </option>
       </GradleProjectSettings>
