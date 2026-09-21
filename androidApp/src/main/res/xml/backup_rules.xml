@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Everything is backed up except the upload outbox.
+
+  Those files are customer delivery photos waiting to be sent. They belong to
+  the account that took them, and a backup would copy them to the cloud and
+  restore them onto whatever device the driver signs in on next. The queue
+  rows live in the app database and are cleared on sign-out for the same
+  reason, so a restored photo could never be matched to a stop anyway.
+-->
+<full-backup-content>
+    <exclude domain="file" path="outbox" />
+</full-backup-content>

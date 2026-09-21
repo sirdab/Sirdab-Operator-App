@@ -1,11 +1,8 @@
 <resources>
     <string name="app_name">سرداب آپریٹرز</string>
 
-    <string name="common_next">اگلا</string>
     <string name="common_back">واپس</string>
     <string name="common_continue">جاری رکھیں</string>
-    <string name="common_confirm">تصدیق کریں</string>
-    <string name="common_cancel">منسوخ کریں</string>
     <string name="common_finish">مکمل کریں</string>
 
     <string name="onboarding_welcome_title">چلائیں۔ بولی لگائیں۔ کمائیں۔</string>
@@ -24,9 +21,6 @@
     <string name="verify">تصدیق کریں</string>
     <string name="resend_code">کوڈ دوبارہ بھیجیں</string>
 
-    <string name="nafath_title">قومی تصدیق</string>
-    <string name="nafath_verifying">نفاذ کے ذریعے آپ کی شناخت کی تصدیق ہو رہی ہے…</string>
-    <string name="nafath_verified_as">بطور تصدیق شدہ</string>
 
     <string name="docs_title">اپنی دستاویزات اپ لوڈ کریں</string>
     <string name="docs_subtitle">تصویر لیں یا گیلری سے منتخب کریں۔</string>
@@ -39,7 +33,6 @@
 
     <string name="vehicle_title">آپ کی گاڑی</string>
     <string name="vehicle_subtitle">ہمیں بتائیں آپ کیا چلاتے ہیں۔</string>
-    <string name="vehicle_type">گاڑی کی قسم</string>
     <string name="plate_number">پلیٹ نمبر</string>
     <string name="capacity_tons">گنجائش (ٹن)</string>
 
@@ -54,7 +47,6 @@
 
     <string name="tab_loads">لوڈز</string>
     <string name="tab_trip">سفر</string>
-    <string name="tab_wallet">والٹ</string>
     <string name="tab_profile">پروفائل</string>
     <string name="coming_soon">جلد آ رہا ہے</string>
     <string name="section_in_progress">یہ حصہ اگلے بلڈ میں آئے گا۔</string>

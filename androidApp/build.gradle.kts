@@ -15,10 +15,18 @@ android {
         minSdk = BuildConfig.MIN_SDK
         versionCode = BuildConfig.VERSION_CODE
         versionName = BuildConfig.VERSION_NAME
+
+        // Set in gradle.properties, overridable per machine in local.properties. Demo mode is the
+        // default so a fresh clone runs without a backend.
+        buildConfigField("String", "DRIVER_BACKEND", "\"${property("driver.backend")}\"")
+        buildConfigField("String", "TMS_API_BASE_URL", "\"${property("driver.apiBaseUrl")}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${property("driver.supabaseUrl")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${property("driver.supabaseAnonKey")}\"")
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -34,6 +42,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

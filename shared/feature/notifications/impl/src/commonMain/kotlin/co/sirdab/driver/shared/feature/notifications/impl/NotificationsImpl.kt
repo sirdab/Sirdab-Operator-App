@@ -2,7 +2,9 @@ package co.sirdab.driver.shared.feature.notifications.impl
 
 import co.sirdab.driver.shared.core.demo.DemoWorld
 import co.sirdab.driver.shared.core.model.AppNotification
+import co.sirdab.driver.shared.feature.notifications.api.DeviceRegistry
 import co.sirdab.driver.shared.feature.notifications.api.NotificationRepository
+import co.sirdab.driver.shared.feature.notifications.impl.data.DeviceRegistryHttp
 import co.sirdab.driver.shared.feature.notifications.impl.presentation.InboxViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -26,4 +28,12 @@ class NotificationRepositoryMock(private val world: DemoWorld) : NotificationRep
 val notificationsModule: Module = module {
     single { NotificationRepositoryMock(get()) } bind NotificationRepository::class
     viewModelOf(::InboxViewModel)
+}
+
+/**
+ * The bindings that reach the real TMS. Loaded after [notificationsModule] so it overrides the demo
+ * binding for anything the backend actually serves.
+ */
+val tmsNotificationsModule: Module = module {
+    single { DeviceRegistryHttp(get()) } bind DeviceRegistry::class
 }

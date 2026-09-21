@@ -26,10 +26,6 @@ import co.sirdab.driver.locale.applyPlatformLocale
 import co.sirdab.driver.locale.languageChangeRequiresRestart
 import co.sirdab.driver.shared.core.preferences.locale.LanguageStore
 import co.sirdab.driver.shared.core.ui.theme.AppTheme
-import co.sirdab.driver.shared.feature.bidding.api.BiddingRoute
-import co.sirdab.driver.shared.feature.bidding.impl.navigation.biddingEntries
-import co.sirdab.driver.shared.feature.loadboard.api.LoadboardRoute
-import co.sirdab.driver.shared.feature.loadboard.impl.navigation.loadboardEntries
 import co.sirdab.driver.shared.feature.notifications.api.NotificationsRoute
 import co.sirdab.driver.shared.feature.notifications.impl.navigation.notificationsEntries
 import co.sirdab.driver.shared.feature.profile.api.navigation.ProfileRoute
@@ -100,24 +96,13 @@ private fun AppNavHost(authRepository: AuthRepository) {
                 entry<MainRoute> { route ->
                     MainShell(
                         initialTab = route.tab,
-                        onOpenLoad = { loadId -> backStack.add(LoadboardRoute.LoadDetail(loadId)) },
-                        onCapturePod = { tripId -> backStack.add(TripRoute.Pod(tripId)) },
                         onOpenInbox = { backStack.add(NotificationsRoute.Inbox) },
                         onOpenHistory = { backStack.add(ProfileRoute.History) },
-                        onOpenAutoBid = { backStack.add(ProfileRoute.AutoBid) },
+                        onOpenTrip = { tripId -> backStack.add(TripRoute.Detail(tripId)) },
                     )
                 }
-                loadboardEntries(
-                    onBack = { backStack.removeLastOrNull() },
-                    onPlaceBid = { loadId -> backStack.add(BiddingRoute.Compose(loadId)) },
-                )
-                biddingEntries(
-                    onBack = { backStack.removeLastOrNull() },
-                    onBidPlaced = { backStack.add(BiddingRoute.MyBids) },
-                )
                 tripEntries(
                     onBack = { backStack.removeLastOrNull() },
-                    onPodDone = { backStack.removeLastOrNull() },
                 )
                 notificationsEntries(
                     onBack = { backStack.removeLastOrNull() },

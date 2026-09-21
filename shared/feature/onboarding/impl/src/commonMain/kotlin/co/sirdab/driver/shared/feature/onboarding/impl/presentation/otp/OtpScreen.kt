@@ -16,8 +16,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
+import co.sirdab.driver.shared.core.network.BackendMode
 import co.sirdab.driver.shared.core.ui.components.DriverButton
+import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.components.DriverOtpField
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.otp_hint_demo
@@ -27,17 +30,25 @@ import co.sirdab.driver.shared.core.ui.generated.resources.resend_code
 import co.sirdab.driver.shared.core.ui.generated.resources.verify
 import co.sirdab.driver.shared.core.ui.theme.Spacing
 import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
+import co.sirdab.driver.shared.feature.onboarding.api.domain.StartDestination
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 data class OtpUiState(
     val code: String = "",
     val isLoading: Boolean = false,
+    /**
+     * Why the last attempt failed. A wrong code and "your dispatcher has not added you yet" both
+     * arrive here, and they are not the same thing to the driver holding the phone.
+     */
+    val errorMessage: String? = null,
+    val errorReason: AppErrorReason? = null,
 )
 
 class OtpViewModel(
@@ -48,18 +59,29 @@ class OtpViewModel(
     val state: StateFlow<OtpUiState> = _state.asStateFlow()
 
     fun onCodeChange(value: String) {
-        _state.value = _state.value.copy(code = value)
+        _state.value = _state.value.copy(code = value, errorMessage = null, errorReason = null)
     }
 
-    fun verify(onVerified: () -> Unit) {
+    /**
+     * [onVerified] receives where the driver belongs next.
+     *
+     * A driver a dispatcher already created has nothing left to fill in, so they
+     * go straight to the shell; the remaining onboarding screens exist for a
+     * self-signup flow the API does not offer yet.
+     */
+    fun verify(onVerified: (StartDestination) -> Unit) {
         _state.value = _state.value.copy(isLoading = true)
         viewModelScope.launch {
-            when (authRepository.verifyOtp(_state.value.code)) {
+            when (val result = authRepository.verifyOtp(_state.value.code)) {
                 is AppResult.Success -> {
                     _state.value = _state.value.copy(isLoading = false)
-                    onVerified()
+                    onVerified(authRepository.resolveStartDestination())
                 }
-                is AppResult.Failure -> _state.value = _state.value.copy(isLoading = false)
+                is AppResult.Failure -> _state.value = _state.value.copy(
+                    isLoading = false,
+                    errorMessage = result.error.message,
+                    errorReason = result.error.reason,
+                )
             }
         }
     }
@@ -68,8 +90,9 @@ class OtpViewModel(
 @Composable
 fun OtpScreen(
     phone: String,
-    onVerified: () -> Unit,
+    onVerified: (StartDestination) -> Unit,
     viewModel: OtpViewModel = koinViewModel { parametersOf(phone) },
+    backendMode: BackendMode = koinInject(),
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -87,11 +110,23 @@ fun OtpScreen(
             Spacer(Modifier.height(Spacing.lg))
             DriverOtpField(value = state.code, onValueChange = viewModel::onCodeChange)
             Spacer(Modifier.height(Spacing.sm))
-            Text(
-                stringResource(Res.string.otp_hint_demo),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            val errorReason = state.errorReason
+            val errorMessage = errorReason?.let { stringResource(it.labelRes()) } ?: state.errorMessage
+            if (errorMessage != null) {
+                Text(
+                    errorMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            } else if (backendMode == BackendMode.DEMO) {
+                // Only true of the demo world. Against a real Supabase the code
+                // is checked, and promising otherwise sends the driver in circles.
+                Text(
+                    stringResource(Res.string.otp_hint_demo),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
             Spacer(Modifier.height(Spacing.xl))
             DriverButton(
                 text = stringResource(Res.string.verify),

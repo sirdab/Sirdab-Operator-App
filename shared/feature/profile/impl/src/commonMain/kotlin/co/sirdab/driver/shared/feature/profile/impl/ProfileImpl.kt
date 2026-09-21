@@ -6,7 +6,6 @@ import co.sirdab.driver.shared.core.model.DocStatus
 import co.sirdab.driver.shared.core.model.DocType
 import co.sirdab.driver.shared.core.model.Document
 import co.sirdab.driver.shared.feature.profile.api.domain.DocumentRepository
-import co.sirdab.driver.shared.feature.profile.impl.presentation.AutoBidViewModel
 import co.sirdab.driver.shared.feature.profile.impl.presentation.HistoryViewModel
 import co.sirdab.driver.shared.feature.profile.impl.presentation.ProfileViewModel
 import kotlinx.coroutines.delay
@@ -48,5 +47,4 @@ val profileModule: Module = module {
     single { DocumentRepositoryMock(get()) } bind DocumentRepository::class
     viewModelOf(::ProfileViewModel)
     viewModelOf(::HistoryViewModel)
-    viewModelOf(::AutoBidViewModel)
 }

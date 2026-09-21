@@ -15,13 +15,12 @@ import co.sirdab.driver.shared.core.model.NotificationKind
 import co.sirdab.driver.shared.core.model.ReeferRange
 import co.sirdab.driver.shared.core.model.Shipper
 import co.sirdab.driver.shared.core.model.TimeWindow
-import co.sirdab.driver.shared.core.model.TxnStatus
-import co.sirdab.driver.shared.core.model.TxnType
+import co.sirdab.driver.shared.core.model.TruckSize
+import co.sirdab.driver.shared.core.model.TruckType
 import co.sirdab.driver.shared.core.model.VehicleType
 import co.sirdab.driver.shared.core.model.VerificationState
 import co.sirdab.driver.shared.core.model.Vehicle
-import co.sirdab.driver.shared.core.model.WalletState
-import co.sirdab.driver.shared.core.model.WalletTxn
+import co.sirdab.driver.shared.core.model.TripEarning
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
@@ -67,7 +66,7 @@ data class VerifiedSeed(
     val carrierScore: Double,
     val tripsCompleted: Int,
     val onTimePercent: Int,
-    val wallet: WalletState,
+    val earnings: List<TripEarning>,
     val documents: List<Document>,
     val notifications: List<AppNotification>,
 )
@@ -125,11 +124,7 @@ class FixtureLoader(private val json: Json) {
         return WorldState(
             driver = freshDriver(),
             personas = personas(),
-            cities = cities,
-            shippers = shippers,
-            loads = loads,
-            polylines = emptyList(),
-            wallet = WalletState(availableSar = 0, pendingSar = 0),
+            earnings = emptyList(),
             documents = missingDocuments(),
             notifications = emptyList(),
             onboardingComplete = false,
@@ -142,20 +137,15 @@ class FixtureLoader(private val json: Json) {
             carrierScore = 4.6,
             tripsCompleted = 87,
             onTimePercent = 96,
-            wallet = WalletState(
-                availableSar = 3240,
-                pendingSar = 8750,
-                transactions = listOf(
-                    WalletTxn("tx-1", TxnType.EARNING, 1680, TxnStatus.PENDING, "Riyadh → Dammam", "الرياض ← الدمام", now - 2 * HOUR_MS),
-                    WalletTxn("tx-2", TxnType.EARNING, 3100, TxnStatus.SETTLED, "Jeddah → Riyadh", "جدة ← الرياض", now - 3 * DAY_MS),
-                    WalletTxn("tx-3", TxnType.PAYOUT, -5000, TxnStatus.SETTLED, "Payout to bank", "تحويل للبنك", now - 5 * DAY_MS),
-                    WalletTxn("tx-4", TxnType.EARNING, 1600, TxnStatus.SETTLED, "Dammam → Riyadh", "الدمام ← الرياض", now - 9 * DAY_MS),
-                    WalletTxn("tx-5", TxnType.EARNING, 2900, TxnStatus.SETTLED, "Riyadh → Abha", "الرياض ← أبها", now - 12 * DAY_MS),
-                    WalletTxn("tx-6", TxnType.EARNING, 1350, TxnStatus.SETTLED, "Riyadh → Qassim", "الرياض ← القصيم", now - 16 * DAY_MS),
-                    WalletTxn("tx-7", TxnType.EARNING, 1750, TxnStatus.SETTLED, "Jubail → Riyadh", "الجبيل ← الرياض", now - 20 * DAY_MS),
-                    WalletTxn("tx-8", TxnType.EARNING, 3300, TxnStatus.SETTLED, "Jeddah → Riyadh", "جدة ← الرياض", now - 26 * DAY_MS),
-                    WalletTxn("tx-9", TxnType.EARNING, 1500, TxnStatus.SETTLED, "Jeddah → Madinah", "جدة ← المدينة", now - 33 * DAY_MS),
-                ),
+            earnings = listOf(
+                TripEarning("e-1", 1680, "Riyadh → Dammam", "الرياض ← الدمام", now - 2 * HOUR_MS),
+                TripEarning("e-2", 3100, "Jeddah → Riyadh", "جدة ← الرياض", now - 3 * DAY_MS),
+                TripEarning("e-3", 1600, "Dammam → Riyadh", "الدمام ← الرياض", now - 9 * DAY_MS),
+                TripEarning("e-4", 2900, "Riyadh → Abha", "الرياض ← أبها", now - 12 * DAY_MS),
+                TripEarning("e-5", 1350, "Riyadh → Qassim", "الرياض ← القصيم", now - 16 * DAY_MS),
+                TripEarning("e-6", 1750, "Jubail → Riyadh", "الجبيل ← الرياض", now - 20 * DAY_MS),
+                TripEarning("e-7", 3300, "Jeddah → Riyadh", "جدة ← الرياض", now - 26 * DAY_MS),
+                TripEarning("e-8", 1500, "Jeddah → Madinah", "جدة ← المدينة", now - 33 * DAY_MS),
             ),
             documents = verifiedDocuments(now),
             notifications = listOf(
@@ -185,9 +175,9 @@ class FixtureLoader(private val json: Json) {
     )
 
     private fun personas() = listOf(
-        Driver("p-flatbed", "Faisal Al-Otaibi", "فيصل العتيبي", "+966501234567", VerificationState.VERIFIED, 4.6, 87, 96, Vehicle(VehicleType.FLATBED, "RSH 4821", 25.0), "flatbed_verified"),
+        Driver("p-flatbed", "Faisal Al-Otaibi", "فيصل العتيبي", "+966501234567", VerificationState.VERIFIED, 4.6, 87, 96, Vehicle(TruckType.DRY, TruckSize.FLATBED, "RSH 4821", 25.0), "flatbed_verified"),
         Driver("p-new", "", "", "", VerificationState.UNVERIFIED, personaKey = "new_unverified"),
-        Driver("p-van", "Bilal Khan", "بلال خان", "+966559876543", VerificationState.VERIFIED, 4.3, 41, 92, Vehicle(VehicleType.VAN_3T, "JED 2019", 3.0), "van_3t"),
+        Driver("p-van", "Bilal Khan", "بلال خان", "+966559876543", VerificationState.VERIFIED, 4.3, 41, 92, Vehicle(TruckType.DRY, TruckSize.CARGO_VAN, "JED 2019", 3.0), "van_3t"),
     )
 
     private fun missingDocuments() = listOf(

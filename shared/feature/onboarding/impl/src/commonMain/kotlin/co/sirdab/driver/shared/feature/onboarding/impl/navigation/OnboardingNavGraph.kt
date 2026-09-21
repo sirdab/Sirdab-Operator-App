@@ -3,16 +3,16 @@ package co.sirdab.driver.shared.feature.onboarding.impl.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import co.sirdab.driver.shared.feature.onboarding.api.navigation.OnboardingRoute
-import co.sirdab.driver.shared.feature.onboarding.impl.presentation.docs.DocUploadScreen
-import co.sirdab.driver.shared.feature.onboarding.impl.presentation.nafath.NafathScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.otp.OtpScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.phone.PhoneScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.splash.SplashScreen
-import co.sirdab.driver.shared.feature.onboarding.impl.presentation.vehicle.VehicleScreen
 
 /**
- * Registers the 6 onboarding screens. The host owns the back stack; navigation is delivered via
- * the callbacks (reference `*Entries` convention).
+ * Three screens: pick a language, prove a phone, done.
+ *
+ * There is no sign-up wizard, because a driver does not sign themselves up. A dispatcher creates
+ * the driver row against a phone number, and verifying that number is what links the two. Either
+ * the code lands them in the shell or the OTP screen tells them their number was never added.
  */
 fun EntryProviderScope<NavKey>.onboardingEntries(
     onNavigate: (OnboardingRoute) -> Unit,
@@ -25,15 +25,6 @@ fun EntryProviderScope<NavKey>.onboardingEntries(
         PhoneScreen(onCodeSent = { phone -> onNavigate(OnboardingRoute.Otp(phone)) })
     }
     entry<OnboardingRoute.Otp> { route ->
-        OtpScreen(phone = route.phone, onVerified = { onNavigate(OnboardingRoute.Nafath) })
-    }
-    entry<OnboardingRoute.Nafath> {
-        NafathScreen(onVerified = { onNavigate(OnboardingRoute.DocUpload) })
-    }
-    entry<OnboardingRoute.DocUpload> {
-        DocUploadScreen(onDone = { onNavigate(OnboardingRoute.VehicleReg) })
-    }
-    entry<OnboardingRoute.VehicleReg> {
-        VehicleScreen(onFinished = onFinished)
+        OtpScreen(phone = route.phone, onVerified = { onFinished() })
     }
 }

@@ -3,8 +3,7 @@ package co.sirdab.driver.shared.feature.profile.impl.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.sirdab.driver.shared.core.demo.DemoWorld
-import co.sirdab.driver.shared.core.model.TxnType
-import co.sirdab.driver.shared.core.model.WalletTxn
+import co.sirdab.driver.shared.core.model.TripEarning
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -17,7 +16,7 @@ data class WeekBar(val weeksAgo: Int, val amountSar: Int)
 
 data class HistoryUiState(
     val bars: List<WeekBar> = emptyList(),
-    val earnings: List<WalletTxn> = emptyList(),
+    val earnings: List<TripEarning> = emptyList(),
 )
 
 @OptIn(ExperimentalTime::class)
@@ -25,15 +24,15 @@ class HistoryViewModel(demoWorld: DemoWorld) : ViewModel() {
 
     val state = demoWorld.state.map { world ->
         val now = Clock.System.now().toEpochMilliseconds()
-        val earnings = world.wallet.transactions.filter { it.type == TxnType.EARNING }
+        val earnings = world.earnings
         val buckets = IntArray(6)
         earnings.forEach { txn ->
-            val week = ((now - txn.createdAtMillis) / WEEK_MS).toInt()
+            val week = ((now - txn.earnedAtMillis) / WEEK_MS).toInt()
             if (week in 0..5) buckets[5 - week] += txn.amountSar
         }
         HistoryUiState(
             bars = buckets.mapIndexed { i, v -> WeekBar(weeksAgo = 5 - i, amountSar = v) },
-            earnings = earnings.sortedByDescending { it.createdAtMillis },
+            earnings = earnings.sortedByDescending { it.earnedAtMillis },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, HistoryUiState())
 }

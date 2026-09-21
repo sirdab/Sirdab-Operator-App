@@ -1,13 +1,13 @@
 package co.sirdab.driver.shared.feature.onboarding.impl.di
 
 import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
+import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfileRemote
 import co.sirdab.driver.shared.feature.onboarding.impl.data.AuthRepositoryMock
-import co.sirdab.driver.shared.feature.onboarding.impl.presentation.docs.DocUploadViewModel
-import co.sirdab.driver.shared.feature.onboarding.impl.presentation.nafath.NafathViewModel
+import co.sirdab.driver.shared.feature.onboarding.impl.data.AuthRepositoryTms
+import co.sirdab.driver.shared.feature.onboarding.impl.data.DriverProfileRemoteHttp
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.otp.OtpViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.phone.PhoneViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.splash.SplashViewModel
-import co.sirdab.driver.shared.feature.onboarding.impl.presentation.vehicle.VehicleViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -20,7 +20,12 @@ val onboardingModule: Module = module {
     viewModelOf(::SplashViewModel)
     viewModelOf(::PhoneViewModel)
     viewModel { (phone: String) -> OtpViewModel(phone, get()) }
-    viewModelOf(::NafathViewModel)
-    viewModelOf(::DocUploadViewModel)
-    viewModelOf(::VehicleViewModel)
+}
+
+/**
+ * Overrides the mock with the real sign-in. Loaded after [onboardingModule] in `createTmsModules`.
+ */
+val tmsOnboardingModule: Module = module {
+    single { DriverProfileRemoteHttp(get()) } bind DriverProfileRemote::class
+    single { AuthRepositoryTms(get(), get(), get()) } bind AuthRepository::class
 }

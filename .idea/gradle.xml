@@ -25,9 +25,11 @@
             <option value="$PROJECT_DIR$/composeApp" />
             <option value="$PROJECT_DIR$/shared" />
             <option value="$PROJECT_DIR$/shared/core" />
+            <option value="$PROJECT_DIR$/shared/core/auth" />
             <option value="$PROJECT_DIR$/shared/core/demo" />
             <option value="$PROJECT_DIR$/shared/core/model" />
             <option value="$PROJECT_DIR$/shared/core/navigation" />
+            <option value="$PROJECT_DIR$/shared/core/network" />
             <option value="$PROJECT_DIR$/shared/core/platform" />
             <option value="$PROJECT_DIR$/shared/core/preferences" />
             <option value="$PROJECT_DIR$/shared/core/ui" />

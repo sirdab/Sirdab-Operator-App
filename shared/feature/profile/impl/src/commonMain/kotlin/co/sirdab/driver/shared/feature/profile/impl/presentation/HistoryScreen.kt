@@ -35,19 +35,21 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import co.sirdab.driver.shared.core.ui.components.ChipTone
 import co.sirdab.driver.shared.core.ui.components.TagChip
-import co.sirdab.driver.shared.core.model.TxnStatus
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.history_completed_trips
 import co.sirdab.driver.shared.core.ui.generated.resources.history_earnings
 import co.sirdab.driver.shared.core.ui.generated.resources.history_empty
 import co.sirdab.driver.shared.core.ui.generated.resources.history_title
-import co.sirdab.driver.shared.core.ui.generated.resources.txn_pending
-import co.sirdab.driver.shared.core.ui.generated.resources.txn_settled
 import co.sirdab.driver.shared.core.ui.generated.resources.unit_sar
 import co.sirdab.driver.shared.core.ui.theme.AppColors
 import co.sirdab.driver.shared.core.ui.theme.Radius
 import co.sirdab.driver.shared.core.ui.theme.Spacing
+import co.sirdab.driver.shared.core.util.localizeDigits
 import co.sirdab.driver.shared.core.util.toGroupedString
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -88,9 +90,13 @@ fun HistoryScreen(
                                 Column(Modifier.weight(1f)) {
                                     Text(if (lang == "ar") txn.descriptionAr else txn.descriptionEn, style = MaterialTheme.typography.bodyLarge)
                                     Spacer(Modifier.height(2.dp))
-                                    TagChip(
-                                        if (txn.status == TxnStatus.SETTLED) stringResource(Res.string.txn_settled) else stringResource(Res.string.txn_pending),
-                                        tone = if (txn.status == TxnStatus.SETTLED) ChipTone.SUCCESS else ChipTone.WARNING,
+                                    // Every trip is paid on delivery, so there is no
+                                    // settlement state to show. The date is what the
+                                    // operator actually wants to scan for.
+                                    Text(
+                                        formatEarnedOn(txn.earnedAtMillis, lang),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
                                 Text("${txn.amountSar.toGroupedString(lang)} ${stringResource(Res.string.unit_sar)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = AppColors.Green.c600)
@@ -134,4 +140,10 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRoundedBar(
         size = Size(w, h.coerceAtLeast(2f)),
         cornerRadius = androidx.compose.ui.geometry.CornerRadius(8f, 8f),
     )
+}
+
+@OptIn(ExperimentalTime::class)
+private fun formatEarnedOn(millis: Long, lang: String): String {
+    val at = Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.currentSystemDefault())
+    return "${at.dayOfMonth}/${at.monthNumber}/${at.year}".localizeDigits(lang)
 }

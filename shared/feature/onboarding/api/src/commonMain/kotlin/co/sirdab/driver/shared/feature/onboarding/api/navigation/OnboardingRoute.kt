@@ -8,7 +8,4 @@ sealed interface OnboardingRoute : NavKey {
     @Serializable data object Splash : OnboardingRoute
     @Serializable data object PhoneEntry : OnboardingRoute
     @Serializable data class Otp(val phone: String) : OnboardingRoute
-    @Serializable data object Nafath : OnboardingRoute
-    @Serializable data object DocUpload : OnboardingRoute
-    @Serializable data object VehicleReg : OnboardingRoute
 }

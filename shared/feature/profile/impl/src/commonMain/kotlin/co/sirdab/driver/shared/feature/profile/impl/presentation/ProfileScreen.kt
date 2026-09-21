@@ -51,7 +51,6 @@ import co.sirdab.driver.shared.core.ui.generated.resources.docstat_expiring
 import co.sirdab.driver.shared.core.ui.generated.resources.docstat_missing
 import co.sirdab.driver.shared.core.ui.generated.resources.docstat_verified
 import co.sirdab.driver.shared.core.ui.generated.resources.docstat_verifying
-import co.sirdab.driver.shared.core.ui.generated.resources.profile_autobid
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_documents
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_history
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_language
@@ -82,7 +81,6 @@ private const val DAY_MS = 86_400_000L
 @Composable
 fun ProfileScreen(
     onOpenHistory: () -> Unit,
-    onOpenAutoBid: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -126,7 +124,7 @@ fun ProfileScreen(
                 Column(Modifier.padding(Spacing.md)) {
                     Text(stringResource(Res.string.profile_vehicle), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(2.dp))
-                    Text("${stringResource(v.type.labelRes())} • ${v.plate}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("${stringResource(v.truckSize.labelRes())} · ${stringResource(v.truckType.labelRes())} • ${v.plate}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -143,7 +141,6 @@ fun ProfileScreen(
         Spacer(Modifier.height(Spacing.lg))
         ActionRow(stringResource(Res.string.profile_history), onOpenHistory)
         Spacer(Modifier.height(Spacing.xs))
-        ActionRow(stringResource(Res.string.profile_autobid), onOpenAutoBid)
 
         // Settings — language
         Spacer(Modifier.height(Spacing.lg))

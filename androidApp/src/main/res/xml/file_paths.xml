@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The one directory the camera app is granted write access to.
+
+  Scoped to `cache/camera` rather than the whole cache: the grant is handed to
+  another application, and it should reach exactly the file being photographed
+  into and nothing else this app has stored.
+-->
+<paths>
+    <cache-path name="camera" path="camera/" />
+</paths>

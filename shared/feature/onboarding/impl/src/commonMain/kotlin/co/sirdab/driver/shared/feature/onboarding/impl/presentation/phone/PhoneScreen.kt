@@ -15,8 +15,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.ui.components.DriverButton
+import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.components.PhoneNumberField
 import co.sirdab.driver.shared.core.ui.components.StepProgress
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
@@ -38,6 +40,9 @@ data class PhoneUiState(
     val phone: String = "",
     val isLoading: Boolean = false,
     val showError: Boolean = false,
+    /** What the backend said. Null falls back to the local format message. */
+    val errorMessage: String? = null,
+    val errorReason: AppErrorReason? = null,
 )
 
 class PhoneViewModel(private val authRepository: AuthRepository) : ViewModel() {
@@ -45,7 +50,7 @@ class PhoneViewModel(private val authRepository: AuthRepository) : ViewModel() {
     val state: StateFlow<PhoneUiState> = _state.asStateFlow()
 
     fun onPhoneChange(value: String) {
-        _state.value = _state.value.copy(phone = value, showError = false)
+        _state.value = _state.value.copy(phone = value, showError = false, errorMessage = null, errorReason = null)
     }
 
     fun submit(onSent: () -> Unit) {
@@ -56,12 +61,17 @@ class PhoneViewModel(private val authRepository: AuthRepository) : ViewModel() {
         }
         _state.value = current.copy(isLoading = true)
         viewModelScope.launch {
-            when (authRepository.requestOtp("+966${current.phone}")) {
+            when (val result = authRepository.requestOtp("+966${current.phone}")) {
                 is AppResult.Success -> {
                     _state.value = _state.value.copy(isLoading = false)
                     onSent()
                 }
-                is AppResult.Failure -> _state.value = _state.value.copy(isLoading = false, showError = true)
+                is AppResult.Failure -> _state.value = _state.value.copy(
+                    isLoading = false,
+                    showError = true,
+                    errorMessage = result.error.message,
+                    errorReason = result.error.reason,
+                )
             }
         }
     }
@@ -73,12 +83,13 @@ fun PhoneScreen(
     viewModel: PhoneViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val reason = state.errorReason
 
     Scaffold { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(Spacing.lg),
         ) {
-            StepProgress(current = 1, total = 6)
+            StepProgress(current = 1, total = 5)
             Spacer(Modifier.height(Spacing.xl))
             Text(stringResource(Res.string.phone_title), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(Spacing.xs))
@@ -93,7 +104,12 @@ fun PhoneScreen(
                 onValueChange = viewModel::onPhoneChange,
                 label = stringResource(Res.string.phone_label),
                 isError = state.showError,
-                supportingText = if (state.showError) stringResource(Res.string.phone_error) else null,
+                supportingText = when {
+                    !state.showError -> null
+                    reason != null -> stringResource(reason.labelRes())
+                    state.errorMessage != null -> state.errorMessage
+                    else -> stringResource(Res.string.phone_error)
+                },
             )
             Spacer(Modifier.height(Spacing.xl))
             DriverButton(

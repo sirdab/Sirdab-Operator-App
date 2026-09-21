@@ -1,13 +1,6 @@
 package co.sirdab.driver.shared.core.demo
 
-import co.sirdab.driver.shared.core.model.AutoBidRule
-import co.sirdab.driver.shared.core.model.Bid
-import co.sirdab.driver.shared.core.model.BidStatus
-import co.sirdab.driver.shared.core.model.Trip
-import co.sirdab.driver.shared.core.model.TripStatus
-import co.sirdab.driver.shared.core.model.TxnStatus
 import co.sirdab.driver.shared.core.model.Vehicle
-import co.sirdab.driver.shared.core.model.VehicleType
 import co.sirdab.driver.shared.core.model.VerificationState
 import co.sirdab.driver.shared.core.preferences.KeyValueStore
 import co.sirdab.driver.shared.core.util.testing.OpenForTesting
@@ -64,59 +57,7 @@ class DemoWorld(
 
     fun setDriverPhone(phone: String) = update { it.copy(driver = it.driver.copy(phone = phone)) }
 
-    fun saveAutoBid(rule: AutoBidRule) = update { it.copy(autoBidRule = rule) }
 
-    /** Jump the world to a demo scenario in one tap (plan §10). */
-    @OptIn(ExperimentalTime::class)
-    suspend fun applyScenario(scenario: DemoScenario) {
-        val now = Clock.System.now().toEpochMilliseconds()
-        when (scenario) {
-            DemoScenario.NEW_DRIVER -> reset()
-            DemoScenario.BROWSING -> {
-                switchPersona("flatbed_verified")
-                update { it.copy(bids = emptyList(), trips = emptyList()) }
-            }
-            DemoScenario.BID_PENDING -> {
-                switchPersona("flatbed_verified")
-                update { w ->
-                    val load = w.loads.firstOrNull { it.requiredVehicle == VehicleType.FLATBED } ?: return@update w
-                    val bid = Bid(
-                        id = "bid-scn-$now",
-                        loadId = load.id,
-                        amountSar = load.suggestedRateSar,
-                        note = "Demo",
-                        status = BidStatus.PENDING,
-                        placedAtMillis = now,
-                        updatedAtMillis = now,
-                    )
-                    w.copy(bids = listOf(bid) + w.bids.filter { it.status != BidStatus.PENDING })
-                }
-            }
-            DemoScenario.TRIP_MID -> {
-                switchPersona("flatbed_verified")
-                update { w ->
-                    val load = w.loads.firstOrNull { it.requiredVehicle == VehicleType.FLATBED } ?: return@update w
-                    val trip = Trip("trip-scn-$now", load.id, TripStatus.EN_ROUTE_TO_DROPOFF, load.suggestedRateSar, routeProgress = 0.6f, etaMinutes = 90, startedAtMillis = now)
-                    w.copy(trips = listOf(trip) + w.trips.filter { it.status == TripStatus.COMPLETED })
-                }
-            }
-            DemoScenario.POD_PENDING -> {
-                switchPersona("flatbed_verified")
-                update { w ->
-                    val load = w.loads.firstOrNull { it.requiredVehicle == VehicleType.FLATBED } ?: return@update w
-                    val trip = Trip("trip-scn-$now", load.id, TripStatus.POD_PENDING, load.suggestedRateSar, routeProgress = 1f, startedAtMillis = now)
-                    w.copy(trips = listOf(trip) + w.trips.filter { it.status == TripStatus.COMPLETED })
-                }
-            }
-            DemoScenario.PAID -> update { w ->
-                w.copy(wallet = w.wallet.copy(
-                    availableSar = w.wallet.availableSar + w.wallet.pendingSar,
-                    pendingSar = 0,
-                    transactions = w.wallet.transactions.map { it.copy(status = TxnStatus.SETTLED) },
-                ))
-            }
-        }
-    }
 
     /** Swap the active driver to one of the seeded demo personas. */
     fun switchPersona(personaKey: String) = update { w ->
@@ -139,7 +80,7 @@ class DemoWorld(
                     vehicle = vehicle,
                     personaKey = "flatbed_verified",
                 ),
-                wallet = seed.wallet,
+                earnings = seed.earnings,
                 documents = seed.documents,
                 notifications = seed.notifications,
                 onboardingComplete = true,

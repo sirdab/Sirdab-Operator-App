@@ -3,14 +3,15 @@ package co.sirdab.driver.shared.feature.trip.impl.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import co.sirdab.driver.shared.feature.trip.api.TripRoute
-import co.sirdab.driver.shared.feature.trip.impl.presentation.PodScreen
+import co.sirdab.driver.shared.feature.trip.impl.presentation.DriverTripDetailScreen
 
-/** Active trip is hosted in MainShell's Trip tab; only POD capture is pushed over the shell. */
+/**
+ * The trip tab itself is hosted in MainShell; everything below is pushed over the shell.
+ */
 fun EntryProviderScope<NavKey>.tripEntries(
     onBack: () -> Unit,
-    onPodDone: () -> Unit,
 ) {
-    entry<TripRoute.Pod> { route ->
-        PodScreen(tripId = route.tripId, onBack = onBack, onDone = onPodDone)
+    entry<TripRoute.Detail> { route ->
+        DriverTripDetailScreen(tripId = route.tripId, onBack = onBack)
     }
 }

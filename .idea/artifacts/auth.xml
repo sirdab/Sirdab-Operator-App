@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="auth">
+    <output-path>$PROJECT_DIR$/shared/core/auth/build/libs</output-path>
+    <root id="archive" name="auth.jar">
+      <element id="module-output" name="MyApplication.shared.core.auth.androidMain" />
+    </root>
+  </artifact>
+</component>

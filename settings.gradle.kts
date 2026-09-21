@@ -39,16 +39,16 @@ include(":shared:core:util")
 include(":shared:core:platform")
 include(":shared:core:navigation")
 include(":shared:core:preferences")
+include(":shared:core:network")
+include(":shared:core:queue")
+include(":shared:core:auth")
+include(":shared:core:media")
 include(":shared:core:ui")
 include(":shared:core:demo")
 
 // Onboarding
 include(":shared:feature:onboarding:api")
 include(":shared:feature:onboarding:impl")
-
-// Loadboard
-include(":shared:feature:loadboard:api")
-include(":shared:feature:loadboard:impl")
 
 // Bidding
 include(":shared:feature:bidding:api")
@@ -58,9 +58,6 @@ include(":shared:feature:bidding:impl")
 include(":shared:feature:trip:api")
 include(":shared:feature:trip:impl")
 
-// Wallet
-include(":shared:feature:wallet:api")
-include(":shared:feature:wallet:impl")
 
 // Profile
 include(":shared:feature:profile:api")

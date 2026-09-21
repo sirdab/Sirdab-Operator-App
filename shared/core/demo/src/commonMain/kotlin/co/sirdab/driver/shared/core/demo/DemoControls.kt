@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 enum class ForcedBidOutcome { AUTO, WIN, COUNTER, LOSE }
 
 /** One-tap demo scenarios (plan §10). */
-enum class DemoScenario { NEW_DRIVER, BROWSING, BID_PENDING, TRIP_MID, POD_PENDING, PAID }
+enum class DemoScenario { NEW_DRIVER, BROWSING, BID_PENDING, TRIP_MID, POD_PENDING }
 
 /**
  * Shared knobs the demo control panel writes and the simulation reads, so a live demo becomes a

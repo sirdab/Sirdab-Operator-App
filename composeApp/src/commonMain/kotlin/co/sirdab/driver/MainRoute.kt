@@ -7,4 +7,4 @@ import kotlinx.serialization.Serializable
 data class MainRoute(val tab: MainTab = MainTab.LOADS) : NavKey
 
 @Serializable
-enum class MainTab { LOADS, TRIP, WALLET, PROFILE }
+enum class MainTab { LOADS, TRIP, PROFILE }

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
@@ -29,18 +28,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import co.sirdab.driver.shared.core.model.Driver
+import co.sirdab.driver.shared.core.network.BackendMode
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.coming_soon
 import co.sirdab.driver.shared.core.ui.generated.resources.section_in_progress
 import co.sirdab.driver.shared.core.ui.generated.resources.tab_loads
 import co.sirdab.driver.shared.core.ui.generated.resources.tab_profile
 import co.sirdab.driver.shared.core.ui.generated.resources.tab_trip
-import co.sirdab.driver.shared.core.ui.generated.resources.tab_wallet
 import co.sirdab.driver.shared.core.ui.theme.Spacing
-import co.sirdab.driver.shared.feature.loadboard.impl.presentation.LoadBoardScreen
+import co.sirdab.driver.shared.feature.bidding.impl.presentation.DriverPostingsScreen
 import co.sirdab.driver.shared.feature.profile.impl.presentation.ProfileScreen
-import co.sirdab.driver.shared.feature.trip.impl.presentation.ActiveTripScreen
-import co.sirdab.driver.shared.feature.wallet.impl.presentation.WalletScreen
+import co.sirdab.driver.shared.feature.trip.impl.presentation.DriverTripsScreen
 import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -51,21 +49,24 @@ private data class TabSpec(val tab: MainTab, val icon: ImageVector, val label: S
 @Composable
 fun MainShell(
     initialTab: MainTab = MainTab.LOADS,
-    onOpenLoad: (String) -> Unit,
-    onCapturePod: (String) -> Unit,
     onOpenInbox: () -> Unit,
     onOpenHistory: () -> Unit,
-    onOpenAutoBid: () -> Unit,
+    onOpenTrip: (String) -> Unit,
     authRepository: AuthRepository = koinInject(),
+    backendMode: BackendMode = koinInject(),
 ) {
-    var selected by rememberSaveable { mutableStateOf(initialTab) }
-
-    val tabs = listOf(
-        TabSpec(MainTab.LOADS, Icons.Default.LocalShipping, Res.string.tab_loads),
-        TabSpec(MainTab.TRIP, Icons.Default.Map, Res.string.tab_trip),
-        TabSpec(MainTab.WALLET, Icons.Default.AccountBalanceWallet, Res.string.tab_wallet),
+    // Postings and trips both come from the TMS now that the demo world's own
+    // board and trip simulation are gone, so demo mode is the profile alone.
+    val tmsOnly = backendMode == BackendMode.TMS
+    val tabs = listOfNotNull(
+        TabSpec(MainTab.LOADS, Icons.Default.LocalShipping, Res.string.tab_loads).takeIf { tmsOnly },
+        TabSpec(MainTab.TRIP, Icons.Default.Map, Res.string.tab_trip).takeIf { tmsOnly },
         TabSpec(MainTab.PROFILE, Icons.Default.Person, Res.string.tab_profile),
     )
+
+    var selected by rememberSaveable {
+        mutableStateOf(if (tabs.none { it.tab == initialTab }) MainTab.PROFILE else initialTab)
+    }
 
     Scaffold(
         bottomBar = {
@@ -83,10 +84,9 @@ fun MainShell(
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (selected) {
-                MainTab.LOADS -> LoadBoardScreen(onOpenLoad = onOpenLoad, onOpenInbox = onOpenInbox)
-                MainTab.TRIP -> ActiveTripScreen(onCapturePod = onCapturePod)
-                MainTab.WALLET -> WalletScreen()
-                MainTab.PROFILE -> ProfileScreen(onOpenHistory = onOpenHistory, onOpenAutoBid = onOpenAutoBid)
+                MainTab.LOADS -> DriverPostingsScreen()
+                MainTab.TRIP -> DriverTripsScreen(onOpenTrip = onOpenTrip)
+                MainTab.PROFILE -> ProfileScreen(onOpenHistory = onOpenHistory)
             }
         }
     }
