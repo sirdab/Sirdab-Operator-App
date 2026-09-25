@@ -6,7 +6,9 @@ import co.sirdab.driver.shared.core.demo.di.demoModule
 import co.sirdab.driver.shared.core.network.TmsEnvironment
 import co.sirdab.driver.shared.core.network.di.anonymousTokenModule
 import co.sirdab.driver.shared.core.network.di.networkModule
+import co.sirdab.driver.shared.core.platform.browser.platformUrlOpenerModule
 import co.sirdab.driver.shared.core.platform.dialer.platformDialerModule
+import co.sirdab.driver.shared.core.platform.maps.platformMapLauncherModule
 import co.sirdab.driver.shared.core.platform.files.platformFileStoreModule
 import co.sirdab.driver.shared.core.platform.notification.platformNotifierModule
 import co.sirdab.driver.shared.core.preferences.di.preferencesModule
@@ -30,6 +32,8 @@ fun createDemoModules(): List<Module> = listOf(
     preferencesPlatformModule(),
     platformNotifierModule(),
     platformDialerModule(),
+    platformMapLauncherModule(),
+    platformUrlOpenerModule(),
     demoModule,
     anonymousTokenModule,
     // Features
@@ -57,6 +61,8 @@ fun createTmsModules(
     preferencesPlatformModule(),
     platformNotifierModule(),
     platformDialerModule(),
+    platformMapLauncherModule(),
+    platformUrlOpenerModule(),
     demoModule,
     // Network and session
     networkModule(environment, logLevel),

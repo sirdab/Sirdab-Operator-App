@@ -40,4 +40,16 @@ class HttpLoggerTest {
             .isEqualTo(false)
         assertThat(isLoggableBody("http://host:4400/api/driver/trips")).isEqualTo(true)
     }
+
+    @Test
+    fun `blanks the credential in a signed storage url`() {
+        val line = "UPLOAD OK 200 1024B -> http://host:54321/storage/v1/object/upload/sign/x.jpg?token=eyJsecret"
+        val body = """{"downloadUrl":"https://host/storage/v1/object/sign/doc.jpg?token=eyJread&download=1"}"""
+
+        assertThat(redactSecrets(line)).doesNotContain("eyJsecret")
+        assertThat(redactSecrets(line)).contains("/storage/v1/object/upload/sign/x.jpg?token=***")
+        assertThat(redactSecrets(body)).doesNotContain("eyJread")
+        // Only the credential goes; the rest of the query is still readable.
+        assertThat(redactSecrets(body)).contains("&download=1")
+    }
 }

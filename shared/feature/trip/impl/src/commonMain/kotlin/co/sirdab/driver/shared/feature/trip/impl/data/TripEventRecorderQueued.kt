@@ -4,19 +4,30 @@ import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.network.FilePurpose
 import co.sirdab.driver.shared.core.platform.files.LocalFileStore
+import co.sirdab.driver.shared.core.queue.DrainResult
 import co.sirdab.driver.shared.core.queue.WriteQueue
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
+import co.sirdab.driver.shared.feature.trip.api.QueuedTripEvent
 import co.sirdab.driver.shared.feature.trip.api.TripEventRecorder
 import co.sirdab.driver.shared.feature.trip.api.TripEventType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 @Serializable
@@ -59,7 +70,14 @@ class TripEventRecorderQueued(
     private val files: LocalFileStore,
     private val json: Json = Json { explicitNulls = false; encodeDefaults = false },
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+    private val clock: Clock = Clock.System,
 ) : TripEventRecorder {
+
+    private val dropped = MutableStateFlow(0)
+
+    /** The one pending wake-up for rows waiting out a backoff. */
+    private var retry: Job? = null
+    private val retryLock = Mutex()
 
     override suspend fun record(
         tripId: String,
@@ -83,7 +101,7 @@ class TripEventRecorderQueued(
             ),
         )
 
-        return enqueue("api/driver/trips/$tripId/events", body, occurredAtMillis)
+        return enqueue(eventsPath(tripId), body, occurredAtMillis)
     }
 
     override suspend fun reportException(
@@ -143,7 +161,7 @@ class TripEventRecorderQueued(
             )
         }.fold(
             onSuccess = {
-                scope.launch { queue.drain() }
+                drainInBackground()
                 AppResult.Success(Unit)
             },
             onFailure = { AppResult.Failure(AppError(it.message ?: "Could not save that photo.")) },
@@ -155,18 +173,87 @@ class TripEventRecorderQueued(
 
     override fun pendingCount(): Flow<Int> = queue.observeCount()
 
+    override suspend fun queuedEvents(tripId: String): List<QueuedTripEvent> {
+        val path = eventsPath(tripId)
+        return queue.pending()
+            .filter { it.path == path }
+            .mapNotNull { write ->
+                val input = runCatching {
+                    json.decodeFromString(TripEventInputDto.serializer(), write.body)
+                }.getOrNull() ?: return@mapNotNull null
+                val type = TripEventType.entries.firstOrNull { it.wire == input.eventType }
+                    ?: return@mapNotNull null
+                QueuedTripEvent(type, input.stopId, write.occurredAtMillis)
+            }
+    }
+
+    override fun droppedCount(): Flow<Int> = dropped.asStateFlow()
+
+    override fun acknowledgeDropped() {
+        dropped.value = 0
+    }
+
+    /** Forced: the driver asking is the best evidence there is that the network is back. */
     override suspend fun sync() {
-        queue.drain()
+        drainNow(force = true)
+    }
+
+    private fun drainInBackground() {
+        scope.launch { drainNow(force = false) }
+    }
+
+    private suspend fun drainNow(force: Boolean) {
+        val result = try {
+            queue.drain(force)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Throwable) {
+            // A disk or database error mid-drain. The rows are still on disk and
+            // the next drain will find them; crashing the app here would only
+            // take the driver's screen down with it.
+            return
+        }
+        handle(result)
+    }
+
+    private suspend fun handle(result: DrainResult) {
+        when (result) {
+            is DrainResult.Dropped -> {
+                dropped.update { it + result.failures.size }
+                handle(result.rest)
+            }
+            // Nothing else would wake the queue: without this, a row that failed
+            // once sits unsent until the driver happens to tap something.
+            is DrainResult.Waiting -> scheduleRetry(result.nextAttemptAtMillis)
+            // The row that failed has just been given its backoff; asking again
+            // costs one read and comes back Waiting with the time to wake up.
+            is DrainResult.Deferred -> scheduleRetry(clock.now().toEpochMilliseconds())
+            // Paused needs something to change (a sign-in, a server fix), which a
+            // timer cannot supply; the next tap or pull tries again.
+            is DrainResult.Paused, DrainResult.Drained -> Unit
+        }
+    }
+
+    private suspend fun scheduleRetry(atMillis: Long) {
+        retryLock.withLock {
+            retry?.cancel()
+            retry = scope.launch {
+                delay((atMillis - clock.now().toEpochMilliseconds()).coerceAtLeast(0))
+                drainNow(force = false)
+            }
+        }
     }
 
     private fun proofPath(stopId: String) = "api/driver/stops/$stopId/proofs"
+
+    private fun eventsPath(tripId: String) = "api/driver/trips/$tripId/events"
 
     private suspend fun enqueue(path: String, body: String, occurredAtMillis: Long): AppResult<Unit> =
         runCatching { queue.enqueue(path, body, occurredAtMillis) }.fold(
             onSuccess = {
                 // Fire and forget: the write is already safe on disk, so a failure
                 // here costs nothing but a later retry.
-                scope.launch { queue.drain() }
+                drainInBackground()
                 AppResult.Success(Unit)
             },
             // Only a storage failure reaches here, and it is the one case the

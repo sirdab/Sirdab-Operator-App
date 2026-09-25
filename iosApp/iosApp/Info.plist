@@ -25,6 +25,14 @@
     <!-- Required by Compose Multiplatform: without this the runtime throws on launch. -->
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
+    <!-- Proof and document photos. Without this iOS terminates the app the moment the camera opens. -->
+    <key>NSCameraUsageDescription</key>
+    <string>Sirdab uses the camera to photograph delivery proof and your documents.</string>
+    <!-- Lets IosMapLauncher ask whether Google Maps is installed before falling back to Apple Maps. -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>comgooglemaps</string>
+    </array>
     <key>UILaunchScreen</key>
     <dict/>
     <key>UIApplicationSceneManifest</key>

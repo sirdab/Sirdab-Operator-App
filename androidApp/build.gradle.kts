@@ -22,6 +22,10 @@ android {
         buildConfigField("String", "TMS_API_BASE_URL", "\"${property("driver.apiBaseUrl")}\"")
         buildConfigField("String", "SUPABASE_URL", "\"${property("driver.supabaseUrl")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${property("driver.supabaseAnonKey")}\"")
+        // Whether the API conversation goes to logcat. A build flag rather than `BuildConfig.DEBUG`
+        // so a release build handed to someone testing can be read too, and so turning it off is a
+        // property rather than an edit.
+        buildConfigField("boolean", "HTTP_LOG", "${property("driver.httpLog")}")
     }
 
     buildFeatures {

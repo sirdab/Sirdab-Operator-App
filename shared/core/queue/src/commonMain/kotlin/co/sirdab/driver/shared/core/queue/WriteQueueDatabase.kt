@@ -8,7 +8,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.execSQL
 
-@Database(entities = [PendingWrite::class], version = 2, exportSchema = true)
+@Database(entities = [PendingWrite::class], version = 3, exportSchema = true)
 @ConstructedBy(WriteQueueDatabaseConstructor::class)
 abstract class WriteQueueDatabase : RoomDatabase() {
     abstract fun pendingWrites(): PendingWriteDao
@@ -44,4 +44,11 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
-val WRITE_QUEUE_MIGRATIONS = arrayOf(MIGRATION_1_2)
+/** Adds the owner, so queued work stays with the account that recorded it. */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE pending_writes ADD COLUMN ownerId TEXT")
+    }
+}
+
+val WRITE_QUEUE_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3)

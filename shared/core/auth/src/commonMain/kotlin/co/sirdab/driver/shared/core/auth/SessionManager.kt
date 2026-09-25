@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.Volatile
 
 /**
  * What the app knows about who is signed in.
@@ -52,7 +53,16 @@ class SessionManager(
     private val _state = MutableStateFlow<AuthState>(AuthState.SignedOut)
     val state: StateFlow<AuthState> = _state.asStateFlow()
 
+    @Volatile
     private var session: SupabaseSession? = null
+
+    /**
+     * Bumped by [signOut]. A refresh that was already waiting on the network when the driver signed
+     * out must not bring the session back when it answers, so it only adopts its result if this
+     * has not moved in the meantime.
+     */
+    @Volatile
+    private var generation = 0
 
     /** Reads the persisted session on cold start. Safe to call more than once. */
     suspend fun restore() {
@@ -72,6 +82,7 @@ class SessionManager(
         api.verifyOtp(phone, code).map { adopt(it) }
 
     suspend fun signOut() {
+        generation++
         session = null
         store.remove(KEY_ACCESS)
         store.remove(KEY_REFRESH)
@@ -88,12 +99,19 @@ class SessionManager(
             if (session?.accessToken != stale) return@withLock true
 
             val refreshToken = session?.refreshToken ?: return@withLock false
+            val startedIn = generation
             api.refresh(refreshToken).fold(
-                onSuccess = { adopt(it); true },
+                onSuccess = {
+                    // Signed out while this was in flight: the answer belongs to a session that no
+                    // longer exists, and adopting it would sign the last driver back in.
+                    if (generation != startedIn) return@fold false
+                    adopt(it)
+                    true
+                },
                 onFailure = { error ->
                     // A refused refresh token is terminal: the session is gone and the driver signs
                     // in again. A network failure is not, so the session survives for a later try.
-                    if (error.apiFailure.isTerminal()) signOut()
+                    if (generation == startedIn && error.apiFailure.isTerminal()) signOut()
                     false
                 },
             )
@@ -116,7 +134,16 @@ class SessionManager(
         return next
     }
 
-    private fun ApiFailure?.isTerminal(): Boolean = this is ApiFailure.Http && status in 400..499
+    /**
+     * The server refusing this refresh token, as opposed to being unable to answer right now.
+     * 408 and 429 are the latter: a rate-limited refresh mid-shift must not sign the driver out.
+     */
+    private fun ApiFailure?.isTerminal(): Boolean =
+        this is ApiFailure.Http && status in 400..499 && status != 408 && status != 429
+
+    /** Who the current session belongs to, so queued work can be kept to its own account. */
+    override fun ownerId(): String? = session?.accessToken?.let { JwtDecoder.decode(it)?.subject }
+        ?.takeIf { it.isNotBlank() }
 
     private companion object {
         const val KEY_ACCESS = "access_token"

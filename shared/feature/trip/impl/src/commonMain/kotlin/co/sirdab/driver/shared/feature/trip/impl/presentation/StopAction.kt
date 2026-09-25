@@ -5,6 +5,7 @@ import co.sirdab.driver.shared.core.model.StopStatus
 import co.sirdab.driver.shared.core.model.StopType
 import co.sirdab.driver.shared.core.model.TripLifecycle
 import co.sirdab.driver.shared.core.model.TripStop
+import co.sirdab.driver.shared.feature.trip.api.QueuedTripEvent
 import co.sirdab.driver.shared.feature.trip.api.TripEventType
 
 /**
@@ -53,8 +54,22 @@ enum class StopAction(
  * Both kinds of stop run arrive -> close -> depart. What closes them differs:
  * a pickup is closed by finishing loading, a dropoff by delivering, and only
  * the latter closes the leg.
+ *
+ * [queuedPhotos] are this stop's photos still in the outbox. They count: the
+ * queue sends in order and stops at the first failure, so a photo queued now
+ * always lands before the delivery tapped after it, and the server sees the
+ * proof by the time it sees the event. That is what lets a driver in a dead
+ * zone photograph the pallet and record the delivery on the spot.
+ *
+ * [requirePhoto] is off only when replaying the queue, where the proof is
+ * already queued ahead of the event that needs it.
  */
-fun actionsFor(trip: DriverTrip, stop: TripStop): List<StopAction> {
+fun actionsFor(
+    trip: DriverTrip,
+    stop: TripStop,
+    requirePhoto: Boolean = true,
+    queuedPhotos: Int = 0,
+): List<StopAction> {
     val candidates = when (stop.status) {
         // The server refuses arriving out of order, so the button is not offered
         // until every earlier stop is behind the driver.
@@ -73,7 +88,7 @@ fun actionsFor(trip: DriverTrip, stop: TripStop): List<StopAction> {
 
     return candidates.filter { action ->
         trip.status in action.allowedTripStatuses() &&
-            (!action.requiresPhoto || stop.photoProofCount > 0)
+            (!requirePhoto || !action.requiresPhoto || stop.photoProofCount + queuedPhotos > 0)
     }
 }
 
@@ -96,8 +111,8 @@ private fun StopAction.allowedTripStatuses(): Set<TripLifecycle> = when (this) {
  * Distinguishing "nothing to do here" from "do the paperwork first" is the whole
  * difference between a screen that looks finished and one that looks broken.
  */
-fun awaitingPhotoProof(trip: DriverTrip, stop: TripStop): Boolean =
-    stop.photoProofCount == 0 &&
+fun awaitingPhotoProof(trip: DriverTrip, stop: TripStop, queuedPhotos: Int = 0): Boolean =
+    stop.photoProofCount + queuedPhotos == 0 &&
         stop.status == StopStatus.ARRIVED &&
         trip.status == TripLifecycle.IN_TRANSIT
 
@@ -140,4 +155,24 @@ fun DriverTrip.applyLocally(stopId: String, action: StopAction, atMillis: Long):
 /** The trip as it will look once [action] is recorded. */
 fun DriverTrip.applyLocally(action: TripAction): DriverTrip = when (action) {
     TripAction.START -> copy(status = TripLifecycle.IN_TRANSIT)
+}
+
+/**
+ * The trip as it will look once [events] still in the queue land.
+ *
+ * Each event is applied only if the trip is still where the tap found it, so an
+ * event the server already has (sent between the read and this call) is a
+ * no-op rather than a second step forward.
+ */
+fun DriverTrip.withQueued(events: List<QueuedTripEvent>): DriverTrip =
+    events.fold(this) { trip, event -> trip.replay(event) }
+
+private fun DriverTrip.replay(event: QueuedTripEvent): DriverTrip {
+    if (event.eventType == TripAction.START.event) {
+        return if (tripActionFor(this) == TripAction.START) applyLocally(TripAction.START) else this
+    }
+    val action = StopAction.entries.firstOrNull { it.event == event.eventType } ?: return this
+    val stop = stops.firstOrNull { it.id == event.stopId } ?: return this
+    if (action !in actionsFor(this, stop, requirePhoto = false)) return this
+    return applyLocally(stop.id, action, event.occurredAtMillis)
 }

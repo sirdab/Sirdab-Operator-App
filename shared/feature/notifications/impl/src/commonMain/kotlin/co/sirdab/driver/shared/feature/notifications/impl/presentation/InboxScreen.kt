@@ -1,6 +1,8 @@
 package co.sirdab.driver.shared.feature.notifications.impl.presentation
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -62,6 +65,7 @@ fun InboxScreen(
     viewModel: InboxViewModel = koinViewModel(),
 ) {
     val notifications by viewModel.notifications.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     val lang = Locale.current.language
 
     Scaffold(
@@ -72,19 +76,30 @@ fun InboxScreen(
             )
         },
     ) { padding ->
-        if (notifications.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text(stringResource(Res.string.notif_inbox_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            return@Scaffold
-        }
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = viewModel::refresh,
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         ) {
-            items(notifications, key = { it.id }) { n ->
-                NotificationRow(n, lang) { viewModel.markRead(n.id) }
+            if (notifications.isEmpty()) {
+                Box(
+                    // Scrollable so the pull gesture has something to grab on an empty inbox,
+                    // which is the state a driver is most likely to pull on.
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(stringResource(Res.string.notif_inbox_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                ) {
+                    items(notifications, key = { it.id }) { n ->
+                        NotificationRow(n, lang) { viewModel.markRead(n.id) }
+                    }
+                }
             }
         }
     }

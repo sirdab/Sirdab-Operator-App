@@ -15,6 +15,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlin.time.Instant
@@ -61,6 +62,21 @@ class TmsApiClient(
     ): ApiResult<T> = execute(HttpMethod.Post, path, deserializer, body = body, idempotencyKey = idempotencyKey)
 
     /**
+     * A partial update. Not idempotent-keyed: the contract does not offer it on `PATCH`, and a
+     * partial update of the same fields to the same values is its own replay.
+     */
+    suspend fun <T> patch(
+        path: String,
+        body: String,
+        deserializer: KSerializer<T>,
+    ): ApiResult<T> = execute(HttpMethod.Patch, path, deserializer, body = body)
+
+    suspend fun <T> delete(
+        path: String,
+        deserializer: KSerializer<T>,
+    ): ApiResult<T> = execute(HttpMethod.Delete, path, deserializer)
+
+    /**
      * PUT raw bytes to a URL the server minted.
      *
      * Deliberately outside [execute]: no bearer token, no idempotency key, no
@@ -76,7 +92,7 @@ class TmsApiClient(
         url: String,
         bytes: ByteArray,
         headers: Map<String, String>,
-    ): Result<Unit> = runCatching {
+    ): Result<Unit> = catching {
         val response = http.request(url) {
             method = HttpMethod.Put
             // Content-Type goes through contentType(), not header(): header()
@@ -102,7 +118,7 @@ class TmsApiClient(
         readServerDate(response)
 
         if (!response.status.isSuccess()) {
-            val text = runCatching { response.bodyAsText() }.getOrDefault("")
+            val text = catching { response.bodyAsText() }.getOrDefault("")
             // The body was filtered out of the request log because it is a
             // photo, so without this an upload failure is a silent gap between
             // the file being minted and the proof being posted.
@@ -146,7 +162,7 @@ class TmsApiClient(
         query: Map<String, String>,
         body: String?,
         idempotencyKey: String?,
-    ): Result<HttpResponse> = runCatching {
+    ): Result<HttpResponse> = catching {
         http.request(path.trimStart('/')) {
             this.method = method
             tokens.accessToken()?.let { bearerAuth(it) }
@@ -165,7 +181,7 @@ class TmsApiClient(
     private suspend fun <T> interpret(response: HttpResponse, deserializer: KSerializer<T>): ApiResult<T> {
         readServerDate(response)
 
-        val text = runCatching { response.bodyAsText() }
+        val text = catching { response.bodyAsText() }
             .getOrElse { return failure(ApiFailure.Transport(it)) }
 
         if (!response.status.isSuccess()) {
@@ -221,6 +237,22 @@ val Throwable.apiFailure: ApiFailure?
 private fun io.ktor.http.HttpStatusCode.isSuccess(): Boolean = value in 200..299
 
 /** RFC 7231 IMF-fixdate, the only format an HTTP `Date` header is allowed to use. */
+/**
+ * [runCatching], minus cancellation.
+ *
+ * A request cancelled with its screen or its queue job has to stay cancelled. Caught, it came back
+ * as an ordinary "network unavailable": the ViewModel showed an error nobody caused, and the queue
+ * booked a retry for a drain that had been told to stop.
+ */
+private inline fun <T> catching(block: () -> T): Result<T> =
+    try {
+        Result.success(block())
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (failure: Throwable) {
+        Result.failure(failure)
+    }
+
 internal fun parseHttpDate(raw: String): Instant? = runCatching {
     val parts = raw.trim().removeSuffix(" GMT").split(", ", " ", ":")
         .filter { it.isNotBlank() }

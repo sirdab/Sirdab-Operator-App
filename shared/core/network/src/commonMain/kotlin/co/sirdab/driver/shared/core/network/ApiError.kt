@@ -1,6 +1,7 @@
 package co.sirdab.driver.shared.core.network
 
 import co.sirdab.driver.shared.core.model.AppError
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 
@@ -16,6 +17,9 @@ enum class ApiErrorCode(val wire: String) {
     InvalidCursor("invalid_cursor"),
     IdempotencyUnsupported("idempotency_unsupported"),
     Unauthorized("unauthorized"),
+    // Renamed with the 2026-09-21 access model. Both spellings are matched: the older one is
+    // still in the contract's own error table, and a server on either answers the same question.
+    NoActiveWorkspace("no_active_workspace"),
     NoActiveAccount("no_active_account"),
     Forbidden("forbidden"),
     NotFound("not_found"),
@@ -97,9 +101,24 @@ val ApiFailure.disposition: FailureDisposition
         }
     }
 
-/** Bridges a transport failure into the result type the existing screens already render. */
+/**
+ * Bridges a transport failure into the result type the existing screens already render.
+ *
+ * Two server answers are named rather than relayed, because they are not errors the driver can do
+ * anything about and the server's own wording says so badly: an endpoint that has not shipped yet,
+ * and a token with no workspace on it. Everything else keeps the server's message, which for a
+ * validation failure beats anything the app could invent.
+ */
 fun ApiFailure.toAppError(): AppError = when (this) {
-    is ApiFailure.Http -> AppError(message)
+    is ApiFailure.Http -> AppError(message, reason = reason())
     is ApiFailure.Transport -> AppError(message, cause)
     is ApiFailure.Malformed -> AppError(message, cause)
+}
+
+private fun ApiFailure.Http.reason(): AppErrorReason? = when {
+    // A phase that has not landed. The screen says "coming soon", not "something went wrong".
+    status == 501 || code == ApiErrorCode.NotImplemented -> AppErrorReason.UNAVAILABLE
+    code == ApiErrorCode.NoActiveWorkspace || code == ApiErrorCode.NoActiveAccount ->
+        AppErrorReason.NOT_PROVISIONED
+    else -> null
 }

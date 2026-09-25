@@ -1,27 +1,35 @@
 <resources>
     <string name="app_name">سرداب آپریٹرز</string>
 
+    <!-- Common -->
     <string name="common_back">واپس</string>
     <string name="common_continue">جاری رکھیں</string>
     <string name="common_finish">مکمل کریں</string>
+    <string name="common_ok">ٹھیک ہے</string>
+    <string name="common_cancel">منسوخ کریں</string>
 
+    <!-- Splash / language -->
     <string name="onboarding_welcome_title">چلائیں۔ بولی لگائیں۔ کمائیں۔</string>
     <string name="onboarding_welcome_subtitle">سعودی کیریئرز کے لیے سمارٹ لوڈ مارکیٹ۔</string>
     <string name="choose_language">اپنی زبان منتخب کریں</string>
     <string name="get_started">شروع کریں</string>
 
+    <!-- Phone -->
     <string name="phone_title">اپنا فون نمبر درج کریں</string>
     <string name="phone_subtitle">ہم آپ کو تصدیقی کوڈ بھیجیں گے۔</string>
     <string name="phone_label">فون نمبر</string>
     <string name="phone_error">درست ۹ ہندسوں کا نمبر درج کریں</string>
 
+    <!-- OTP -->
     <string name="otp_title">اپنے نمبر کی تصدیق کریں</string>
     <string name="otp_subtitle">۶ ہندسوں کا کوڈ درج کریں۔</string>
     <string name="otp_hint_demo">ڈیمو: کوئی بھی ۶ ہندسے کام کریں گے</string>
     <string name="verify">تصدیق کریں</string>
     <string name="resend_code">کوڈ دوبارہ بھیجیں</string>
+    <string name="otp_resend_in">%1$s میں کوڈ دوبارہ بھیجیں</string>
+    <string name="otp_code_sent">نیا کوڈ بھیج دیا گیا ہے۔</string>
 
-
+    <!-- Documents -->
     <string name="docs_title">اپنی دستاویزات اپ لوڈ کریں</string>
     <string name="docs_subtitle">تصویر لیں یا گیلری سے منتخب کریں۔</string>
     <string name="doc_national_id">قومی شناخت</string>
@@ -31,11 +39,13 @@
     <string name="uploading">اپ لوڈ ہو رہا ہے…</string>
     <string name="verified">تصدیق شدہ ✓</string>
 
+    <!-- Vehicle -->
     <string name="vehicle_title">آپ کی گاڑی</string>
     <string name="vehicle_subtitle">ہمیں بتائیں آپ کیا چلاتے ہیں۔</string>
     <string name="plate_number">پلیٹ نمبر</string>
     <string name="capacity_tons">گنجائش (ٹن)</string>
 
+    <!-- Vehicle types -->
     <string name="vt_flatbed">فلیٹ بیڈ</string>
     <string name="vt_curtain">کرٹن سائیڈر</string>
     <string name="vt_reefer">ریفر</string>
@@ -45,9 +55,299 @@
     <string name="vt_lowbed">لو بیڈ</string>
     <string name="vt_tanker">ٹینکر</string>
 
+    <!-- Main tabs -->
     <string name="tab_loads">لوڈز</string>
     <string name="tab_trip">سفر</string>
     <string name="tab_profile">پروفائل</string>
     <string name="coming_soon">جلد آ رہا ہے</string>
     <string name="section_in_progress">یہ حصہ اگلے بلڈ میں آئے گا۔</string>
+
+    <!-- Units -->
+    <string name="unit_sar">ریال</string>
+
+    <!-- Cargo types -->
+    <string name="cargo_general">عام</string>
+    <string name="cargo_reefer">ٹھنڈا</string>
+    <string name="cargo_hazmat">خطرناک</string>
+    <string name="cargo_oversized">حد سے بڑا</string>
+    <string name="cargo_container">کنٹینر</string>
+    <string name="cargo_livestock">مال مویشی</string>
+
+    <!-- Handling flags -->
+    <string name="flag_fragile">نازک</string>
+    <string name="flag_reefer_temp">درجہ حرارت کنٹرول شدہ</string>
+    <string name="flag_hazmat">خطرناک مواد</string>
+    <string name="flag_oversized_permit">بڑے سائز کا پرمٹ</string>
+    <string name="flag_multi_stop">کئی اسٹاپ</string>
+    <string name="flag_tail_lift">ٹیل لفٹ</string>
+
+    <!-- Trip -->
+    <string name="trip_title">جاری سفر</string>
+    <string name="trip_no_active_title">کوئی جاری سفر نہیں</string>
+    <string name="trip_no_active_body">لوڈ جیتیں اور آپ کا سفر یہاں نظر آئے گا۔</string>
+    <string name="trip_eta">متوقع وقت</string>
+    <string name="trip_min">منٹ</string>
+    <string name="trip_detention">انتظار</string>
+    <string name="trip_detention_note">مفت وقت کے بعد خودکار بل</string>
+    <string name="trip_call_shipper">بھیجنے والے کو کال کریں</string>
+
+    <!-- Trip status -->
+    <string name="st_assigned">تفویض شدہ</string>
+    <string name="st_enroute_pickup">پک اپ کی طرف</string>
+    <string name="st_at_pickup">پک اپ پر</string>
+    <string name="st_loading">لوڈنگ</string>
+    <string name="st_enroute_dropoff">راستے میں</string>
+    <string name="st_at_dropoff">ڈراپ آف پر</string>
+    <string name="st_unloading">ان لوڈنگ</string>
+    <string name="st_pod_pending">ڈیلیوری کا ثبوت</string>
+    <string name="st_completed">مکمل</string>
+
+    <!-- Trip actions -->
+    <string name="act_navigate_pickup">پک اپ تک راستہ</string>
+    <string name="act_arrived_pickup">پہنچنے کی تصدیق کریں</string>
+    <string name="act_start_loading">لوڈنگ شروع کریں</string>
+    <string name="act_depart">ڈراپ آف کی طرف روانہ ہوں</string>
+    <string name="act_arrived_dropoff">پہنچنے کی تصدیق کریں</string>
+    <string name="act_start_unloading">ان لوڈنگ شروع کریں</string>
+    <string name="act_capture_pod">ڈیلیوری کا ثبوت لیں</string>
+
+    <!-- POD -->
+    <string name="pod_title">ڈیلیوری کا ثبوت</string>
+    <string name="pod_photos">تصاویر</string>
+    <string name="pod_add_photo">تصویر شامل کریں</string>
+    <string name="pod_recipient">وصول کنندہ کا نام</string>
+    <string name="pod_seal">سیل نمبر</string>
+    <string name="pod_signature">وصول کنندہ کے دستخط</string>
+    <string name="pod_clear">صاف کریں</string>
+    <string name="pod_submit">ڈیلیوری مکمل کریں</string>
+
+    <!-- Profile -->
+    <string name="profile_score">کیریئر اسکور</string>
+    <string name="profile_trips">سفر</string>
+    <string name="profile_ontime">وقت پر</string>
+    <string name="profile_vehicle">گاڑی</string>
+    <string name="profile_documents">دستاویزات</string>
+    <string name="profile_logout">لاگ آؤٹ</string>
+    <string name="logout_title">لاگ آؤٹ کریں؟</string>
+    <string name="logout_body">دوبارہ داخل ہونے کے لیے آپ کو اپنا فون نمبر اور نیا کوڈ درکار ہوگا۔</string>
+    <string name="logout_unsent">%1$d محفوظ کارروائیاں ابھی نہیں بھیجی گئیں۔ لاگ آؤٹ کرنے پر یہ ضائع ہو جائیں گی۔</string>
+    <string name="profile_settings">ترتیبات</string>
+    <string name="profile_language">زبان</string>
+    <string name="profile_persona">ڈیمو کردار</string>
+    <string name="profile_history">سفر کی تاریخ اور کمائی</string>
+
+    <!-- Document types + status -->
+    <string name="doc_insurance">انشورنس</string>
+    <string name="doc_operating_card">آپریٹنگ کارڈ</string>
+    <string name="docstat_verified">تصدیق شدہ</string>
+    <string name="docstat_verifying">تصدیق ہو رہی ہے</string>
+    <string name="docstat_expiring">جلد ختم ہو رہی ہے</string>
+    <string name="docstat_expired">ختم ہو چکی</string>
+    <string name="docstat_missing">موجود نہیں</string>
+    <string name="doc_days_left">دن باقی</string>
+
+    <!-- Personas -->
+    <string name="persona_flatbed">فلیٹ بیڈ آپریٹر</string>
+    <string name="persona_van">۳ ٹن وین ڈرائیور</string>
+    <string name="persona_new">نیا ڈرائیور</string>
+
+    <!-- Notifications inbox -->
+    <string name="notif_inbox_title">اطلاعات</string>
+    <string name="notif_inbox_empty">ابھی کوئی اطلاع نہیں</string>
+
+    <!-- Trip history + earnings -->
+    <string name="history_title">تاریخ اور کمائی</string>
+    <string name="history_earnings">کمائی (گزشتہ ہفتے)</string>
+    <string name="history_completed_trips">مکمل شدہ سفر</string>
+    <string name="history_empty">ابھی کوئی سفر مکمل نہیں ہوا</string>
+
+    <!-- Driver trips (TMS) -->
+    <string name="trips_title">میرے سفر</string>
+    <string name="trips_empty_title">ابھی کوئی سفر نہیں</string>
+    <string name="trips_empty_body">آپ کو دیے گئے سفر یہاں نظر آئیں گے۔</string>
+    <string name="trips_stops_count">%1$d اسٹاپ</string>
+    <string name="trips_in_city">شہر کے اندر</string>
+    <string name="trips_load_more">مزید دکھائیں</string>
+    <string name="trips_retry">دوبارہ کوشش کریں</string>
+    <string name="trip_detail_title">سفر</string>
+    <string name="trip_stops">اسٹاپ</string>
+    <string name="trip_stop_pickup">پک اپ</string>
+    <string name="trip_stop_dropoff">ڈراپ آف</string>
+    <string name="trip_stop_call">کال کریں</string>
+    <string name="trip_stop_navigate">راستہ</string>
+    <string name="trip_stop_planned">طے شدہ</string>
+    <string name="trip_stop_arrived">پہنچ گئے</string>
+    <string name="trip_stop_departed">روانہ ہو گئے</string>
+    <string name="trip_stop_now">ابھی</string>
+    <string name="sst_pending">باقی</string>
+    <string name="sst_arrived">پہنچ گئے</string>
+    <string name="sst_departed">روانہ ہو گئے</string>
+    <string name="sst_completed">مکمل</string>
+    <string name="sst_skipped">چھوڑ دیا</string>
+    <string name="tl_created">بنایا گیا</string>
+    <string name="tl_assigned">تفویض شدہ</string>
+    <string name="tl_in_transit">راستے میں</string>
+    <string name="tl_complete">مکمل</string>
+    <string name="tl_cancelled">منسوخ</string>
+    <string name="tl_failed">ناکام</string>
+
+    <!-- Stop actions -->
+    <string name="sact_arrive">میں پہنچ گیا ہوں</string>
+    <string name="sact_start_loading">لوڈنگ شروع کریں</string>
+    <string name="sact_finish_loading">لوڈنگ مکمل کریں</string>
+    <string name="sact_depart">روانہ ہوں</string>
+    <string name="sact_deliver">پہنچا دیا</string>
+    <string name="trip_start">سفر شروع کریں</string>
+    <string name="stop_needs_photo">آگے بڑھنے کے لیے تصویر کا ثبوت شامل کریں</string>
+    <string name="stop_take_photo">تصویر لیں</string>
+    <string name="stop_choose_photo">تصویر منتخب کریں</string>
+    <string name="stop_photo_sending">تصویر بھیجی جا رہی ہے…</string>
+    <string name="stop_photo_count">%1$s تصاویر منسلک</string>
+
+    <!-- Sign-up -->
+    <string name="signup_details_title">آپ کے بارے میں</string>
+    <string name="signup_details_subtitle">آپ کا اکاؤنٹ بنانے کے لیے ہمیں یہ معلومات درکار ہیں۔</string>
+    <string name="signup_name">پورا نام</string>
+    <string name="signup_nationality">قومیت</string>
+    <string name="signup_licence_number">ڈرائیونگ لائسنس نمبر</string>
+    <string name="signup_licence_expiry">لائسنس کی میعاد</string>
+    <string name="signup_date_hint">سال-مہینہ-دن</string>
+    <string name="signup_docs_title">آپ کی دستاویزات</string>
+    <string name="signup_docs_subtitle">ہر ایک کی تصویر لیں۔ لوڈ لینے سے پہلے ہم انہیں جانچتے ہیں۔</string>
+    <string name="doc_national_id_short">قومی شناخت</string>
+    <string name="doc_driving_licence">ڈرائیونگ لائسنس</string>
+    <string name="doc_uploaded">اپ لوڈ ہو گئی</string>
+    <string name="doc_tap_to_add">تصویر لینے کے لیے دبائیں</string>
+    <string name="signup_docs_progress">%2$d میں سے %1$d اپ لوڈ ہو گئیں</string>
+    <string name="trip_pending_sync">%1$d ابھی نہیں بھیجے گئے</string>
+    <string name="trip_pending_sync_note">آپ کے فون میں محفوظ ہیں۔ آن لائن ہونے پر بھیج دیے جائیں گے۔</string>
+    <string name="trip_dropped_sync">%1$d قبول نہیں ہوئے</string>
+    <string name="trip_dropped_sync_note">سرور نے انہیں مسترد کر دیا، اس لیے یہ محفوظ نہیں ہوئے۔ نیچے اسٹاپ دیکھیں اور اپنے ڈسپیچر کو بتائیں۔</string>
+
+    <!-- Nationalities -->
+    <string name="nat_sa">سعودی</string>
+    <string name="nat_bd">بنگلہ دیشی</string>
+    <string name="nat_eg">مصری</string>
+    <string name="nat_er">اریٹیرین</string>
+    <string name="nat_et">ایتھوپین</string>
+    <string name="nat_in">انڈین</string>
+    <string name="nat_jo">اردنی</string>
+    <string name="nat_np">نیپالی</string>
+    <string name="nat_pk">پاکستانی</string>
+    <string name="nat_ps">فلسطینی</string>
+    <string name="nat_ph">فلپینی</string>
+    <string name="nat_lk">سری لنکن</string>
+    <string name="nat_sd">سوڈانی</string>
+    <string name="nat_sy">شامی</string>
+    <string name="nat_tr">ترک</string>
+    <string name="nat_ye">یمنی</string>
+
+    <!-- Truck type and size -->
+    <string name="tt_dry">خشک</string>
+    <string name="tt_chilled">ٹھنڈا</string>
+    <string name="tt_frozen">جما ہوا</string>
+    <string name="ts_cargo_van">کارگو وین</string>
+    <string name="ts_open_dyna">کھلی ڈائنا</string>
+    <string name="ts_closed_dyna">بند ڈائنا</string>
+    <string name="ts_open_lorry">کھلی لاری</string>
+    <string name="ts_closed_lorry">بند لاری</string>
+    <string name="ts_winch">ونچ</string>
+    <string name="ts_flatbed">فلیٹ بیڈ</string>
+    <string name="ts_curtain_side">کرٹن سائیڈ</string>
+    <string name="ts_ltl">جزوی لوڈ</string>
+    <string name="ts_trailer">ٹریلر</string>
+    <string name="truck_type">ٹرک کی قسم</string>
+    <string name="truck_size">ٹرک کا سائز</string>
+
+    <!-- Exceptions -->
+    <string name="exc_report">مسئلہ رپورٹ کریں</string>
+    <string name="exc_title">کیا مسئلہ ہوا؟</string>
+    <string name="exc_severity">یہ کتنا سنگین ہے؟</string>
+    <string name="exc_note">تفصیل لکھیں (اختیاری)</string>
+    <string name="exc_send">رپورٹ بھیجیں</string>
+    <string name="exc_sent">اطلاع دے دی گئی۔ ہم نے آگے پہنچا دیا ہے۔</string>
+    <string name="ek_delay">تاخیر ہو رہی ہے</string>
+    <string name="ek_damage">سامان خراب ہو گیا</string>
+    <string name="ek_refused">ڈیلیوری لینے سے انکار</string>
+    <string name="ek_access_denied">اندر نہیں جا سکتا</string>
+    <string name="ek_vehicle_breakdown">ٹرک خراب ہو گیا</string>
+    <string name="ek_wrong_address">پتہ غلط ہے</string>
+    <string name="es_low">معمولی</string>
+    <string name="es_medium">سنگین</string>
+    <string name="es_high">فوری</string>
+
+    <!-- Sign-in problems -->
+    <string name="err_not_provisioned">ایپ کا یہ حصہ کسی کیریئر کے ساتھ کام کرنے والے ڈرائیوروں کے لیے ہے۔</string>
+    <string name="err_not_a_driver">یہ اکاؤنٹ ڈرائیور کا اکاؤنٹ نہیں ہے۔</string>
+    <string name="err_phone_missing">اپنا فون نمبر دوبارہ درج کریں۔</string>
+    <string name="err_sign_in_failed">سائن ان ناکام۔ دوبارہ کوشش کریں۔</string>
+    <string name="err_unavailable">یہ ابھی دستیاب نہیں ہے۔</string>
+
+    <!-- Postings board (TMS) -->
+    <string name="postings_title">دستیاب لوڈز</string>
+    <string name="postings_empty_title">کچھ دستیاب نہیں</string>
+    <string name="postings_empty_body">آپ کے لیے لگائے گئے لوڈ یہاں نظر آئیں گے۔</string>
+    <string name="postings_closes_in">%1$s میں بند ہوگا</string>
+    <string name="postings_closed">بند</string>
+    <string name="postings_accept">%1$s پر قبول کریں</string>
+    <string name="postings_bid">بولی لگائیں</string>
+    <string name="postings_my_bids">میری بولیاں</string>
+    <string name="postings_open_price">قیمت کھلی ہے</string>
+    <string name="bid_title">آپ کی پیشکش</string>
+    <string name="bid_amount">رقم (ریال)</string>
+    <string name="bid_truck">کون سا ٹرک؟</string>
+    <string name="bid_note">تفصیل (اختیاری)</string>
+    <string name="bid_send">پیشکش بھیجیں</string>
+    <string name="bid_accept_confirm">%1$s پر قبول کریں</string>
+    <string name="bid_sent">پیشکش بھیج دی گئی۔</string>
+    <string name="bids_empty">آپ نے ابھی کسی پر بولی نہیں لگائی۔</string>
+    <string name="bs_pending">انتظار میں</string>
+    <string name="bs_won">جیت گئی</string>
+    <string name="bs_lost">منتخب نہیں ہوئی</string>
+    <string name="bs_withdrawn">واپس لی گئی</string>
+    <string name="bs_expired">میعاد ختم</string>
+    <string name="dur_days">%1$d دن</string>
+    <string name="dur_hours">%1$d گھنٹے</string>
+    <string name="dur_minutes">%1$d منٹ</string>
+    <string name="doc_vehicle_registration">گاڑی کی رجسٹریشن (استمارہ)</string>
+    <string name="signup_checklist_title">رجسٹریشن مکمل کریں</string>
+    <string name="signup_checklist_subtitle">لوڈ لینے سے پہلے چند چیزیں باقی ہیں۔ کسی بھی ترتیب سے کر لیں۔</string>
+    <string name="signup_progress">%2$d میں سے %1$d مکمل</string>
+    <string name="signup_section_you">آپ کے بارے میں</string>
+    <string name="signup_section_truck">آپ کا ٹرک</string>
+    <string name="signup_section_docs">آپ کی دستاویزات</string>
+    <string name="signup_item_done">مکمل</string>
+    <string name="signup_item_todo">درکار</string>
+    <string name="signup_item_rejected">مسترد</string>
+    <string name="signup_item_in_review">زیرِ جائزہ</string>
+    <string name="signup_add_truck">اپنا ٹرک شامل کریں</string>
+    <string name="signup_remove_truck">ہٹائیں</string>
+    <string name="signup_your_details">نام اور لائسنس</string>
+    <string name="signup_replace_document">بدلیں</string>
+    <string name="signup_unsupported">یہ ورژن "%1$s" فراہم نہیں کر سکتا۔ ایپ اپ ڈیٹ کریں۔</string>
+    <string name="review_title">زیرِ جائزہ</string>
+    <string name="review_body">سب کچھ موصول ہو گیا۔ دستاویزات منظور ہوتے ہی ہم آپ کو بتا دیں گے۔</string>
+    <string name="review_check_again">دوبارہ دیکھیں</string>
+    <string name="review_fix_rejected">آپ کی ایک دستاویز مسترد ہو گئی۔ آگے بڑھنے کے لیے اسے بدلیں۔</string>
+    <string name="blocked_title">اکاؤنٹ معطل</string>
+    <string name="blocked_body">آپ کا ڈرائیور اکاؤنٹ معطل کر دیا گیا ہے۔ حل کے لیے سرداب آپریشنز سے رابطہ کریں۔</string>
+    <string name="err_driver_suspended">آپ کا ڈرائیور اکاؤنٹ معطل کر دیا گیا ہے۔</string>
+    <string name="err_workspace_suspended">یہ فلیٹ معطل کر دیا گیا ہے۔</string>
+    <string name="err_last_truck">آپ کے پاس کم از کم ایک ٹرک ہونا چاہیے۔</string>
+    <string name="err_document_too_large">یہ تصویر بہت بڑی ہے۔ دوبارہ لیں۔</string>
+    <string name="err_document_type">یہ فائل کی قسم قبول نہیں۔</string>
+    <string name="err_document_missing">یہ دستاویز اب موجود نہیں۔ دوبارہ اپ لوڈ کریں۔</string>
+    <string name="postings_coming_soon_body">لوڈز پر بولی لگانا ابھی فعال نہیں ہے۔ اس دوران آپ کو سفر تفویض کیے جائیں گے۔</string>
+    <string name="board_locked">آپ کو ابھی لوڈ لینے کی منظوری نہیں ملی۔ آپ کو کچھ نہیں کرنا — منظوری ملتے ہی بورڈ کھل جائے گا۔</string>
+    <string name="doc_iqama">اقامہ</string>
+    <string name="doc_istimara">استمارہ (گاڑی کی رجسٹریشن)</string>
+    <string name="doc_truck_photo">ٹرک کی تصویر</string>
+    <string name="profile_fleet">فلیٹ</string>
+    <string name="paperwork_outstanding">آپ کی دستاویزات مکمل نہیں (%1$d باقی)۔ مکمل کرنے کے لیے دبائیں۔</string>
+    <string name="err_unsent_work">آپ کا کچھ کام ابھی نہیں بھیجا گیا۔ سگنل آنے پر دوبارہ کوشش کریں۔</string>
+    <string name="doc_view">جو بھیجا وہ دیکھیں</string>
+    <string name="otp_wrong_number">نمبر غلط ہے؟</string>
+    <string name="signup_identity">آپ کے پاس کون سی دستاویز ہے؟</string>
+    <string name="review_banner">آپ کا اکاؤنٹ زیرِ جائزہ ہے۔ ہر دستاویز کی صورتحال دیکھنے کے لیے دبائیں۔</string>
+    <string name="review_under_way">آپ کا اکاؤنٹ زیرِ جائزہ ہے۔ منظوری ملتے ہی ہم آپ کو بتا دیں گے۔</string>
 </resources>

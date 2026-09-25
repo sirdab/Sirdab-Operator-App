@@ -58,6 +58,8 @@ class WriteQueue(
     private val files: LocalFileStore,
     private val clock: Clock = Clock.System,
     private val random: Random = Random.Default,
+    /** Who is signed in now; see [PendingWrite.ownerId]. */
+    private val owner: () -> String? = { null },
 ) {
     /**
      * Drains are serialized. Two at once (a screen retrying while a background
@@ -68,6 +70,9 @@ class WriteQueue(
     fun observeCount(): Flow<Int> = dao.observeCount()
 
     fun observePending(): Flow<List<PendingWrite>> = dao.observeAll()
+
+    /** Everything still queued, in the order it will be sent. */
+    suspend fun pending(): List<PendingWrite> = dao.all()
 
     /**
      * Persist a write before telling the driver it worked.
@@ -85,6 +90,7 @@ class WriteQueue(
                 idempotencyKey = Uuid.random().toString(),
                 occurredAtMillis = occurredAtMillis,
                 createdAtMillis = clock.now().toEpochMilliseconds(),
+                ownerId = owner(),
             ),
         )
 
@@ -116,6 +122,7 @@ class WriteQueue(
             localPath = localPath,
             contentType = contentType,
             purpose = purpose,
+            ownerId = owner(),
         ),
     )
 
@@ -128,10 +135,17 @@ class WriteQueue(
      * Serial and stop-on-failure rather than best-effort parallel: skipping a
      * stuck row to send a later one is exactly how dispatch ends up with a
      * departure recorded before the arrival it followed.
+     *
+     * [force] tries the head now even if it is still waiting out its backoff.
+     * It is for a driver who asked (pulled to refresh, opened the trip): they
+     * are the best evidence there is that the network is back, and making them
+     * wait minutes for a backoff timer is how "N not sent" becomes permanent.
+     * Only the head is forced; a failure backs off again as usual.
      */
-    suspend fun drain(): DrainResult = drainLock.withLock {
+    suspend fun drain(force: Boolean = false): DrainResult = drainLock.withLock {
+        forgetOtherAccounts()
         val dropped = mutableListOf<String>()
-        val rest = sendWhatIsDue(dropped)
+        val rest = sendWhatIsDue(dropped, force)
 
         if (dropped.isEmpty()) rest else DrainResult.Dropped(dropped, rest)
     }
@@ -144,7 +158,8 @@ class WriteQueue(
      * and inserts a downcast on every read, which throws the first time a write
      * fails and leaves the queue in exactly the state it exists to survive.
      */
-    private suspend fun sendWhatIsDue(dropped: MutableList<String>): DrainResult {
+    private suspend fun sendWhatIsDue(dropped: MutableList<String>, force: Boolean): DrainResult {
+        var forceHead = force
         while (true) {
             val pending = dao.all()
             if (pending.isEmpty()) return DrainResult.Drained
@@ -154,14 +169,35 @@ class WriteQueue(
 
             // The head is not due yet. Later rows may be, but sending them first
             // would reorder the driver's actions, so the queue waits.
-            if (next.nextAttemptAtMillis > now) {
+            if (next.nextAttemptAtMillis > now && !forceHead) {
                 return DrainResult.Waiting(pending.size, next.nextAttemptAtMillis)
             }
+            forceHead = false
 
             val outcome = send(next, now)
             if (outcome is SendOutcome.Dropped) dropped += outcome.reason
             if (outcome is SendOutcome.Stop) return outcome.result(pending.size)
         }
+    }
+
+    /**
+     * Remove rows another account recorded.
+     *
+     * Signing out through the app clears the queue, but a session can also end on its own (a
+     * refresh token the server refuses), and then the rows stay for that driver to sign back in.
+     * If someone else signs in instead, those rows are not theirs to send: posted under this token
+     * they would land as this driver's shift. Their photos go with them, for the same reason
+     * [clear] deletes them. With no session there is nobody to compare against, so nothing is
+     * touched.
+     */
+    private suspend fun forgetOtherAccounts() {
+        val current = owner() ?: return
+        dao.all()
+            .filter { it.ownerId != null && it.ownerId != current }
+            .forEach { write ->
+                write.localPath?.let { files.delete(it) }
+                dao.delete(write.id)
+            }
     }
 
     /** Forget everything queued. Used when signing out, so writes cannot cross accounts. */
@@ -302,6 +338,18 @@ class WriteQueue(
         val failure = result.exceptionOrNull()?.apiFailure
             ?: ApiFailure.Transport(result.exceptionOrNull() ?: Exception("unknown"))
 
+        if (failure.isFileNotReady() && write.kind == PendingWriteKind.UPLOAD &&
+            write.attempts < MAX_UPLOAD_REDOS
+        ) {
+            // The server never saw the bytes, but the phone still has them. The
+            // contract's answer is to redo the upload and replay, which is what
+            // forgetting the minted file does; dropping here would destroy the
+            // proof and then drop the delivery that needed it as photo_required.
+            dao.resetUpload(write.id)
+            defer(write, now, failure)
+            return SendOutcome.Stop { remaining -> DrainResult.Deferred(remaining, failure.message) }
+        }
+
         return when (failure.disposition) {
             FailureDisposition.Drop -> {
                 dao.delete(write.id)
@@ -333,6 +381,9 @@ class WriteQueue(
         }
     }
 
+    private fun ApiFailure.isFileNotReady(): Boolean =
+        (this as? ApiFailure.Http)?.rawCode == FILE_NOT_READY
+
     private fun describe(write: PendingWrite, failure: ApiFailure): String {
         val code = (failure as? ApiFailure.Http)?.rawCode.orEmpty()
         return if (code.isBlank()) {
@@ -357,5 +408,13 @@ class WriteQueue(
         const val BASE_BACKOFF_MILLIS = 2_000L
         const val MAX_BACKOFF_MILLIS = 5 * 60 * 1000L
         const val MAX_SHIFT = 8
+
+        /**
+         * How many times a proof is re-uploaded after `file_not_ready` before it
+         * is given up on. Bounded because the queue stops behind it: a proof that
+         * can never land must not hold every later event hostage.
+         */
+        const val MAX_UPLOAD_REDOS = 3
+        const val FILE_NOT_READY = "file_not_ready"
     }
 }

@@ -16,7 +16,11 @@ import org.koin.core.module.Module
 interface LocalFileStore {
 
     /**
-     * Writes [bytes] under [name] and returns the path to hand to the queue.
+     * Writes [bytes] under [name] and returns the reference to hand to the queue.
+     *
+     * The reference is opaque: pass it back to [read] and [delete] untouched. It
+     * must stay valid across app updates, which on iOS rules out an absolute path.
+     * Throws when the bytes could not be written.
      *
      * The name is made unique by the caller; a collision would overwrite
      * another stop's proof.

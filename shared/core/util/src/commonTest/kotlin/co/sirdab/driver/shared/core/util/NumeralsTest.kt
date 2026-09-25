@@ -27,4 +27,31 @@ class NumeralsTest {
     fun groupingLocalizesDigitsButKeepsSeparator() {
         assertEquals("٣,٢٤٠", 3240.toGroupedString("ar"))
     }
+
+    @Test
+    fun keyboardDigitsBecomeWestern() {
+        assertEquals("0501234567", "٠٥٠١٢٣٤٥٦٧".westernDigits())
+        assertEquals("123456", "۱۲۳۴۵۶".westernDigits())
+        assertEquals("123", "1-2 3".westernDigits())
+    }
+
+    @Test
+    fun everyWayOfWritingASaudiMobileGivesTheSameNineDigits() {
+        listOf("0501234567", "+966 50 123 4567", "00966501234567", "966501234567", "501234567", "٠٥٠١٢٣٤٥٦٧")
+            .forEach { assertEquals("501234567", saudiMobileDigits(it), it) }
+    }
+
+    @Test
+    fun typingDigitByDigitNeverLosesTheNumber() {
+        var field = ""
+        "0501234567".forEach { field = saudiMobileDigits(field + it) }
+        assertEquals("501234567", field)
+    }
+
+    @Test
+    fun onlyAWholeNumberStartingWithFiveIsAMobile() {
+        assertEquals(true, isSaudiMobile("501234567"))
+        assertEquals(false, isSaudiMobile("50123456"))
+        assertEquals(false, isSaudiMobile("112345678"))
+    }
 }

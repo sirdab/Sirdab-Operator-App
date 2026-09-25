@@ -12,8 +12,6 @@ import co.sirdab.driver.shared.core.network.TmsApiClient
 import co.sirdab.driver.shared.core.network.apiFailure
 import co.sirdab.driver.shared.core.network.toAppError
 import co.sirdab.driver.shared.feature.bidding.api.DriverBiddingRepository
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 /**
  * `GET /driver/postings`, `POST /driver/postings/:id/bids` and `GET /driver/bids`.
@@ -44,12 +42,12 @@ class DriverBiddingRepositoryHttp(
         api.get("api/driver/me", MeTrucksDto.serializer())
             .toAppResult { me -> me.trucks.map { it.toDomain() } }
 
-    @OptIn(ExperimentalUuidApi::class)
     override suspend fun placeBid(
         postingId: String,
         amountCents: Int,
         truckId: String,
         note: String?,
+        idempotencyKey: String,
     ): AppResult<DriverBid> {
         val body = api.encode(
             BidInputDto.serializer(),
@@ -65,7 +63,7 @@ class DriverBiddingRepositoryHttp(
             deserializer = BidDto.serializer(),
             // A retry on bad signal must not become a second offer; the server
             // also holds one-bid-per-carrier, so this is belt and braces.
-            idempotencyKey = Uuid.random().toString(),
+            idempotencyKey = idempotencyKey,
         ).toAppResult { it.toDomain() }
     }
 

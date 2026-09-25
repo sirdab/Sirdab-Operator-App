@@ -10,6 +10,8 @@ import co.sirdab.driver.shared.core.model.StopStatus
 import co.sirdab.driver.shared.core.model.StopType
 import co.sirdab.driver.shared.core.model.TripLifecycle
 import co.sirdab.driver.shared.core.model.TripStop
+import co.sirdab.driver.shared.feature.trip.api.QueuedTripEvent
+import co.sirdab.driver.shared.feature.trip.api.TripEventType
 import kotlin.test.Test
 
 private fun stop(
@@ -244,5 +246,40 @@ class StopActionTest {
         val after = trip(pickup, dropoff).applyLocally("s1", StopAction.DEPART, 1L)
 
         assertThat(after.stops[1].status).isEqualTo(StopStatus.PENDING)
+    }
+
+    @Test
+    fun `queued events replay in order with the photo rule set aside`() {
+        val dropoff = stop("s1", 1, StopType.DROPOFF, StopStatus.PENDING)
+        val queued = listOf(
+            QueuedTripEvent(TripEventType.TRIP_STARTED, null, 1L),
+            QueuedTripEvent(TripEventType.ARRIVED_AT_STOP, "s1", 2L),
+            // Its photo is queued ahead of it, so the server's zero count does not hold it back.
+            QueuedTripEvent(TripEventType.DELIVERED, "s1", 3L),
+        )
+
+        val replayed = trip(dropoff, status = TripLifecycle.ASSIGNED).withQueued(queued)
+
+        assertThat(replayed.status).isEqualTo(TripLifecycle.IN_TRANSIT)
+        assertThat(replayed.stops.single().status).isEqualTo(StopStatus.COMPLETED)
+    }
+
+    @Test
+    fun `a queued event the server already has changes nothing`() {
+        // Landed between the read and the replay: the stop is already past it.
+        val departed = stop("s1", 1, StopType.PICKUP, StopStatus.DEPARTED)
+        val queued = listOf(QueuedTripEvent(TripEventType.ARRIVED_AT_STOP, "s1", 2L))
+
+        assertThat(trip(departed).withQueued(queued).stops.single().status).isEqualTo(StopStatus.DEPARTED)
+    }
+
+    @Test
+    fun `a photo still in the queue unlocks delivering`() {
+        val dropoff = stop("s1", 1, StopType.DROPOFF, StopStatus.ARRIVED)
+
+        assertThat(actionsFor(trip(dropoff), dropoff)).isEmpty()
+        // The queue sends it ahead of the delivery tapped after it, so the server has it in time.
+        assertThat(actionsFor(trip(dropoff), dropoff, queuedPhotos = 1)).isEqualTo(listOf(StopAction.DELIVER))
+        assertThat(awaitingPhotoProof(trip(dropoff), dropoff, queuedPhotos = 1)).isEqualTo(false)
     }
 }

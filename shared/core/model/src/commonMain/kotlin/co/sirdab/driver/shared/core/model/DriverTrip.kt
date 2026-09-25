@@ -108,8 +108,16 @@ data class DriverTrip(
     val legs: List<TripLeg> = emptyList(),
     val stops: List<TripStop> = emptyList(),
 ) {
-    /** The stop the driver is working now: the first that is not finished with. */
+    /**
+     * The stop the driver is working now: the first that is not finished with.
+     *
+     * Departed counts as finished too. It is the last state a stop reaches, and leaving it out
+     * kept a stop the driver had already driven away from highlighted, with exceptions filed
+     * against it.
+     */
     val currentStop: TripStop?
         get() = stops.sortedBy { it.sequenceNumber }
-            .firstOrNull { it.status != StopStatus.COMPLETED && it.status != StopStatus.SKIPPED }
+            .firstOrNull { it.status !in FINISHED_STOP_STATUSES }
 }
+
+private val FINISHED_STOP_STATUSES = setOf(StopStatus.COMPLETED, StopStatus.DEPARTED, StopStatus.SKIPPED)

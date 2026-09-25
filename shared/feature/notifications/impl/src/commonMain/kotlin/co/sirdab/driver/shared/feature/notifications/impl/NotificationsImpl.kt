@@ -23,6 +23,9 @@ class NotificationRepositoryMock(private val world: DemoWorld) : NotificationRep
     override suspend fun markRead(id: String) {
         world.update { w -> w.copy(notifications = w.notifications.map { if (it.id == id) it.copy(read = true) else it }) }
     }
+
+    /** The list is held in memory and is never behind, so there is nothing to fetch. */
+    override suspend fun refresh() = Unit
 }
 
 val notificationsModule: Module = module {

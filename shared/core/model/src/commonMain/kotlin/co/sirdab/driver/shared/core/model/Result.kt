@@ -32,6 +32,27 @@ enum class AppErrorReason {
 
     /** A feature the backend does not offer yet. */
     UNAVAILABLE,
+
+    /** Ops has suspended this driver. Nothing in the app will work until that is lifted. */
+    DRIVER_SUSPENDED,
+
+    /** The fleet this driver belongs to has been suspended. */
+    WORKSPACE_SUSPENDED,
+
+    /** A driver must keep one truck, so the last one cannot be removed. */
+    LAST_TRUCK,
+
+    /** The photograph is bigger than the contract accepts. */
+    DOCUMENT_TOO_LARGE,
+
+    /** Not a file type the contract accepts. */
+    DOCUMENT_TYPE,
+
+    /** The document row is gone, so there is nothing to confirm against. */
+    DOCUMENT_MISSING,
+
+    /** Work recorded for one fleet is still queued, and the driver is trying to leave it. */
+    UNSENT_WORK,
 }
 
 data class AppError(

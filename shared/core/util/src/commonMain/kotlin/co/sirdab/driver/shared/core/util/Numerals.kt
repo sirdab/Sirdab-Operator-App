@@ -27,3 +27,39 @@ fun Int.toGroupedString(languageCode: String): String {
         .reversed()
     return grouped.localizeDigits(languageCode)
 }
+
+/**
+ * The digits in this string, as Western digits, whatever keyboard typed them.
+ *
+ * Arabic and Urdu keyboards type Arabic-Indic (٠-٩) or Extended Arabic-Indic (۰-۹) digits, which
+ * `isDigit()` accepts and a server expecting `+9665...` does not. Every Unicode decimal digit is
+ * mapped to its value; anything else is dropped.
+ */
+fun String.westernDigits(): String = buildString {
+    for (c in this@westernDigits) c.digitToIntOrNull()?.let { append(it) }
+}
+
+/**
+ * The nine national digits of a Saudi mobile number, from however the driver typed or pasted it.
+ *
+ * `0501234567`, `+966 50 123 4567`, `00966501234567` and `501234567` are all the same phone. Taking
+ * the first nine digits of the first form, as the field used to, kept `050123456`: a code sent to a
+ * number that does not exist. The trunk `0` and the country code are dropped before truncating.
+ */
+fun saudiMobileDigits(input: String): String {
+    var digits = input.westernDigits()
+    digits = when {
+        digits.startsWith("00966") -> digits.drop(5)
+        // Only once it is longer than a national number: typed digit by digit, "966" on its own
+        // is still ambiguous, and dropping it early would eat the start of what they are typing.
+        digits.startsWith("966") && digits.length > NATIONAL_MOBILE_LENGTH -> digits.drop(3)
+        else -> digits
+    }
+    return digits.removePrefix("0").take(NATIONAL_MOBILE_LENGTH)
+}
+
+/** Whether [digits] (as [saudiMobileDigits] returns them) is a whole Saudi mobile number. */
+fun isSaudiMobile(digits: String): Boolean =
+    digits.length == NATIONAL_MOBILE_LENGTH && digits.startsWith("5") && digits.all { it in '0'..'9' }
+
+private const val NATIONAL_MOBILE_LENGTH = 9

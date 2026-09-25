@@ -46,6 +46,8 @@ import co.sirdab.driver.shared.core.ui.generated.resources.postings_accept
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_bid
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_closed
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_closes_in
+import co.sirdab.driver.shared.core.ui.generated.resources.coming_soon
+import co.sirdab.driver.shared.core.ui.generated.resources.postings_coming_soon_body
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_empty_body
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_empty_title
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_open_price
@@ -98,28 +100,43 @@ fun DriverPostingsScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Three states share this space, and only one of them is a fault: nothing
+                    // posted yet, the board not built yet, and a call that actually failed.
+                    val failure = state.errorMessage
+                        .takeIf { !state.isComingSoon && !state.isBoardOutOfScope }
+                    val title = when {
+                        state.isComingSoon -> stringResource(Res.string.coming_soon)
+                        failure != null -> failure
+                        else -> stringResource(Res.string.postings_empty_title)
+                    }
+                    val isFault = failure != null
                     Text(
-                        state.errorMessage ?: stringResource(Res.string.postings_empty_title),
+                        title,
                         style = MaterialTheme.typography.titleLarge,
                         textAlign = TextAlign.Center,
-                        color = if (state.errorMessage != null) {
+                        color = if (isFault) {
                             MaterialTheme.colorScheme.error
                         } else {
                             MaterialTheme.colorScheme.onSurface
                         },
                     )
                     Spacer(Modifier.height(Spacing.xs))
-                    if (state.errorMessage == null) {
-                        Text(
+                    when {
+                        state.isComingSoon -> Text(
+                            stringResource(Res.string.postings_coming_soon_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        )
+                        isFault -> OutlinedButton(onClick = { viewModel.refresh() }) {
+                            Text(stringResource(Res.string.trips_retry))
+                        }
+                        else -> Text(
                             stringResource(Res.string.postings_empty_body),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                         )
-                    } else {
-                        OutlinedButton(onClick = { viewModel.refresh() }) {
-                            Text(stringResource(Res.string.trips_retry))
-                        }
                     }
                 }
             }

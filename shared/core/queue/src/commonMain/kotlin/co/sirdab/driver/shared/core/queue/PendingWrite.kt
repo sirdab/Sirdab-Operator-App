@@ -55,10 +55,18 @@ data class PendingWrite(
     val contentType: String? = null,
     /** The contract's FilePurpose, sent when minting the upload target. */
     val purpose: String? = null,
-    /** The file the server minted. Null until the mint succeeds, then never re-minted. */
+    /**
+     * The file the server minted. Null until the mint succeeds. Minted again only when the
+     * bytes never reached storage, since the signed upload target is not kept.
+     */
     val fileId: String? = null,
     /** Set once the bytes are in the bucket, so a retry resumes at the POST. */
     val uploaded: Boolean = false,
+    /**
+     * Who recorded this (the session's JWT `sub`). Null on rows from before the column existed,
+     * which are taken to be the current driver's, since signing out has always cleared the queue.
+     */
+    val ownerId: String? = null,
 )
 
 @Dao
@@ -73,11 +81,15 @@ interface PendingWriteDao {
      * Ordering is not cosmetic: trip events are the source of truth for a trip's
      * status, so an arrival that lands after the departure for the same stop
      * leaves dispatch with a timeline that cannot have happened.
+     *
+     * By [PendingWrite.id], never by a timestamp: the id only ever grows, while
+     * the device clock can step backwards (an NTP correction, a driver fixing a
+     * wrong time) between two taps and put the departure ahead of the arrival.
      */
-    @Query("SELECT * FROM pending_writes ORDER BY createdAtMillis ASC, id ASC")
+    @Query("SELECT * FROM pending_writes ORDER BY id ASC")
     suspend fun all(): List<PendingWrite>
 
-    @Query("SELECT * FROM pending_writes ORDER BY createdAtMillis ASC, id ASC")
+    @Query("SELECT * FROM pending_writes ORDER BY id ASC")
     fun observeAll(): Flow<List<PendingWrite>>
 
     @Query("SELECT COUNT(*) FROM pending_writes")
@@ -121,6 +133,16 @@ interface PendingWriteDao {
 
     @Query("UPDATE pending_writes SET uploaded = 1 WHERE id = :id")
     suspend fun markUploaded(id: Long)
+
+    /**
+     * Forget the minted file, so the next attempt mints and uploads again.
+     *
+     * For the one refusal that says the bytes never arrived (`file_not_ready`):
+     * the photo is still on the device, so the proof is recoverable by redoing
+     * the upload rather than lost by dropping the row.
+     */
+    @Query("UPDATE pending_writes SET fileId = NULL, uploaded = 0 WHERE id = :id")
+    suspend fun resetUpload(id: Long)
 
     @Query("DELETE FROM pending_writes")
     suspend fun clear()

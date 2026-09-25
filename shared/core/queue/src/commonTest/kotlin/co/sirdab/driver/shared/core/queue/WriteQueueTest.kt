@@ -40,6 +40,7 @@ class WriteQueueTest {
         dao: PendingWriteDao,
         clock: Clock,
         files: FakeLocalFileStore = FakeLocalFileStore(),
+        owner: () -> String? = { null },
         handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData,
     ): WriteQueue {
         val http = HttpClient(MockEngine { request -> handler(request) }) {
@@ -56,6 +57,7 @@ class WriteQueueTest {
             clock = clock,
             // Deterministic jitter, so backoff assertions are exact.
             random = Random(7),
+            owner = owner,
         )
     }
 
@@ -321,6 +323,77 @@ class WriteQueueTest {
         q.enqueue("api/driver/trips/t1/events", """{"a":1}""", 1L)
         q.clear()
 
+        assertThat(dao.current).isEqualTo(emptyList())
+    }
+
+    @Test
+    fun `drains in the order the driver acted even when the clock steps back`() = runTest {
+        val dao = FakePendingWriteDao()
+        val clock = FixedClock()
+        val bodies = mutableListOf<String>()
+
+        val q = queue(dao, clock) { request ->
+            bodies += (request.body as io.ktor.http.content.TextContent).text
+            respond("""{"id":"e1"}""", HttpStatusCode.Created, jsonHeaders())
+        }
+
+        q.enqueue("api/driver/trips/t1/events", """{"eventType":"arrived_at_stop"}""", 1L)
+        // NTP corrects the phone between the two taps: the second row is stamped earlier.
+        clock.millis -= 60_000
+        q.enqueue("api/driver/trips/t1/events", """{"eventType":"departed_stop"}""", 2L)
+
+        q.drain()
+
+        assertThat(bodies).isEqualTo(
+            listOf("""{"eventType":"arrived_at_stop"}""", """{"eventType":"departed_stop"}"""),
+        )
+    }
+
+    @Test
+    fun `a forced drain does not make the driver wait out the backoff`() = runTest {
+        val dao = FakePendingWriteDao()
+        val clock = FixedClock()
+        var calls = 0
+
+        val q = queue(dao, clock) {
+            calls++
+            if (calls == 1) {
+                respond("""{"error":{"code":"internal","message":"boom"}}""", HttpStatusCode.InternalServerError, jsonHeaders())
+            } else {
+                respond("""{"id":"e1"}""", HttpStatusCode.Created, jsonHeaders())
+            }
+        }
+
+        q.enqueue("api/driver/trips/t1/events", """{"a":1}""", 1L)
+        q.drain()
+
+        // The driver pulled to refresh with signal back: that is worth more than the timer.
+        val result = q.drain(force = true)
+
+        assertThat(calls).isEqualTo(2)
+        assertThat(result).isInstanceOf(DrainResult.Drained::class)
+    }
+
+    @Test
+    fun `another driver's unsent work is never sent under this session`() = runTest {
+        val dao = FakePendingWriteDao()
+        val clock = FixedClock()
+        var signedIn = "driver-a"
+        val bodies = mutableListOf<String>()
+
+        val q = queue(dao, clock, owner = { signedIn }) { request ->
+            bodies += (request.body as io.ktor.http.content.TextContent).text
+            respond("""{"id":"e1"}""", HttpStatusCode.Created, jsonHeaders())
+        }
+
+        // Recorded by A, whose session then ended on its own, without the sign-out that clears.
+        q.enqueue("api/driver/trips/t1/events", """{"by":"a"}""", 1L)
+        signedIn = "driver-b"
+        q.enqueue("api/driver/trips/t9/events", """{"by":"b"}""", 2L)
+
+        q.drain()
+
+        assertThat(bodies).isEqualTo(listOf("""{"by":"b"}"""))
         assertThat(dao.current).isEqualTo(emptyList())
     }
 }

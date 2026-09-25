@@ -1,5 +1,6 @@
 package co.sirdab.driver.shared.feature.onboarding.impl.presentation.phone
 
+import co.sirdab.driver.shared.core.util.isSaudiMobile
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,7 +56,7 @@ class PhoneViewModel(private val authRepository: AuthRepository) : ViewModel() {
 
     fun submit(onSent: () -> Unit) {
         val current = _state.value
-        if (current.phone.length < 9) {
+        if (!isSaudiMobile(current.phone)) {
             _state.value = current.copy(showError = true)
             return
         }
@@ -89,7 +90,7 @@ fun PhoneScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(Spacing.lg),
         ) {
-            StepProgress(current = 1, total = 5)
+            StepProgress(current = 0, total = 3)
             Spacer(Modifier.height(Spacing.xl))
             Text(stringResource(Res.string.phone_title), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(Spacing.xs))

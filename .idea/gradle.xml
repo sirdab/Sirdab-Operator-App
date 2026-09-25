@@ -27,20 +27,19 @@
             <option value="$PROJECT_DIR$/shared/core" />
             <option value="$PROJECT_DIR$/shared/core/auth" />
             <option value="$PROJECT_DIR$/shared/core/demo" />
+            <option value="$PROJECT_DIR$/shared/core/media" />
             <option value="$PROJECT_DIR$/shared/core/model" />
             <option value="$PROJECT_DIR$/shared/core/navigation" />
             <option value="$PROJECT_DIR$/shared/core/network" />
             <option value="$PROJECT_DIR$/shared/core/platform" />
             <option value="$PROJECT_DIR$/shared/core/preferences" />
+            <option value="$PROJECT_DIR$/shared/core/queue" />
             <option value="$PROJECT_DIR$/shared/core/ui" />
             <option value="$PROJECT_DIR$/shared/core/util" />
             <option value="$PROJECT_DIR$/shared/feature" />
             <option value="$PROJECT_DIR$/shared/feature/bidding" />
             <option value="$PROJECT_DIR$/shared/feature/bidding/api" />
             <option value="$PROJECT_DIR$/shared/feature/bidding/impl" />
-            <option value="$PROJECT_DIR$/shared/feature/loadboard" />
-            <option value="$PROJECT_DIR$/shared/feature/loadboard/api" />
-            <option value="$PROJECT_DIR$/shared/feature/loadboard/impl" />
             <option value="$PROJECT_DIR$/shared/feature/notifications" />
             <option value="$PROJECT_DIR$/shared/feature/notifications/api" />
             <option value="$PROJECT_DIR$/shared/feature/notifications/impl" />
@@ -53,9 +52,6 @@
             <option value="$PROJECT_DIR$/shared/feature/trip" />
             <option value="$PROJECT_DIR$/shared/feature/trip/api" />
             <option value="$PROJECT_DIR$/shared/feature/trip/impl" />
-            <option value="$PROJECT_DIR$/shared/feature/wallet" />
-            <option value="$PROJECT_DIR$/shared/feature/wallet/api" />
-            <option value="$PROJECT_DIR$/shared/feature/wallet/impl" />
           </set>
         </option>
       </GradleProjectSettings>

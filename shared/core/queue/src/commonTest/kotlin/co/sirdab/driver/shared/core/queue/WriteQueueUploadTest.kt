@@ -449,4 +449,50 @@ class WriteQueueUploadTest {
         assertThat(q.observeUploadsFor("api/driver/stops/s1/proofs").first()).isEqualTo(1)
         assertThat(q.observeUploadsFor("api/driver/stops/s2/proofs").first()).isEqualTo(0)
     }
+
+    @Test
+    fun `a proof refused as file_not_ready is uploaded again rather than lost`() = runTest {
+        val dao = FakePendingWriteDao()
+        val files = FakeLocalFileStore()
+        val calls = mutableListOf<Call>()
+        val clock = UploadClock()
+        val path = files.write("proof.jpg", "photo-bytes".toByteArray())
+        var proofPosts = 0
+
+        val q = queue(dao, clock, files, calls) { request ->
+            if (request.url.encodedPath.endsWith("/proofs") && proofPosts++ == 0) {
+                respond(
+                    """{"error":{"code":"file_not_ready","message":"The file has not been uploaded."}}""",
+                    HttpStatusCode.UnprocessableEntity,
+                    jsonHeaders,
+                )
+            } else {
+                route(request, fileId = "f-$proofPosts")
+            }
+        }
+        q.enqueueUpload(
+            path = "api/driver/stops/s1/proofs",
+            body = """{"proofType":"photo","capturedAt":"2026-09-20T10:00:00Z"}""",
+            occurredAtMillis = 1L,
+            localPath = path,
+            contentType = "image/jpeg",
+            purpose = "proof_photo",
+        )
+
+        val first = q.drain()
+
+        // The bytes never reached storage, but the phone still has them: keep both.
+        assertThat(first).isInstanceOf(DrainResult.Deferred::class)
+        assertThat(dao.current.single().uploaded).isEqualTo(false)
+        assertThat(dao.current.single().fileId).isNull()
+        assertThat(files.paths).contains(path)
+
+        clock.millis += 60_000
+        val second = q.drain()
+
+        assertThat(second).isInstanceOf(DrainResult.Drained::class)
+        // Minted and uploaded again, then the proof landed.
+        assertThat(calls.count { it.path == "/api/driver/files" }).isEqualTo(2)
+        assertThat(calls.count { it.method == "PUT" }).isEqualTo(2)
+    }
 }

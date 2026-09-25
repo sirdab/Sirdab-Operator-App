@@ -86,7 +86,7 @@ class DriverBiddingRepositoryHttpTest {
             respond(BID_JSON, HttpStatusCode.Created, jsonHeaders())
         }
 
-        repo.placeBid("p1", amountCents = 170000, truckId = "t1", note = "tonight")
+        repo.placeBid("p1", amountCents = 170000, truckId = "t1", note = "tonight", idempotencyKey = "k1")
 
         assertThat(sent?.contains("\"amountCents\":170000")).isEqualTo(true)
         assertThat(sent?.contains("\"truckId\":\"t1\"")).isEqualTo(true)
@@ -100,9 +100,10 @@ class DriverBiddingRepositoryHttpTest {
             respond(BID_JSON, HttpStatusCode.Created, jsonHeaders())
         }
 
-        repo.placeBid("p1", 170000, "t1")
+        repo.placeBid("p1", 170000, "t1", idempotencyKey = "offer-1")
 
-        assertThat(seen.headers[TmsApiClient.IDEMPOTENCY_KEY_HEADER]).isNotNull()
+        // The caller's key, exactly: it is what makes the caller's retry a replay.
+        assertThat(seen.headers[TmsApiClient.IDEMPOTENCY_KEY_HEADER]).isEqualTo("offer-1")
     }
 
     @Test
@@ -115,7 +116,7 @@ class DriverBiddingRepositoryHttpTest {
             )
         }
 
-        val result = repo.placeBid("p1", 170000, "t1")
+        val result = repo.placeBid("p1", 170000, "t1", idempotencyKey = "k1")
 
         assertThat(result is AppResult.Failure).isTrue()
         assertThat((result as AppResult.Failure).error.message)

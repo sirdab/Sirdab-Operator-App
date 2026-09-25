@@ -23,7 +23,11 @@ class DriverApp : Application() {
                 // rejected, and that is in the body. Credentials are sanitized out and
                 // photo uploads are filtered, so what lands in logcat is readable.
                 // Filter it with: adb logcat -s TmsApi:D
-                logLevel = if (BuildConfig.DEBUG) LogLevel.ALL else LogLevel.NONE,
+                //
+                // Driven by `driver.httpLog`, not by the build type: the builds being tested
+                // against the real stack are not always debuggable ones, and a release build that
+                // cannot say what it sent is a release build nobody can help with.
+                logLevel = if (BuildConfig.HTTP_LOG) LogLevel.ALL else LogLevel.NONE,
             )
         } else {
             createDemoModules()

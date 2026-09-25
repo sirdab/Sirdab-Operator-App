@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -60,6 +62,7 @@ fun HistoryScreen(
     viewModel: HistoryViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     val lang = Locale.current.language
 
     Scaffold(
@@ -70,37 +73,51 @@ fun HistoryScreen(
             )
         },
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(Spacing.md)) {
-            Text(stringResource(Res.string.history_earnings), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(Spacing.sm))
-            Surface(shape = RoundedCornerShape(Radius.lg), color = MaterialTheme.colorScheme.surface, tonalElevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
-                EarningsBarChart(state.bars, lang, modifier = Modifier.fillMaxWidth().height(200.dp).padding(Spacing.md))
-            }
-
-            Spacer(Modifier.height(Spacing.lg))
-            Text(stringResource(Res.string.history_completed_trips), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(Spacing.xs))
-            if (state.earnings.isEmpty()) {
-                Text(stringResource(Res.string.history_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                    items(state.earnings, key = { it.id }) { txn ->
-                        Surface(shape = RoundedCornerShape(Radius.md), color = MaterialTheme.colorScheme.surface, tonalElevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
-                            Row(Modifier.padding(Spacing.md).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(if (lang == "ar") txn.descriptionAr else txn.descriptionEn, style = MaterialTheme.typography.bodyLarge)
-                                    Spacer(Modifier.height(2.dp))
-                                    // Every trip is paid on delivery, so there is no
-                                    // settlement state to show. The date is what the
-                                    // operator actually wants to scan for.
-                                    Text(
-                                        formatEarnedOn(txn.earnedAtMillis, lang),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                Text("${txn.amountSar.toGroupedString(lang)} ${stringResource(Res.string.unit_sar)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = AppColors.Green.c600)
+        // One list rather than a column with a list inside it, so the pull gesture works over the
+        // chart as well as the rows — a driver pulls wherever their thumb happens to be.
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier.fillMaxSize().padding(padding),
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(Spacing.md),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            ) {
+                item {
+                    Text(stringResource(Res.string.history_earnings), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+                item {
+                    Surface(shape = RoundedCornerShape(Radius.lg), color = MaterialTheme.colorScheme.surface, tonalElevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
+                        EarningsBarChart(state.bars, lang, modifier = Modifier.fillMaxWidth().height(200.dp).padding(Spacing.md))
+                    }
+                }
+                item {
+                    Spacer(Modifier.height(Spacing.md))
+                    Text(stringResource(Res.string.history_completed_trips), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+                if (state.earnings.isEmpty()) {
+                    item {
+                        Text(stringResource(Res.string.history_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                items(state.earnings, key = { it.id }) { txn ->
+                    Surface(shape = RoundedCornerShape(Radius.md), color = MaterialTheme.colorScheme.surface, tonalElevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(Spacing.md).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(if (lang == "ar") txn.descriptionAr else txn.descriptionEn, style = MaterialTheme.typography.bodyLarge)
+                                Spacer(Modifier.height(2.dp))
+                                // Every trip is paid on delivery, so there is no
+                                // settlement state to show. The date is what the
+                                // operator actually wants to scan for.
+                                Text(
+                                    formatEarnedOn(txn.earnedAtMillis, lang),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
+                            Text("${txn.amountSar.toGroupedString(lang)} ${stringResource(Res.string.unit_sar)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = AppColors.Green.c600)
                         }
                     }
                 }

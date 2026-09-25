@@ -1,2 +1,3 @@
 CFBundleDisplayName = "سرداب للناقلين";
 CFBundleName = "سرداب للناقلين";
+NSCameraUsageDescription = "يستخدم سرداب الكاميرا لتصوير إثبات التسليم ومستنداتك.";

@@ -1,12 +1,44 @@
 package co.sirdab.driver.shared.core.ui.components
 
 import co.sirdab.driver.shared.core.model.CargoType
+import co.sirdab.driver.shared.core.model.DriverDocumentKind
+import co.sirdab.driver.shared.core.model.Nationality
+import co.sirdab.driver.shared.core.model.VerificationDocumentKind
+import co.sirdab.driver.shared.core.ui.generated.resources.doc_driving_licence
+import co.sirdab.driver.shared.core.ui.generated.resources.doc_national_id_short
+import co.sirdab.driver.shared.core.ui.generated.resources.doc_iqama
+import co.sirdab.driver.shared.core.ui.generated.resources.doc_istimara
+import co.sirdab.driver.shared.core.ui.generated.resources.doc_truck_photo
+import co.sirdab.driver.shared.core.ui.generated.resources.doc_vehicle_registration
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_bd
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_eg
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_er
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_et
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_in
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_jo
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_lk
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_np
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_ph
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_pk
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_ps
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_sa
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_sd
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_sy
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_tr
+import co.sirdab.driver.shared.core.ui.generated.resources.nat_ye
 import co.sirdab.driver.shared.core.model.HandlingFlag
 import co.sirdab.driver.shared.core.ui.generated.resources.err_not_provisioned
 import co.sirdab.driver.shared.core.ui.generated.resources.err_not_a_driver
 import co.sirdab.driver.shared.core.ui.generated.resources.err_phone_missing
 import co.sirdab.driver.shared.core.ui.generated.resources.err_sign_in_failed
+import co.sirdab.driver.shared.core.ui.generated.resources.err_document_missing
+import co.sirdab.driver.shared.core.ui.generated.resources.err_document_too_large
+import co.sirdab.driver.shared.core.ui.generated.resources.err_document_type
+import co.sirdab.driver.shared.core.ui.generated.resources.err_driver_suspended
+import co.sirdab.driver.shared.core.ui.generated.resources.err_last_truck
 import co.sirdab.driver.shared.core.ui.generated.resources.err_unavailable
+import co.sirdab.driver.shared.core.ui.generated.resources.err_unsent_work
+import co.sirdab.driver.shared.core.ui.generated.resources.err_workspace_suspended
 import co.sirdab.driver.shared.core.ui.generated.resources.tt_dry
 import co.sirdab.driver.shared.core.ui.generated.resources.tt_chilled
 import co.sirdab.driver.shared.core.ui.generated.resources.tt_frozen
@@ -102,4 +134,51 @@ fun AppErrorReason.labelRes(): StringResource = when (this) {
     AppErrorReason.PHONE_MISSING -> Res.string.err_phone_missing
     AppErrorReason.SIGN_IN_FAILED -> Res.string.err_sign_in_failed
     AppErrorReason.UNAVAILABLE -> Res.string.err_unavailable
+    AppErrorReason.DRIVER_SUSPENDED -> Res.string.err_driver_suspended
+    AppErrorReason.WORKSPACE_SUSPENDED -> Res.string.err_workspace_suspended
+    AppErrorReason.LAST_TRUCK -> Res.string.err_last_truck
+    AppErrorReason.DOCUMENT_TOO_LARGE -> Res.string.err_document_too_large
+    AppErrorReason.DOCUMENT_TYPE -> Res.string.err_document_type
+    AppErrorReason.DOCUMENT_MISSING -> Res.string.err_document_missing
+    AppErrorReason.UNSENT_WORK -> Res.string.err_unsent_work
+}
+
+fun Nationality.labelRes(): StringResource = when (this) {
+    Nationality.SAUDI -> Res.string.nat_sa
+    Nationality.BANGLADESHI -> Res.string.nat_bd
+    Nationality.EGYPTIAN -> Res.string.nat_eg
+    Nationality.ERITREAN -> Res.string.nat_er
+    Nationality.ETHIOPIAN -> Res.string.nat_et
+    Nationality.INDIAN -> Res.string.nat_in
+    Nationality.JORDANIAN -> Res.string.nat_jo
+    Nationality.NEPALI -> Res.string.nat_np
+    Nationality.PAKISTANI -> Res.string.nat_pk
+    Nationality.PALESTINIAN -> Res.string.nat_ps
+    Nationality.FILIPINO -> Res.string.nat_ph
+    Nationality.SRI_LANKAN -> Res.string.nat_lk
+    Nationality.SUDANESE -> Res.string.nat_sd
+    Nationality.SYRIAN -> Res.string.nat_sy
+    Nationality.TURKISH -> Res.string.nat_tr
+    Nationality.YEMENI -> Res.string.nat_ye
+}
+
+fun DriverDocumentKind.labelRes(): StringResource = when (this) {
+    DriverDocumentKind.NATIONAL_ID -> Res.string.doc_national_id_short
+    DriverDocumentKind.IQAMA -> Res.string.doc_iqama
+    DriverDocumentKind.DRIVING_LICENCE -> Res.string.doc_driving_licence
+    DriverDocumentKind.VEHICLE_REGISTRATION -> Res.string.doc_vehicle_registration
+}
+
+/**
+ * The fleet's five document kinds, which are not sign-up's three.
+ *
+ * `istimara` and `vehicle_registration` are the same piece of paper under two names, one per
+ * surface, so they share a label rather than teaching the driver the difference.
+ */
+fun VerificationDocumentKind.labelRes(): StringResource = when (this) {
+    VerificationDocumentKind.NATIONAL_ID -> Res.string.doc_national_id_short
+    VerificationDocumentKind.IQAMA -> Res.string.doc_iqama
+    VerificationDocumentKind.DRIVING_LICENCE -> Res.string.doc_driving_licence
+    VerificationDocumentKind.ISTIMARA -> Res.string.doc_istimara
+    VerificationDocumentKind.TRUCK_PHOTO -> Res.string.doc_truck_photo
 }

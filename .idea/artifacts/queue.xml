@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="queue">
+    <output-path>$PROJECT_DIR$/shared/core/queue/build/libs</output-path>
+    <root id="archive" name="queue.jar">
+      <element id="module-output" name="MyApplication.shared.core.queue.androidMain" />
+    </root>
+  </artifact>
+</component>

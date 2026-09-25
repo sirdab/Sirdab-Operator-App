@@ -15,10 +15,12 @@ import co.sirdab.driver.shared.core.model.TripStop
 import co.sirdab.driver.shared.feature.trip.api.DriverTripRepository
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
+import co.sirdab.driver.shared.feature.trip.api.QueuedTripEvent
 import co.sirdab.driver.shared.feature.trip.api.TripEventRecorder
 import co.sirdab.driver.shared.feature.trip.api.TripEventType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -33,7 +35,9 @@ import kotlin.time.Instant
 private val TRIP = DriverTrip(
     id = "t1",
     reference = "TRP-1",
-    status = TripLifecycle.ASSIGNED,
+    // Started: stop work is refused on a trip that is merely assigned, by the server and so by
+    // the view model.
+    status = TripLifecycle.IN_TRANSIT,
     stopCount = 1,
     stops = listOf(
         TripStop(
@@ -86,6 +90,10 @@ private class FakeRecorder(
     val proofs = mutableListOf<ProofCall>()
     var syncs = 0
 
+    /** What the queue still holds after a sync; empty means everything went. */
+    var queued: List<QueuedTripEvent> = emptyList()
+    val dropped = MutableStateFlow(0)
+
     override suspend fun record(
         tripId: String,
         eventType: TripEventType,
@@ -126,6 +134,14 @@ private class FakeRecorder(
         flowOf(proofs.count { it.stopId == stopId })
 
     override fun pendingCount(): Flow<Int> = flowOf(calls.size)
+
+    override suspend fun queuedEvents(tripId: String): List<QueuedTripEvent> = queued
+
+    override fun droppedCount(): Flow<Int> = dropped
+
+    override fun acknowledgeDropped() {
+        dropped.value = 0
+    }
 
     override suspend fun sync() {
         syncs++
@@ -337,9 +353,60 @@ class DriverTripDetailViewModelTest {
         // The photo is safely queued...
         assertThat(recorder.proofs.size).isEqualTo(1)
         // ...but the stop still reads zero proofs, because that count is the
-        // server's. Letting a queued photo unlock Delivered would post the
-        // delivery against a stop the server sees as unproven, and the
-        // photo_required that came back would drop it.
+        // server's. The screen adds the queued ones on top of it (actionsFor's
+        // queuedPhotos); the model never pretends the server has them.
         assertThat(vm.state.value.trip?.stops?.first()?.photoProofCount).isEqualTo(0)
+    }
+
+    @Test
+    fun `a reload keeps a step the queue has not sent yet`() = runTest(dispatcher) {
+        val recorder = FakeRecorder()
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(5L))
+        testScheduler.advanceUntilIdle()
+
+        vm.record("s1", StopAction.ARRIVE)
+        testScheduler.advanceUntilIdle()
+        // Still backing off: the server's copy has the stop pending.
+        recorder.queued = listOf(QueuedTripEvent(TripEventType.ARRIVED_AT_STOP, "s1", 5L))
+
+        vm.load(pulled = true)
+        testScheduler.advanceUntilIdle()
+
+        // Showing the server's older copy would offer Arrive again, and the second tap would be
+        // refused as out of order and dropped.
+        assertThat(vm.state.value.trip?.stops?.first()?.status).isEqualTo(StopStatus.ARRIVED)
+    }
+
+    @Test
+    fun `a refused write is shown until the driver dismisses it`() = runTest(dispatcher) {
+        val recorder = FakeRecorder()
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1L))
+        testScheduler.advanceUntilIdle()
+
+        recorder.dropped.value = 2
+        testScheduler.advanceUntilIdle()
+
+        assertThat(vm.state.value.droppedWrites).isEqualTo(2)
+        // And the trip is read again, since the screen was showing a step the server never took.
+        assertThat(recorder.syncs).isEqualTo(2)
+
+        vm.acknowledgeDropped()
+        testScheduler.advanceUntilIdle()
+
+        assertThat(vm.state.value.droppedWrites).isEqualTo(0)
+    }
+
+    @Test
+    fun `a double tap records the step once`() = runTest(dispatcher) {
+        val recorder = FakeRecorder()
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1L))
+        testScheduler.advanceUntilIdle()
+
+        vm.record("s1", StopAction.ARRIVE)
+        vm.record("s1", StopAction.ARRIVE)
+        testScheduler.advanceUntilIdle()
+
+        // The second would be refused as out of order hours later, and dropped.
+        assertThat(recorder.calls.size).isEqualTo(1)
     }
 }

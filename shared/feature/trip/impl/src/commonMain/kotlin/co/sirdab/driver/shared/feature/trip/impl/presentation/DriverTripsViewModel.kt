@@ -2,12 +2,14 @@ package co.sirdab.driver.shared.feature.trip.impl.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
 import co.sirdab.driver.shared.feature.trip.api.DriverTripRepository
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
 import co.sirdab.driver.shared.feature.trip.api.TripEventRecorder
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,7 +25,15 @@ data class DriverTripsUiState(
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
     val errorMessage: String? = null,
+    /**
+     * A refusal the driver cannot act on: the trip routes are carrier-scoped, and this driver works
+     * independently. Rendered as an empty list rather than an error, because nothing is broken and
+     * there is nothing to retry.
+     */
+    val errorReason: AppErrorReason? = null,
     val nextCursor: String? = null,
+    /** Which call [errorMessage] came from, so retrying repeats that call and not the other. */
+    val failedLoadMore: Boolean = false,
 ) {
     val canLoadMore: Boolean get() = nextCursor != null && !isLoadingMore
     /** An error with nothing on screen is a dead end; with rows behind it, it is a footer. */
@@ -38,18 +48,30 @@ class DriverTripsViewModel(
     private val _state = MutableStateFlow(DriverTripsUiState())
     val state: StateFlow<DriverTripsUiState> = _state.asStateFlow()
 
+    /** The page being appended, cancelled by a refresh that replaces the list under it. */
+    private var loadingMore: Job? = null
+
+    /** The latest refresh; an older one answering late must not overwrite it. */
+    private var refreshing: Job? = null
+
     init {
         refresh()
     }
 
     /** [pulled] keeps the list on screen while it reloads, rather than a spinner. */
     fun refresh(pulled: Boolean = false) {
+        // A page of the old list appended to the new one would repeat ids, and the list keys on
+        // id, so that is a crash rather than a glitch.
+        loadingMore?.cancel()
+        refreshing?.cancel()
         _state.value = _state.value.copy(
             isLoading = !pulled && _state.value.trips.isEmpty(),
             isRefreshing = pulled,
+            isLoadingMore = false,
             errorMessage = null,
+            failedLoadMore = false,
         )
-        viewModelScope.launch {
+        refreshing = viewModelScope.launch {
             // A pull to refresh is the driver asking for the app to catch up,
             // and what is behind is as often their own unsent work as the list.
             recorder.sync()
@@ -62,6 +84,7 @@ class DriverTripsViewModel(
                     isLoading = false,
                     isRefreshing = false,
                     errorMessage = result.error.message,
+                    errorReason = result.error.reason,
                 )
             }
         }
@@ -71,8 +94,8 @@ class DriverTripsViewModel(
         val cursor = _state.value.nextCursor ?: return
         if (_state.value.isLoadingMore) return
 
-        _state.value = _state.value.copy(isLoadingMore = true, errorMessage = null)
-        viewModelScope.launch {
+        _state.value = _state.value.copy(isLoadingMore = true, errorMessage = null, failedLoadMore = false)
+        loadingMore = viewModelScope.launch {
             when (val result = repository.trips(cursor = cursor)) {
                 is AppResult.Success -> _state.value = _state.value.copy(
                     // Appended, never merged by id: the cursor guarantees the next page does not
@@ -84,18 +107,28 @@ class DriverTripsViewModel(
                 is AppResult.Failure -> _state.value = _state.value.copy(
                     isLoadingMore = false,
                     errorMessage = result.error.message,
+                    failedLoadMore = true,
                 )
             }
         }
+    }
+
+    /** The footer's retry: the page that failed, or the refresh that did. */
+    fun retry() {
+        if (_state.value.failedLoadMore) loadMore() else refresh(pulled = true)
     }
 }
 
 data class DriverTripDetailUiState(
     val trip: DriverTrip? = null,
     val isLoading: Boolean = true,
+    /** A reload the driver asked for, which keeps the trip on screen while it runs. */
+    val isRefreshing: Boolean = false,
     val errorMessage: String? = null,
     /** Actions recorded on this device that the server has not acknowledged yet. */
     val pendingWrites: Int = 0,
+    /** Actions the server refused for good, which the driver has not dismissed yet. */
+    val droppedWrites: Int = 0,
     val isReportingException: Boolean = false,
     val exceptionReported: Boolean = false,
 )
@@ -115,16 +148,30 @@ class DriverTripDetailViewModel(
 
     init {
         load()
+        viewModelScope.launch {
+            // Null until the first count, which may be refusals from before this
+            // screen opened; the load above already reads the trip fresh for those.
+            var seen: Int? = null
+            recorder.droppedCount().collect { count ->
+                _state.value = _state.value.copy(droppedWrites = count)
+                // A refusal means the screen has been showing a step the server
+                // never took. Read the truth back rather than keep pretending.
+                if (seen != null && count > seen!!) load(pulled = true)
+                seen = count
+            }
+        }
+    }
+
+    fun acknowledgeDropped() {
+        recorder.acknowledgeDropped()
     }
 
     /**
      * Photos for this stop that have not reached the server yet.
      *
      * Kept apart from the stop's own `photoProofCount`, which is the server's
-     * count and the only one the photo rule reads. A queued photo must not
-     * unlock Delivered: the event would overtake nothing, but it would be
-     * posted against a stop the server still sees as unproven, come back
-     * `photo_required`, and be dropped with the delivery inside it.
+     * count. The screen adds the two to unlock Delivered (see [actionsFor]):
+     * the queue sends the photo before the delivery tapped after it.
      */
     fun pendingProofs(stopId: String): KStateFlow<Int> =
         proofFlows.getOrPut(stopId) {
@@ -158,17 +205,36 @@ class DriverTripDetailViewModel(
         }
     }
 
-    fun load() {
-        _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+    /**
+     * Read the trip again.
+     *
+     * [pulled] is the driver asking rather than the screen opening: the stops stay where they are
+     * and the gesture carries its own indicator, so blanking the trip to a spinner would take away
+     * the very thing they pulled to compare against.
+     */
+    fun load(pulled: Boolean = false) {
+        _state.value = _state.value.copy(
+            isLoading = !pulled,
+            isRefreshing = pulled,
+            errorMessage = null,
+        )
         viewModelScope.launch {
             // Push before pulling. A proof still sitting in the queue is the
             // reason the stop reads as unproven, so sending it first is what
             // makes the reload that follows show the action unlocked.
             recorder.sync()
             _state.value = when (val result = repository.trip(tripId)) {
-                is AppResult.Success -> DriverTripDetailUiState(trip = result.data, isLoading = false)
-                is AppResult.Failure -> DriverTripDetailUiState(
+                // Whatever the sync could not send is laid back on top: the server's
+                // copy predates it, and showing that copy would offer the driver a
+                // step they already took, whose second tap the server then refuses.
+                is AppResult.Success -> DriverTripDetailUiState(
+                    trip = result.data.withQueued(recorder.queuedEvents(tripId)),
                     isLoading = false,
+                    droppedWrites = _state.value.droppedWrites,
+                )
+                is AppResult.Failure -> _state.value.copy(
+                    isLoading = false,
+                    isRefreshing = false,
                     errorMessage = result.error.message,
                 )
             }
@@ -250,6 +316,11 @@ class DriverTripDetailViewModel(
 
     fun record(stopId: String, action: StopAction) {
         val trip = _state.value.trip ?: return
+        val stop = trip.stops.firstOrNull { it.id == stopId } ?: return
+        // Checked against the state as it is now, not as the button was drawn: a double tap lands
+        // twice before the screen recomposes, and the second, out-of-order event would be queued,
+        // refused hours later, and dropped. The photo rule is the screen's to enforce.
+        if (action !in actionsFor(trip, stop, requirePhoto = false)) return
         val occurredAtMillis = clock.now().toEpochMilliseconds()
 
         _state.value = _state.value.copy(

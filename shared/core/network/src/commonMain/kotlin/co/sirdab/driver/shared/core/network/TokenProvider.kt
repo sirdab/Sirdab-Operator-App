@@ -13,6 +13,13 @@ interface TokenProvider {
     /** Returns true when a fresh token is now available. A single retry follows a true. */
     suspend fun refresh(): Boolean
 
+    /**
+     * A stable id for the person the current token belongs to (the JWT `sub`), or null with no
+     * session. The write queue stamps it on every row so one driver's unsent work can never be
+     * sent under the next driver's token.
+     */
+    fun ownerId(): String? = null
+
     companion object {
         /** For demo mode and for tests that never reach an authenticated endpoint. */
         val Anonymous = object : TokenProvider {

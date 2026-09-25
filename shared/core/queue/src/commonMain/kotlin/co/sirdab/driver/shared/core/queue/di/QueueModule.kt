@@ -2,6 +2,7 @@ package co.sirdab.driver.shared.core.queue.di
 
 import androidx.room.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import co.sirdab.driver.shared.core.network.TokenProvider
 import co.sirdab.driver.shared.core.queue.PendingWriteDao
 import co.sirdab.driver.shared.core.queue.WriteQueue
 import co.sirdab.driver.shared.core.queue.WRITE_QUEUE_MIGRATIONS
@@ -25,5 +26,8 @@ val queueModule: Module = module {
             .build()
     }
     single<PendingWriteDao> { get<WriteQueueDatabase>().pendingWrites() }
-    single { WriteQueue(dao = get(), api = get(), uploader = get(), files = get()) }
+    single {
+        val tokens = get<TokenProvider>()
+        WriteQueue(dao = get(), api = get(), uploader = get(), files = get(), owner = tokens::ownerId)
+    }
 }

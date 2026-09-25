@@ -47,18 +47,36 @@ class IosLocalFileStore : LocalFileStore {
         dir
     }
 
+    /**
+     * Returns the bare file name, not an absolute path.
+     *
+     * The app's container path is not stable on iOS: it changes when the app is
+     * updated or restored, so an absolute path saved in the queue would point at
+     * nothing after the next update, and every queued proof would be dropped as
+     * "no longer on this device". The name is resolved against [root] each time.
+     */
     override suspend fun write(name: String, bytes: ByteArray): String {
-        val path = "$root/$name"
-        bytes.toNSData().writeToFile(path, atomically = true)
-        return path
+        val written = bytes.toNSData().writeToFile(resolve(name), atomically = true)
+        // A full disk answers false rather than throwing. Queuing a row for bytes
+        // that were never written is a proof that can only ever be dropped, so
+        // this must fail where the driver can still see it and retake the photo.
+        check(written) { "Could not save the photo on this device." }
+        return name
     }
 
     override suspend fun read(path: String): ByteArray? =
-        NSData.dataWithContentsOfFile(path)?.toByteArray()
+        NSData.dataWithContentsOfFile(resolve(path))?.toByteArray()
 
     override suspend fun delete(path: String) {
-        manager.removeItemAtPath(path, error = null)
+        manager.removeItemAtPath(resolve(path), error = null)
     }
+
+    /**
+     * Where [stored] lives today. Rows queued by earlier builds hold an absolute
+     * path into a container that may have moved since, so only its file name is
+     * trusted: every file this store writes sits directly under [root].
+     */
+    private fun resolve(stored: String): String = "$root/${stored.substringAfterLast('/')}"
 
     /** `dataWithBytes:length:` copies, so the scoped allocation is safe to free. */
     private fun ByteArray.toNSData(): NSData {

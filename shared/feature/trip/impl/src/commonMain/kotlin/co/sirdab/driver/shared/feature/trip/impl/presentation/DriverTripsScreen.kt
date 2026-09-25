@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.DriverTrip
 import co.sirdab.driver.shared.core.platform.locale.AppLocale
 import co.sirdab.driver.shared.core.ui.components.ChipTone
@@ -77,7 +78,10 @@ fun DriverTripsScreen(
             // Nothing on screen and a failure behind it: the error is the whole page, with the
             // only useful action on it.
             state.isEmpty -> EmptyOrError(
-                message = state.errorMessage,
+                // A driver working independently is refused every trip read. That is not a fault
+                // to report to them — there is simply nothing assigned yet.
+                message = state.errorMessage
+                    .takeIf { state.errorReason != AppErrorReason.NOT_PROVISIONED },
                 onRetry = { viewModel.refresh() },
             )
 
@@ -119,7 +123,7 @@ fun DriverTripsScreen(
                                 color = MaterialTheme.colorScheme.error,
                             )
                             Spacer(Modifier.height(Spacing.xs))
-                            OutlinedButton(onClick = viewModel::loadMore) {
+                            OutlinedButton(onClick = viewModel::retry) {
                                 Text(stringResource(Res.string.trips_retry))
                             }
                         }

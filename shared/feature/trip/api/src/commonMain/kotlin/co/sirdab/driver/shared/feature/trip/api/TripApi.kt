@@ -116,6 +116,27 @@ interface TripEventRecorder {
     fun pendingCount(): Flow<Int>
 
     /**
+     * This trip's events still in the queue, oldest first.
+     *
+     * A reload has to lay these back over what the server returns: until they
+     * land, the server's copy is older than what the driver did, and showing it
+     * as-is puts the Arrive button back under a driver who already tapped it.
+     */
+    suspend fun queuedEvents(tripId: String): List<QueuedTripEvent>
+
+    /**
+     * How many writes the server refused for good since the driver last looked.
+     *
+     * Those are gone from the queue, so the pending count falls as if they had
+     * been sent. The driver has to hear otherwise, or a refused delivery reads
+     * exactly like a successful one.
+     */
+    fun droppedCount(): Flow<Int>
+
+    /** The driver has seen the refusals counted by [droppedCount]. */
+    fun acknowledgeDropped()
+
+    /**
      * Try the queue again.
      *
      * Recording drains as a side effect, which is enough while a driver keeps
@@ -127,3 +148,9 @@ interface TripEventRecorder {
     suspend fun sync()
 }
 
+/** A trip event the driver recorded that has not reached the server yet. */
+data class QueuedTripEvent(
+    val eventType: TripEventType,
+    val stopId: String?,
+    val occurredAtMillis: Long,
+)

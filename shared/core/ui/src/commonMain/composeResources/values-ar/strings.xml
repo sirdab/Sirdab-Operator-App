@@ -4,6 +4,8 @@
     <string name="common_back">رجوع</string>
     <string name="common_continue">متابعة</string>
     <string name="common_finish">إنهاء</string>
+    <string name="common_ok">حسناً</string>
+    <string name="common_cancel">إلغاء</string>
 
     <string name="onboarding_welcome_title">قُد. زايِد. اربح.</string>
     <string name="onboarding_welcome_subtitle">سوق الشحنات الذكي للناقلين في السعودية.</string>
@@ -20,6 +22,8 @@
     <string name="otp_hint_demo">تجريبي: أي ٦ أرقام تعمل</string>
     <string name="verify">تحقق</string>
     <string name="resend_code">إعادة إرسال الرمز</string>
+    <string name="otp_resend_in">إعادة إرسال الرمز بعد %1$s</string>
+    <string name="otp_code_sent">تم إرسال رمز جديد.</string>
 
 
     <string name="docs_title">ارفع مستنداتك</string>
@@ -131,6 +135,10 @@
     <string name="profile_ontime">الالتزام بالوقت</string>
     <string name="profile_vehicle">المركبة</string>
     <string name="profile_documents">خزنة المستندات</string>
+    <string name="profile_logout">تسجيل الخروج</string>
+    <string name="logout_title">تسجيل الخروج؟</string>
+    <string name="logout_body">ستحتاج إلى رقم هاتفك ورمز جديد للدخول مرة أخرى.</string>
+    <string name="logout_unsent">هناك %1$d إجراء لم يُرسل بعد. إذا سجّلت الخروج ستفقده.</string>
     <string name="profile_settings">الإعدادات</string>
     <string name="profile_language">اللغة</string>
     <string name="profile_persona">شخصية العرض</string>
@@ -168,7 +176,7 @@
     <!-- Driver trips (TMS) -->
     <string name="trips_title">رحلاتي</string>
     <string name="trips_empty_title">ما فيه رحلات</string>
-    <string name="trips_empty_body">الرحلات اللي يسندها لك المشرف بتظهر هنا.</string>
+    <string name="trips_empty_body">الرحلات المسندة إليك تظهر هنا.</string>
     <string name="trips_stops_count">%1$d محطات</string>
     <string name="trips_in_city">داخل المدينة</string>
     <string name="trips_load_more">عرض المزيد</string>
@@ -178,6 +186,7 @@
     <string name="trip_stop_pickup">تحميل</string>
     <string name="trip_stop_dropoff">تسليم</string>
     <string name="trip_stop_call">اتصال</string>
+    <string name="trip_stop_navigate">الاتجاهات</string>
     <string name="trip_stop_planned">مجدولة</string>
     <string name="trip_stop_arrived">وصلت</string>
     <string name="trip_stop_departed">غادرت</string>
@@ -208,31 +217,43 @@
     <string name="stop_photo_count">%1$s صورة مرفقة</string>
     <string name="signup_details_title">بياناتك</string>
     <string name="signup_details_subtitle">نحتاج هذه البيانات لإنشاء حسابك.</string>
-    <string name="signup_kind_independent">أعمل لحسابي</string>
-    <string name="signup_kind_employee">أعمل لدى شركة</string>
-    <string name="signup_invite_code">رمز دعوة الشركة</string>
     <string name="signup_name">الاسم الكامل</string>
-    <string name="signup_nationality">الجنسية (اختياري)</string>
+    <string name="signup_nationality">الجنسية</string>
     <string name="signup_licence_number">رقم رخصة القيادة</string>
-    <string name="signup_licence_expiry">انتهاء الرخصة (اختياري)</string>
+    <string name="signup_licence_expiry">انتهاء الرخصة</string>
     <string name="signup_date_hint">سنة-شهر-يوم</string>
-    <string name="signup_date_invalid">استخدم الصيغة YYYY-MM-DD.</string>
     <string name="signup_docs_title">مستنداتك</string>
-    <string name="signup_docs_subtitle">صوّر كل مستند. يراجعها المشرف قبل أن تتمكن من استلام الشحنات.</string>
-    <string name="signup_identity">ما نوع هويتك؟</string>
+    <string name="signup_docs_subtitle">صوّر كل مستند. نراجعها قبل أن تتمكن من استلام الشحنات.</string>
     <string name="doc_national_id_short">الهوية الوطنية</string>
-    <string name="doc_iqama">الإقامة</string>
     <string name="doc_driving_licence">رخصة القيادة</string>
-    <string name="doc_istimara">الاستمارة</string>
-    <string name="doc_truck_photo">صورة الشاحنة</string>
     <string name="doc_uploaded">تم الرفع</string>
     <string name="doc_tap_to_add">اضغط للتصوير</string>
-    <string name="signup_submit">إنهاء التسجيل</string>
-    <string name="signup_pending_review">مستنداتك قيد المراجعة. ستتمكن من استلام الشحنات بعد الموافقة عليها.</string>
+    <string name="signup_docs_progress">تم تحميل %1$d من %2$d</string>
     <string name="trip_pending_sync">%1$d ما انرسلت</string>
     <string name="trip_pending_sync_note">محفوظة في جوالك وبترسل أول ما يرجع النت.</string>
+    <string name="trip_dropped_sync">%1$d ما انقبلت</string>
+    <string name="trip_dropped_sync_note">السيرفر رفضها فما انحفظت. راجع المحطات تحت وبلّغ المرسل.</string>
 
     <!-- Truck type and size (mirrors the TMS enums) -->
+
+    <!-- الجنسيات -->
+    <string name="nat_sa">سعودي</string>
+    <string name="nat_bd">بنغلاديشي</string>
+    <string name="nat_eg">مصري</string>
+    <string name="nat_er">إريتري</string>
+    <string name="nat_et">إثيوبي</string>
+    <string name="nat_in">هندي</string>
+    <string name="nat_jo">أردني</string>
+    <string name="nat_np">نيبالي</string>
+    <string name="nat_pk">باكستاني</string>
+    <string name="nat_ps">فلسطيني</string>
+    <string name="nat_ph">فلبيني</string>
+    <string name="nat_lk">سريلانكي</string>
+    <string name="nat_sd">سوداني</string>
+    <string name="nat_sy">سوري</string>
+    <string name="nat_tr">تركي</string>
+    <string name="nat_ye">يمني</string>
+
     <string name="tt_dry">جاف</string>
     <string name="tt_chilled">مبرد</string>
     <string name="tt_frozen">مجمد</string>
@@ -255,7 +276,7 @@
     <string name="exc_severity">قد إيش المشكلة كبيرة؟</string>
     <string name="exc_note">ملاحظة (اختياري)</string>
     <string name="exc_send">أرسل البلاغ</string>
-    <string name="exc_sent">تم التبليغ ووصل المشرف.</string>
+    <string name="exc_sent">تم الإبلاغ. أوصلنا الرسالة.</string>
     <string name="ek_delay">متأخر</string>
     <string name="ek_damage">الشحنة متضررة</string>
     <string name="ek_refused">رفضوا الاستلام</string>
@@ -267,7 +288,7 @@
     <string name="es_high">عاجلة</string>
 
     <!-- Sign-in problems -->
-    <string name="err_not_provisioned">حسابك ما تجهز بعد. كلّم المشرف يضيفك كسائق.</string>
+    <string name="err_not_provisioned">هذا الجزء من التطبيق مخصص للسائقين العاملين مع ناقل.</string>
     <string name="err_not_a_driver">هذا الحساب مو حساب سائق.</string>
     <string name="err_phone_missing">أدخل رقم جوالك مرة ثانية.</string>
     <string name="err_sign_in_failed">ما ضبط تسجيل الدخول. جرّب مرة ثانية.</string>
@@ -276,7 +297,7 @@
     <!-- Postings board (TMS) -->
     <string name="postings_title">الشحنات المتاحة</string>
     <string name="postings_empty_title">ما فيه شي متاح</string>
-    <string name="postings_empty_body">الشحنات اللي ينزلها المشرف بتظهر هنا.</string>
+    <string name="postings_empty_body">الشحنات المعروضة عليك تظهر هنا.</string>
     <string name="postings_closes_in">يسكّر خلال %1$s</string>
     <string name="postings_closed">مسكّر</string>
     <string name="postings_accept">اقبل %1$s</string>
@@ -299,4 +320,45 @@
     <string name="dur_days">%1$d يوم</string>
     <string name="dur_hours">%1$d ساعة</string>
     <string name="dur_minutes">%1$d دقيقة</string>
+    <string name="doc_vehicle_registration">استمارة المركبة</string>
+    <string name="signup_checklist_title">أكمل التسجيل</string>
+    <string name="signup_checklist_subtitle">بقيت أشياء قليلة قبل أن تستلم الشحنات. رتّبها كما تشاء.</string>
+    <string name="signup_progress">اكتمل %1$d من %2$d</string>
+    <string name="signup_section_you">بياناتك</string>
+    <string name="signup_section_truck">شاحنتك</string>
+    <string name="signup_section_docs">مستنداتك</string>
+    <string name="signup_item_done">تم</string>
+    <string name="signup_item_todo">مطلوب</string>
+    <string name="signup_item_rejected">مرفوض</string>
+    <string name="signup_item_in_review">قيد المراجعة</string>
+    <string name="signup_add_truck">أضف شاحنتك</string>
+    <string name="signup_remove_truck">إزالة</string>
+    <string name="signup_your_details">الاسم والرخصة</string>
+    <string name="signup_replace_document">استبدال</string>
+    <string name="signup_unsupported">هذا الإصدار لا يستطيع تقديم "%1$s". حدّث التطبيق.</string>
+    <string name="review_title">قيد المراجعة</string>
+    <string name="review_body">استلمنا كل شيء. سنخبرك فور الموافقة على مستنداتك.</string>
+    <string name="review_check_again">تحقق مرة أخرى</string>
+    <string name="review_fix_rejected">تم رفض أحد مستنداتك. استبدله للمتابعة.</string>
+    <string name="blocked_title">الحساب موقوف</string>
+    <string name="blocked_body">تم إيقاف حساب السائق الخاص بك. تواصل مع عمليات سرداب لحل الأمر.</string>
+    <string name="err_driver_suspended">تم إيقاف حساب السائق الخاص بك.</string>
+    <string name="err_workspace_suspended">تم إيقاف هذا الأسطول.</string>
+    <string name="err_last_truck">تحتاج إلى شاحنة واحدة على الأقل.</string>
+    <string name="err_document_too_large">هذه الصورة كبيرة جداً. التقطها من جديد.</string>
+    <string name="err_document_type">نوع الملف غير مقبول.</string>
+    <string name="err_document_missing">لم يعد هذا المستند موجوداً. ارفعه من جديد.</string>
+    <string name="postings_coming_soon_body">المزايدة على الشحنات غير مفعّلة بعد. ستُسند إليك رحلاتك في هذه الأثناء.</string>
+    <string name="board_locked">لم يتم اعتمادك لاستلام الشحنات بعد. لا شيء عليك فعله — ستفتح اللوحة فور اعتمادك.</string>
+    <string name="doc_iqama">الإقامة</string>
+    <string name="doc_istimara">استمارة المركبة</string>
+    <string name="doc_truck_photo">صورة الشاحنة</string>
+    <string name="profile_fleet">الأسطول</string>
+    <string name="paperwork_outstanding">مستنداتك غير مكتملة (%1$d متبقٍ). اضغط لإكمالها.</string>
+    <string name="err_unsent_work">بعض أعمالك لم تُرسل بعد. أعد المحاولة عند توفر الشبكة.</string>
+    <string name="doc_view">عرض ما أرسلته</string>
+    <string name="otp_wrong_number">الرقم غير صحيح؟</string>
+    <string name="signup_identity">أي وثيقة تحمل؟</string>
+    <string name="review_banner">حسابك قيد المراجعة. اضغط لمعرفة موقف كل مستند.</string>
+    <string name="review_under_way">حسابك قيد المراجعة. سنخبرك فور اعتماده.</string>
 </resources>

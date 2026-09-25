@@ -12,23 +12,28 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * these decide what a request may do, and the app needs them to tell three states apart: signed in
  * and ready, signed in but not yet linked to a workspace, and not a driver at all.
  *
- * [scopeId] is the `drivers.id` row this person is. It is what scopes trips and bids, so the app
- * needs it to talk about itself.
+ * [driverId] is the `drivers.id` row this person is on the active workspace. It is what scopes
+ * trips and bids, so the app needs it to talk about itself.
+ *
+ * The access model of 2026-09-21 replaced `tms_role`/`tms_scope_type`/`tms_scope_id` with
+ * [access] and [driverId], stamped from the `workspace_access` view. The old names are gone from
+ * the token entirely, so reading them left every onboarded driver looking like a non-driver.
  */
 data class DriverClaims(
     val subject: String,
     /** The tenant. Was `account_id` before the server grew organizations above workspaces. */
     val workspaceId: String?,
-    val role: String?,
-    val scopeType: String?,
-    val scopeId: String?,
+    /** `admin`, `staff` or `driver`: the highest-precedence access this person has here. */
+    val access: String?,
+    /** The driver row the token names, present only when [access] is `driver`. */
+    val driverId: String?,
     val expiresAtEpochSeconds: Long?,
 ) {
     /**
-     * The driver endpoints accept either a `driver` role or a `driver` scope: a carrier-role
-     * membership scoped to a driver passes too.
+     * Exactly what the server checks. There is no second way in any more: a staff or admin token
+     * on the same workspace is refused by every `driverOnly` route.
      */
-    val isDriver: Boolean get() = role == "driver" || scopeType == "driver"
+    val isDriver: Boolean get() = access == DRIVER_ACCESS
 
     /**
      * A valid sign-in with no tenant. Not a login failure: this phone has not been linked to the
@@ -36,6 +41,10 @@ data class DriverClaims(
      * `no_active_workspace` to everything.
      */
     val hasWorkspace: Boolean get() = !workspaceId.isNullOrBlank()
+
+    private companion object {
+        const val DRIVER_ACCESS = "driver"
+    }
 }
 
 /**
@@ -61,9 +70,8 @@ object JwtDecoder {
         return DriverClaims(
             subject = claims.string("sub").orEmpty(),
             workspaceId = appMetadata?.string("workspace_id"),
-            role = claims.string("tms_role"),
-            scopeType = claims.string("tms_scope_type"),
-            scopeId = claims.string("tms_scope_id"),
+            access = claims.string("tms_access"),
+            driverId = claims.string("tms_driver_id"),
             expiresAtEpochSeconds = claims.string("exp")?.toLongOrNull(),
         )
     }
