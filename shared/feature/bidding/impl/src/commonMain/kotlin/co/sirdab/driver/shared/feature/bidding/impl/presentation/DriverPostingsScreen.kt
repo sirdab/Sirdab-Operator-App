@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.DriverBid
 import co.sirdab.driver.shared.core.model.DriverPosting
 import co.sirdab.driver.shared.core.platform.locale.AppLocale
@@ -131,6 +132,12 @@ fun DriverPostingsScreen(
                         isFault -> OutlinedButton(onClick = { viewModel.refresh() }) {
                             Text(stringResource(Res.string.trips_retry))
                         }
+                        state.isCompanyDriver -> Text(
+                            stringResource(AppErrorReason.NOT_A_BIDDER.labelRes()),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        )
                         else -> Text(
                             stringResource(Res.string.postings_empty_body),
                             style = MaterialTheme.typography.bodyMedium,
@@ -225,8 +232,10 @@ private fun PostingCard(
 
             Spacer(Modifier.height(Spacing.xs))
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                TagChip(stringResource(posting.truckSize.labelRes()))
-                TagChip(stringResource(posting.truckType.labelRes()), tone = ChipTone.PRIMARY)
+                // An axis the posting never classified is left out rather than guessed.
+                posting.sizeClass?.let { TagChip(stringResource(it.labelRes())) }
+                posting.bodyType?.let { TagChip(stringResource(it.labelRes())) }
+                posting.temperature?.let { TagChip(stringResource(it.labelRes()), tone = ChipTone.PRIMARY) }
             }
 
             Spacer(Modifier.height(Spacing.sm))

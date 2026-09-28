@@ -34,8 +34,10 @@ data class PostingPlace(
 data class DriverTruck(
     val id: String,
     val licencePlate: String,
-    val truckType: TruckType,
-    val truckSize: TruckSize,
+    /** The fleet catalog row's axes, any of which it may have left unclassified. */
+    val bodyType: EquipmentBody?,
+    val sizeClass: EquipmentSize?,
+    val temperature: EquipmentTemperature?,
 )
 
 /**
@@ -56,8 +58,10 @@ data class DriverPosting(
     val status: PostingStatus,
     val origin: PostingPlace,
     val destination: PostingPlace,
-    val truckType: TruckType,
-    val truckSize: TruckSize,
+    /** What the load needs, matched on these axes; null on a posting that was never classified. */
+    val bodyType: EquipmentBody?,
+    val sizeClass: EquipmentSize?,
+    val temperature: EquipmentTemperature?,
     val targetRate: Money? = null,
     val pickupWindowStartMillis: Long? = null,
     val pickupWindowEndMillis: Long? = null,

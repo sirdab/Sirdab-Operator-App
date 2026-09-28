@@ -4,15 +4,17 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotEqualTo
 import co.sirdab.driver.shared.core.model.AppError
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.DriverBid
 import co.sirdab.driver.shared.core.model.DriverPosting
 import co.sirdab.driver.shared.core.model.DriverTruck
 import co.sirdab.driver.shared.core.model.Page
 import co.sirdab.driver.shared.core.model.PostingPlace
 import co.sirdab.driver.shared.core.model.PostingStatus
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
 import co.sirdab.driver.shared.feature.bidding.api.DriverBiddingRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -30,8 +32,9 @@ private fun posting(id: String) = DriverPosting(
     status = PostingStatus.entries.first(),
     origin = PostingPlace("Riyadh"),
     destination = PostingPlace("Jeddah"),
-    truckType = TruckType.DRY,
-    truckSize = TruckSize.CARGO_VAN,
+    bodyType = EquipmentBody.BOX,
+    sizeClass = EquipmentSize.PICKUP,
+    temperature = EquipmentTemperature.AMBIENT,
 )
 
 private class FakeBidding : DriverBiddingRepository {
@@ -42,10 +45,11 @@ private class FakeBidding : DriverBiddingRepository {
     /** Holds the second page open, so a test can tap again while it is in flight. */
     val secondPage = CompletableDeferred<AppResult<Page<DriverPosting>>>()
     var bidResult: AppResult<DriverBid> = AppResult.Failure(AppError("timeout"))
+    var firstPage: AppResult<Page<DriverPosting>> = AppResult.Success(Page(listOf(posting("a")), "c1"))
 
     override suspend fun postings(cursor: String?, limit: Int): AppResult<Page<DriverPosting>> {
         postingCursors += cursor
-        return if (cursor == null) AppResult.Success(Page(listOf(posting("a")), "c1")) else secondPage.await()
+        return if (cursor == null) firstPage else secondPage.await()
     }
 
     override suspend fun trucks(): AppResult<List<DriverTruck>> = AppResult.Success(emptyList())
@@ -92,6 +96,21 @@ class DriverPostingsViewModelTest {
         // Twice would append the same rows twice, and the list keys on id.
         assertThat(repo.postingCursors).isEqualTo(listOf(null, "c1"))
         assertThat(vm.state.value.postings.map { it.id }).isEqualTo(listOf("a", "b"))
+    }
+
+    @Test
+    fun `a company driver's refusal is a state of its own, not a fault`() = runTest(dispatcher) {
+        val repo = FakeBidding().apply {
+            firstPage = AppResult.Failure(
+                AppError("only independent operators bid from the app", reason = AppErrorReason.NOT_A_BIDDER),
+            )
+        }
+        val vm = DriverPostingsViewModel(repo)
+        testScheduler.advanceUntilIdle()
+
+        // No red text and no retry button: retrying would be refused the same way for ever.
+        assertThat(vm.state.value.isCompanyDriver).isEqualTo(true)
+        assertThat(vm.state.value.isBoardOutOfScope).isEqualTo(true)
     }
 
     @Test

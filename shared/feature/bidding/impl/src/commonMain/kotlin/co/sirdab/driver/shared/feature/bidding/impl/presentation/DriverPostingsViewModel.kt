@@ -52,7 +52,14 @@ data class DriverPostingsUiState(
      * loads to them. An empty board says that; a red error with a retry button says the app is
      * broken.
      */
-    val isBoardOutOfScope: Boolean get() = errorReason == AppErrorReason.NOT_PROVISIONED
+    val isBoardOutOfScope: Boolean get() = errorReason == AppErrorReason.NOT_PROVISIONED || isCompanyDriver
+
+    /**
+     * A company carrier's driver, whom the server refuses the board because the company bids.
+     *
+     * The shell hides the tab once `/me` says so; this covers the moment before it has.
+     */
+    val isCompanyDriver: Boolean get() = errorReason == AppErrorReason.NOT_A_BIDDER
 
     /** A carrier may bid once per posting, so an existing bid replaces the action. */
     fun bidFor(postingId: String): DriverBid? =

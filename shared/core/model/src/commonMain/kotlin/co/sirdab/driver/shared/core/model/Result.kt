@@ -53,6 +53,9 @@ enum class AppErrorReason {
 
     /** Work recorded for one fleet is still queued, and the driver is trying to leave it. */
     UNSENT_WORK,
+
+    /** A company carrier's driver: the company bids, so the app has no board for them. */
+    NOT_A_BIDDER,
 }
 
 data class AppError(

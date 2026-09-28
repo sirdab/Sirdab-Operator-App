@@ -8,6 +8,9 @@ import co.sirdab.driver.shared.core.model.Document
 import co.sirdab.driver.shared.core.model.DocStatus
 import co.sirdab.driver.shared.core.model.DocType
 import co.sirdab.driver.shared.core.model.Driver
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.HandlingFlag
 import co.sirdab.driver.shared.core.model.LatLng
 import co.sirdab.driver.shared.core.model.Load
@@ -15,8 +18,6 @@ import co.sirdab.driver.shared.core.model.NotificationKind
 import co.sirdab.driver.shared.core.model.ReeferRange
 import co.sirdab.driver.shared.core.model.Shipper
 import co.sirdab.driver.shared.core.model.TimeWindow
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
 import co.sirdab.driver.shared.core.model.VehicleType
 import co.sirdab.driver.shared.core.model.VerificationState
 import co.sirdab.driver.shared.core.model.Vehicle
@@ -175,9 +176,9 @@ class FixtureLoader(private val json: Json) {
     )
 
     private fun personas() = listOf(
-        Driver("p-flatbed", "Faisal Al-Otaibi", "فيصل العتيبي", "+966501234567", VerificationState.VERIFIED, 4.6, 87, 96, Vehicle(TruckType.DRY, TruckSize.FLATBED, "RSH 4821", 25.0), "flatbed_verified"),
+        Driver("p-flatbed", "Faisal Al-Otaibi", "فيصل العتيبي", "+966501234567", VerificationState.VERIFIED, 4.6, 87, 96, Vehicle(EquipmentBody.FLATBED, EquipmentSize.HEAVY, EquipmentTemperature.AMBIENT, "RSH 4821", 25.0), "flatbed_verified"),
         Driver("p-new", "", "", "", VerificationState.UNVERIFIED, personaKey = "new_unverified"),
-        Driver("p-van", "Bilal Khan", "بلال خان", "+966559876543", VerificationState.VERIFIED, 4.3, 41, 92, Vehicle(TruckType.DRY, TruckSize.CARGO_VAN, "JED 2019", 3.0), "van_3t"),
+        Driver("p-van", "Bilal Khan", "بلال خان", "+966559876543", VerificationState.VERIFIED, 4.3, 41, 92, Vehicle(EquipmentBody.BOX, EquipmentSize.LIGHT, EquipmentTemperature.AMBIENT, "JED 2019", 3.0), "van_3t"),
     )
 
     private fun missingDocuments() = listOf(

@@ -261,21 +261,26 @@
     <string name="nat_ye">Yemeni</string>
 
     <!-- Truck type and size (mirrors the TMS enums) -->
-    <string name="tt_dry">Dry</string>
-    <string name="tt_chilled">Chilled</string>
-    <string name="tt_frozen">Frozen</string>
-    <string name="ts_cargo_van">Cargo van</string>
-    <string name="ts_open_dyna">Open dyna</string>
-    <string name="ts_closed_dyna">Closed dyna</string>
-    <string name="ts_open_lorry">Open lorry</string>
-    <string name="ts_closed_lorry">Closed lorry</string>
-    <string name="ts_winch">Winch</string>
-    <string name="ts_flatbed">Flatbed</string>
-    <string name="ts_curtain_side">Curtain side</string>
-    <string name="ts_ltl">LTL</string>
-    <string name="ts_trailer">Trailer</string>
-    <string name="truck_type">Truck type</string>
-    <string name="truck_size">Truck size</string>
+    <string name="equip_body_box">Box</string>
+    <string name="equip_body_open">Open</string>
+    <string name="equip_body_flatbed">Flatbed</string>
+    <string name="equip_body_curtain_side">Curtain side</string>
+    <string name="equip_body_lowbed">Lowbed</string>
+    <string name="equip_body_tanker">Tanker</string>
+    <string name="equip_body_container">Container</string>
+    <string name="equip_body_tipper">Tipper</string>
+    <string name="equip_size_pickup">Pickup</string>
+    <string name="equip_size_light">Light</string>
+    <string name="equip_size_medium">Medium</string>
+    <string name="equip_size_heavy">Heavy</string>
+    <string name="equip_size_trailer">Trailer</string>
+    <string name="equip_temp_ambient">Ambient</string>
+    <string name="equip_temp_chilled">Chilled</string>
+    <string name="equip_temp_frozen">Frozen</string>
+    <string name="equip_temp_multi">Multi-temperature</string>
+    <string name="truck_body">Body</string>
+    <string name="truck_size">Size</string>
+    <string name="truck_temperature">Temperature</string>
 
     <!-- Exceptions -->
     <string name="exc_report">Report a problem</string>
@@ -363,6 +368,7 @@
     <string name="profile_fleet">Fleet</string>
     <string name="paperwork_outstanding">Your paperwork is not complete (%1$d outstanding). Tap to finish.</string>
     <string name="err_unsent_work">Some of your work has not been sent yet. Try again when you have signal.</string>
+    <string name="err_not_a_bidder">Your company bids on loads for you. Your trips show up in the Trip tab.</string>
     <string name="doc_view">View what you sent</string>
     <string name="otp_wrong_number">Wrong number?</string>
     <string name="signup_identity">Which do you carry?</string>

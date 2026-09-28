@@ -3,8 +3,9 @@ package co.sirdab.driver.shared.feature.onboarding.api.domain
 import co.sirdab.driver.shared.core.model.DriverDocumentKind
 import co.sirdab.driver.shared.core.model.DriverDocumentStatus
 import co.sirdab.driver.shared.core.model.Nationality
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 
 /**
  * Where the driver stands with us, which is ours to decide, not theirs.
@@ -69,8 +70,9 @@ sealed interface OnboardingGap {
 data class ProfileTruck(
     val id: String,
     val licencePlate: String,
-    val truckType: TruckType,
-    val truckSize: TruckSize,
+    val bodyType: EquipmentBody,
+    val sizeClass: EquipmentSize,
+    val temperature: EquipmentTemperature,
     val capacityKg: Int?,
 )
 

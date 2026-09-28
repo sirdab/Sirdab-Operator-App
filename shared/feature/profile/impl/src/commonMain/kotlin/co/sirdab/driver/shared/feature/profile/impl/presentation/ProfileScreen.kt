@@ -50,6 +50,7 @@ import co.sirdab.driver.shared.core.ui.components.ChipTone
 import co.sirdab.driver.shared.core.ui.components.TagChip
 import co.sirdab.driver.shared.core.ui.components.LanguageOptionRow
 import co.sirdab.driver.shared.core.ui.components.VerifiedBadge
+import co.sirdab.driver.shared.core.ui.components.equipmentLabel
 import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.common_cancel
@@ -159,7 +160,7 @@ fun ProfileScreen(
                     Column(Modifier.padding(Spacing.md)) {
                         Text(stringResource(Res.string.profile_vehicle), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(2.dp))
-                        Text("${stringResource(v.truckSize.labelRes())} · ${stringResource(v.truckType.labelRes())} • ${v.plate}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(listOf(equipmentLabel(v.bodyType, v.sizeClass, v.temperature), v.plate).filter { it.isNotEmpty() }.joinToString(" • "), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
                 }
             }

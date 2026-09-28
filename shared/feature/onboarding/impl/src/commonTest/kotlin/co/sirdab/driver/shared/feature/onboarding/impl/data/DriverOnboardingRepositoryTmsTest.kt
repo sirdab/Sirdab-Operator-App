@@ -10,11 +10,12 @@ import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.DriverDocumentKind
 import co.sirdab.driver.shared.core.model.DriverDocumentStatus
 import co.sirdab.driver.shared.core.model.Nationality
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DetailsDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
 import co.sirdab.driver.shared.feature.onboarding.api.domain.OnboardingGap
@@ -129,8 +130,9 @@ class DriverOnboardingRepositoryTmsTest {
         val profile = harness.onboarding.addTruck(
             TruckDraft(
                 licencePlate = "RUH 9002",
-                truckType = TruckType.CHILLED,
-                truckSize = TruckSize.CLOSED_DYNA,
+                bodyType = EquipmentBody.BOX,
+                sizeClass = EquipmentSize.LIGHT,
+                temperature = EquipmentTemperature.CHILLED,
                 capacityTons = "4",
             ),
         )
@@ -141,6 +143,10 @@ class DriverOnboardingRepositoryTmsTest {
         assertThat(profileReads).isEqualTo(1)
         // The app talks in tonnes and the contract in kilograms.
         assertThat(harness.bodyOf(Api.TRUCKS).orEmpty()).contains(""""capacityKg":4000""")
+        // All three axes go on the wire; a truck missing one can never be matched.
+        assertThat(harness.bodyOf(Api.TRUCKS).orEmpty())
+            .contains(""""bodyType":"box","sizeClass":"light","temperature":"chilled"""")
+        assertThat(added.trucks.single().temperature).isEqualTo(EquipmentTemperature.CHILLED)
     }
 
     @Test

@@ -6,38 +6,56 @@ import kotlinx.serialization.Serializable
 enum class VerificationState { UNVERIFIED, PENDING, VERIFIED }
 
 /**
- * What the trailer is, as the TMS models it: `truck_type` on the server.
+ * What the truck is built as: `bodyType` on the server, one of the platform's three equipment axes.
  *
- * Type and size are two separate questions. A closed lorry can be dry, chilled
- * or frozen, and conflating them into one list (the old `VehicleType`) meant the
- * app could not say which.
+ * A reefer is not a body. It is a [BOX] whose [EquipmentTemperature] is not ambient, which is why
+ * the three questions are asked separately rather than as one list.
  */
 @Serializable
-enum class TruckType(val wire: String) {
-    DRY("dry"),
-    CHILLED("chilled"),
-    FROZEN("frozen"),
+enum class EquipmentBody(val wire: String) {
+    BOX("box"),
+    OPEN("open"),
+    FLATBED("flatbed"),
+    CURTAIN_SIDE("curtain_side"),
+    LOWBED("lowbed"),
+    TANKER("tanker"),
+    CONTAINER("container"),
+    TIPPER("tipper");
+
+    companion object {
+        /** Null for a value this build cannot name, or for an axis the server left unclassified. */
+        fun fromWire(wire: String?): EquipmentBody? = entries.firstOrNull { it.wire == wire }
+    }
 }
 
 /**
- * How big the truck is: `truck_size` on the server.
- *
- * Mirrors the server enum exactly, in the same order. Pending Zaheer's list,
- * which may not match: the server has no lowbed or tanker, both of which the
- * demo fixtures still use.
+ * How big the truck is: `sizeClass` on the server. [PICKUP] is the wanit class, cargo vans and
+ * pickups up to about 1.5 t, and is a size rather than a body.
  */
 @Serializable
-enum class TruckSize(val wire: String) {
-    CARGO_VAN("cargo_van"),
-    OPEN_DYNA("open_dyna"),
-    CLOSED_DYNA("closed_dyna"),
-    OPEN_LORRY("open_lorry"),
-    CLOSED_LORRY("closed_lorry"),
-    WINCH("winch"),
-    FLATBED("flatbed"),
-    CURTAIN_SIDE("curtain_side"),
-    LTL("ltl"),
-    TRAILER("trailer"),
+enum class EquipmentSize(val wire: String) {
+    PICKUP("pickup"),
+    LIGHT("light"),
+    MEDIUM("medium"),
+    HEAVY("heavy"),
+    TRAILER("trailer");
+
+    companion object {
+        fun fromWire(wire: String?): EquipmentSize? = entries.firstOrNull { it.wire == wire }
+    }
+}
+
+/** What the truck can hold the load at: `temperature` on the server. */
+@Serializable
+enum class EquipmentTemperature(val wire: String) {
+    AMBIENT("ambient"),
+    CHILLED("chilled"),
+    FROZEN("frozen"),
+    MULTI("multi");
+
+    companion object {
+        fun fromWire(wire: String?): EquipmentTemperature? = entries.firstOrNull { it.wire == wire }
+    }
 }
 
 /**
@@ -48,8 +66,10 @@ enum class TruckSize(val wire: String) {
  */
 @Serializable
 data class Vehicle(
-    val truckType: TruckType,
-    val truckSize: TruckSize,
+    /** Null when the fleet's catalog row never classified that axis. */
+    val bodyType: EquipmentBody?,
+    val sizeClass: EquipmentSize?,
+    val temperature: EquipmentTemperature?,
     val plate: String,
     val capacityTons: Double,
 )
@@ -58,7 +78,7 @@ data class Vehicle(
  * The demo load board's requirement taxonomy, one axis instead of two.
  *
  * Kept only because the seeded loads use it. Real loads come from the TMS with
- * `truckType` and `truckSize`, so this retires with the demo board.
+ * `bodyType`, `sizeClass` and `temperature`, so this retires with the demo board.
  */
 @Serializable
 enum class VehicleType {

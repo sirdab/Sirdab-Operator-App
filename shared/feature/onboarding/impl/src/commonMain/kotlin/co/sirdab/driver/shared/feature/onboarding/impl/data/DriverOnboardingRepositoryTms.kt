@@ -70,8 +70,9 @@ class DriverOnboardingRepositoryTms(
                 AddTruckDto.serializer(),
                 AddTruckDto(
                     licencePlate = draft.licencePlate.trim(),
-                    truckType = draft.truckType.wire,
-                    truckSize = draft.truckSize.wire,
+                    bodyType = draft.bodyType.wire,
+                    sizeClass = draft.sizeClass.wire,
+                    temperature = draft.temperature.wire,
                     capacityKg = draft.capacityKg,
                 ),
             ),

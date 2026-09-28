@@ -28,19 +28,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.ui.components.DriverButton
 import co.sirdab.driver.shared.core.ui.components.DriverTextField
 import co.sirdab.driver.shared.core.ui.components.LanguageOptionRow
+import co.sirdab.driver.shared.core.ui.components.equipmentLabel
 import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.capacity_tons
 import co.sirdab.driver.shared.core.ui.generated.resources.plate_number
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_add_truck
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_remove_truck
+import co.sirdab.driver.shared.core.ui.generated.resources.truck_body
 import co.sirdab.driver.shared.core.ui.generated.resources.truck_size
-import co.sirdab.driver.shared.core.ui.generated.resources.truck_type
+import co.sirdab.driver.shared.core.ui.generated.resources.truck_temperature
 import co.sirdab.driver.shared.core.ui.generated.resources.vehicle_subtitle
 import co.sirdab.driver.shared.core.ui.theme.Radius
 import co.sirdab.driver.shared.core.ui.theme.Spacing
@@ -165,19 +168,20 @@ fun SignUpTruckScreen(
 
             Spacer(Modifier.height(Spacing.md))
             Text(
-                stringResource(Res.string.truck_type),
+                stringResource(Res.string.truck_body),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(Spacing.sm))
-            // Built off the enum on purpose: the contract's truck vocabulary is due to widen, and
-            // that should be an enum and its labels, not a screen.
+            // Built off the enums on purpose: when the platform's axes widen, that should be an enum
+            // and its labels, not a screen. All three are required, since a truck missing one can
+            // never be matched to a posting.
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
-                TruckType.entries.forEach { type ->
+                EquipmentBody.entries.forEach { body ->
                     LanguageOptionRow(
-                        label = stringResource(type.labelRes()),
-                        selected = type == draft.truckType,
-                        onClick = { viewModel.edit { it.copy(truckType = type) } },
+                        label = stringResource(body.labelRes()),
+                        selected = body == draft.bodyType,
+                        onClick = { viewModel.edit { it.copy(bodyType = body) } },
                     )
                 }
             }
@@ -190,11 +194,28 @@ fun SignUpTruckScreen(
             )
             Spacer(Modifier.height(Spacing.sm))
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
-                TruckSize.entries.forEach { size ->
+                EquipmentSize.entries.forEach { size ->
                     LanguageOptionRow(
                         label = stringResource(size.labelRes()),
-                        selected = size == draft.truckSize,
-                        onClick = { viewModel.edit { it.copy(truckSize = size) } },
+                        selected = size == draft.sizeClass,
+                        onClick = { viewModel.edit { it.copy(sizeClass = size) } },
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(Spacing.md))
+            Text(
+                stringResource(Res.string.truck_temperature),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(Spacing.sm))
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
+                EquipmentTemperature.entries.forEach { temperature ->
+                    LanguageOptionRow(
+                        label = stringResource(temperature.labelRes()),
+                        selected = temperature == draft.temperature,
+                        onClick = { viewModel.edit { it.copy(temperature = temperature) } },
                     )
                 }
             }
@@ -244,7 +265,7 @@ private fun TruckRow(truck: ProfileTruck, onRemove: () -> Unit) {
             Column(Modifier.padding(vertical = Spacing.sm)) {
                 Text(truck.licencePlate, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                 Text(
-                    "${stringResource(truck.truckSize.labelRes())} · ${stringResource(truck.truckType.labelRes())}",
+                    equipmentLabel(truck.bodyType, truck.sizeClass, truck.temperature),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -25,12 +25,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import co.sirdab.driver.shared.core.model.Driver
 import co.sirdab.driver.shared.core.network.BackendMode
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
@@ -54,6 +55,11 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 private data class TabSpec(val tab: MainTab, val icon: ImageVector, val label: StringResource)
+
+/** The shell's chosen tab, scoped to its back stack entry. */
+private class SelectedTab(initial: MainTab) : ViewModel() {
+    val tab = mutableStateOf(initial)
+}
 
 @Composable
 fun MainShell(
@@ -95,15 +101,24 @@ fun MainShell(
     // rather than a queue — so the app is whole, the board and the trip list say plainly that
     // nothing has arrived yet, and the banner says why.
     val tabs = listOfNotNull(
-        TabSpec(MainTab.LOADS, Icons.Default.LocalShipping, Res.string.tab_loads).takeIf { tmsOnly },
+        // Only an independent carrier's driver bids; a company's driver is refused the board, so
+        // they get no tab for it. No answer yet keeps it, and the board explains itself if refused.
+        TabSpec(MainTab.LOADS, Icons.Default.LocalShipping, Res.string.tab_loads)
+            .takeIf { tmsOnly && verification?.canBid != false },
         TabSpec(MainTab.TRIP, Icons.Default.Map, Res.string.tab_trip).takeIf { tmsOnly },
         TabSpec(MainTab.PROFILE, Icons.Default.Person, Res.string.tab_profile),
     )
 
-    var selected by rememberSaveable { mutableStateOf(initialTab) }
+    // Held by a ViewModel rather than rememberSaveable: a language change rebuilds the screen tree,
+    // saved UI state with it, and the driver who switched language from Profile would land back on
+    // the board. The entry's ViewModels are kept across that rebuild.
+    val tabState = viewModel { SelectedTab(initialTab) }
+    var selected by tabState.tab
     // Derived rather than assigned: a tab can disappear under the driver when the session changes,
     // and rewriting their choice would forget it once it comes back.
-    val shown = if (tabs.none { it.tab == selected }) MainTab.PROFILE else selected
+    // The first tab left is the nearest thing to what they asked for: trips for a company driver
+    // who opened on the board, the profile in demo mode.
+    val shown = if (tabs.none { it.tab == selected }) tabs.first().tab else selected
 
     Scaffold(
         bottomBar = {

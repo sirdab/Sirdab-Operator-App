@@ -296,8 +296,9 @@ internal fun DriverProfile.toDriver(): Driver = Driver(
     },
     vehicle = trucks.firstOrNull()?.let { truck ->
         Vehicle(
-            truckType = truck.truckType,
-            truckSize = truck.truckSize,
+            bodyType = truck.bodyType,
+            sizeClass = truck.sizeClass,
+            temperature = truck.temperature,
             plate = truck.licencePlate,
             // The contract carries kilograms; the app has always shown tonnes.
             capacityTons = truck.capacityKg?.let { it / 1000.0 } ?: 0.0,

@@ -243,21 +243,26 @@
     <string name="nat_ye">यमनी</string>
 
     <!-- Truck type and size -->
-    <string name="tt_dry">सूखा</string>
-    <string name="tt_chilled">ठंडा</string>
-    <string name="tt_frozen">जमा हुआ</string>
-    <string name="ts_cargo_van">कार्गो वैन</string>
-    <string name="ts_open_dyna">खुली डायना</string>
-    <string name="ts_closed_dyna">बंद डायना</string>
-    <string name="ts_open_lorry">खुली लॉरी</string>
-    <string name="ts_closed_lorry">बंद लॉरी</string>
-    <string name="ts_winch">विंच</string>
-    <string name="ts_flatbed">फ़्लैटबेड</string>
-    <string name="ts_curtain_side">कर्टन साइड</string>
-    <string name="ts_ltl">आंशिक लोड</string>
-    <string name="ts_trailer">ट्रेलर</string>
-    <string name="truck_type">ट्रक का प्रकार</string>
+    <string name="equip_body_box">बंद बॉडी</string>
+    <string name="equip_body_open">खुली बॉडी</string>
+    <string name="equip_body_flatbed">फ़्लैटबेड</string>
+    <string name="equip_body_curtain_side">कर्टन साइड</string>
+    <string name="equip_body_lowbed">लोबेड</string>
+    <string name="equip_body_tanker">टैंकर</string>
+    <string name="equip_body_container">कंटेनर</string>
+    <string name="equip_body_tipper">टिपर</string>
+    <string name="equip_size_pickup">पिकअप</string>
+    <string name="equip_size_light">हल्का</string>
+    <string name="equip_size_medium">मध्यम</string>
+    <string name="equip_size_heavy">भारी</string>
+    <string name="equip_size_trailer">ट्रेलर</string>
+    <string name="equip_temp_ambient">सामान्य तापमान</string>
+    <string name="equip_temp_chilled">ठंडा</string>
+    <string name="equip_temp_frozen">जमा हुआ</string>
+    <string name="equip_temp_multi">मल्टी-तापमान</string>
+    <string name="truck_body">बॉडी का प्रकार</string>
     <string name="truck_size">ट्रक का आकार</string>
+    <string name="truck_temperature">तापमान</string>
 
     <!-- Exceptions -->
     <string name="exc_report">समस्या बताएँ</string>
@@ -345,6 +350,7 @@
     <string name="profile_fleet">फ़्लीट</string>
     <string name="paperwork_outstanding">आपके दस्तावेज़ पूरे नहीं हैं (%1$d बाक़ी)। पूरा करने के लिए दबाएँ।</string>
     <string name="err_unsent_work">आपका कुछ काम अभी भेजा नहीं गया है। सिग्नल आने पर फिर कोशिश करें।</string>
+    <string name="err_not_a_bidder">आपकी कंपनी आपके लिए लोड पर बोली लगाती है। आपकी ट्रिप यात्रा टैब में दिखेंगी।</string>
     <string name="doc_view">जो भेजा वह देखें</string>
     <string name="otp_wrong_number">नंबर ग़लत है?</string>
     <string name="signup_identity">आपके पास कौन सा दस्तावेज़ है?</string>

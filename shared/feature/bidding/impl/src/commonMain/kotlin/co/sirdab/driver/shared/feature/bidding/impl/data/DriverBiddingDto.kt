@@ -4,11 +4,12 @@ import co.sirdab.driver.shared.core.model.DriverBid
 import co.sirdab.driver.shared.core.model.DriverBidStatus
 import co.sirdab.driver.shared.core.model.DriverPosting
 import co.sirdab.driver.shared.core.model.DriverTruck
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.Money
 import co.sirdab.driver.shared.core.model.PostingPlace
 import co.sirdab.driver.shared.core.model.PostingStatus
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
@@ -17,6 +18,20 @@ internal data class MoneyDto(val amountCents: Int, val currency: String = "SAR")
 
 @Serializable
 internal data class PlaceDto(val label: String, val city: String? = null)
+
+/**
+ * What a posting needs, or what a fleet truck is: a workspace's catalog row as the driver app sees
+ * it. `/api/driver/me` adds the row's `id` and `code`, which the app has no use for. Any axis may
+ * be null on a row that was never classified.
+ */
+@Serializable
+internal data class EquipmentDto(
+    val name: String = "",
+    val nameAr: String? = null,
+    val bodyType: String? = null,
+    val sizeClass: String? = null,
+    val temperature: String? = null,
+)
 
 @Serializable
 internal data class DriverPostingDto(
@@ -29,8 +44,7 @@ internal data class DriverPostingDto(
     val biddingClosesAt: String? = null,
     val origin: PlaceDto,
     val destination: PlaceDto,
-    val truckType: String,
-    val truckSize: String,
+    val equipment: EquipmentDto,
 )
 
 @Serializable
@@ -73,20 +87,15 @@ internal fun String.toDriverBidStatus(): DriverBidStatus = when (this) {
     else -> DriverBidStatus.PENDING
 }
 
-internal fun String.toTruckType(): TruckType =
-    TruckType.entries.firstOrNull { it.wire == this } ?: TruckType.DRY
-
-internal fun String.toTruckSize(): TruckSize =
-    TruckSize.entries.firstOrNull { it.wire == this } ?: TruckSize.CLOSED_LORRY
-
 internal fun DriverPostingDto.toDomain(): DriverPosting = DriverPosting(
     id = id,
     loadId = loadId,
     status = status.toPostingStatus(),
     origin = PostingPlace(origin.label, origin.city),
     destination = PostingPlace(destination.label, destination.city),
-    truckType = truckType.toTruckType(),
-    truckSize = truckSize.toTruckSize(),
+    bodyType = EquipmentBody.fromWire(equipment.bodyType),
+    sizeClass = EquipmentSize.fromWire(equipment.sizeClass),
+    temperature = EquipmentTemperature.fromWire(equipment.temperature),
     targetRate = targetRate?.let { Money(it.amountCents, it.currency) },
     pickupWindowStartMillis = pickupWindowStart.toMillisOrNull(),
     pickupWindowEndMillis = pickupWindowEnd.toMillisOrNull(),
@@ -111,13 +120,13 @@ internal data class MeTrucksDto(val trucks: List<MeTruckDto> = emptyList())
 internal data class MeTruckDto(
     val id: String,
     val licencePlate: String,
-    val truckType: String,
-    val truckSize: String,
+    val equipment: EquipmentDto,
 )
 
 internal fun MeTruckDto.toDomain(): DriverTruck = DriverTruck(
     id = id,
     licencePlate = licencePlate,
-    truckType = truckType.toTruckType(),
-    truckSize = truckSize.toTruckSize(),
+    bodyType = EquipmentBody.fromWire(equipment.bodyType),
+    sizeClass = EquipmentSize.fromWire(equipment.sizeClass),
+    temperature = EquipmentTemperature.fromWire(equipment.temperature),
 )

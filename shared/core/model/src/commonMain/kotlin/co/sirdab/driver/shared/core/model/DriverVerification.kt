@@ -84,6 +84,12 @@ data class DriverVerification(
     val status: VerificationSummary,
     val canAcceptLoads: Boolean,
     val documents: List<VerificationDocument> = emptyList(),
+    /**
+     * Whether this driver bids from the app, which only an independent carrier's driver does. A
+     * company carrier's driver gets trips but no board: committing the company to a price belongs
+     * to whoever runs it, and the server answers `403 bidder_not_independent` to every board call.
+     */
+    val canBid: Boolean = true,
 ) {
     val hasRejection: Boolean get() = documents.any { it.status == VerificationDocumentStatus.REJECTED }
 

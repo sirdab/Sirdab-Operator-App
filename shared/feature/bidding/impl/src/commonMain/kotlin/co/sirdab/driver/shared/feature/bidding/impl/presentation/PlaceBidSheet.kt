@@ -27,7 +27,7 @@ import co.sirdab.driver.shared.core.platform.locale.AppLocale
 import co.sirdab.driver.shared.core.ui.components.DriverButton
 import co.sirdab.driver.shared.core.ui.components.DriverTextField
 import co.sirdab.driver.shared.core.ui.components.LanguageOptionRow
-import co.sirdab.driver.shared.core.ui.components.labelRes
+import co.sirdab.driver.shared.core.ui.components.equipmentLabel
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_accept_confirm
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_amount
@@ -115,8 +115,10 @@ fun PlaceBidSheet(
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
                     trucks.forEach { truck ->
                         LanguageOptionRow(
-                            label = "${truck.licencePlate} · " +
-                                stringResource(truck.truckSize.labelRes()),
+                            label = listOf(
+                                truck.licencePlate,
+                                equipmentLabel(truck.bodyType, truck.sizeClass, truck.temperature),
+                            ).filter { it.isNotEmpty() }.joinToString(" · "),
                             selected = truck.id == truckId,
                             onClick = { truckId = truck.id },
                         )

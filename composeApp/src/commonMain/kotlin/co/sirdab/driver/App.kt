@@ -52,20 +52,26 @@ fun App() {
     // app's worlds this person is in. Everything below waits on that rather than guessing.
     //
     // The back stack is built from that answer once and then lives here, above the language key
-    // below, together with the entries' saved state and ViewModels. Built inside the key, a language
+    // below, together with the entries' ViewModels. Built inside the key, a language
     // change rebuilt it from the launch-time answer: a driver who signed in after launching was sent
     // back to the language picker with a live session, and everyone else lost where they were.
     var backStack by remember { mutableStateOf<NavBackStack<NavKey>?>(null) }
     LaunchedEffect(Unit) {
         backStack = NavBackStack(authRepository.resolveDestination().toRoute())
     }
-    val entryDecorators = listOf(
-        rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
-        rememberViewModelStoreNavEntryDecorator<NavKey>(),
-    )
+    val viewModelDecorator = rememberViewModelStoreNavEntryDecorator<NavKey>()
 
     // Re-key on language so every stringResource re-reads the process locale set above.
     key(if (languageChangeRequiresRestart) Unit else language) {
+        // The saved-state holder is made per language, unlike the ViewModels above. The old tree and
+        // the new one overlap for a frame while the key swaps them, and a holder shared by both sees
+        // every entry registered twice and throws ("Key Splash was used multiple times"). Nothing is
+        // lost by it: rememberSaveable keys include this key, so saved UI state never carried across
+        // a language change anyway.
+        val entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
+            viewModelDecorator,
+        )
         AppTheme(languageCode = language.code) {
             val stack = backStack
             if (stack == null) {

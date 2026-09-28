@@ -7,8 +7,9 @@ import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverDocumentKind
 import co.sirdab.driver.shared.core.model.DriverDocumentStatus
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.Vehicle
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DetailsDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
@@ -61,8 +62,9 @@ class DriverOnboardingRepositoryMock(private val world: DemoWorld) : DriverOnboa
             val truck = ProfileTruck(
                 id = existing?.id ?: "demo-truck-${profile.trucks.size + 1}",
                 licencePlate = draft.licencePlate.trim(),
-                truckType = draft.truckType,
-                truckSize = draft.truckSize,
+                bodyType = draft.bodyType,
+                sizeClass = draft.sizeClass,
+                temperature = draft.temperature,
                 capacityKg = draft.capacityKg,
             )
             profile.copy(trucks = profile.trucks.filterNot { it.id == truck.id } + truck)
@@ -119,12 +121,19 @@ class DriverOnboardingRepositoryMock(private val world: DemoWorld) : DriverOnboa
                 fullNameAr = updated.name,
                 vehicle = updated.trucks.firstOrNull()?.let { truck ->
                     Vehicle(
-                        truckType = truck.truckType,
-                        truckSize = truck.truckSize,
+                        bodyType = truck.bodyType,
+                        sizeClass = truck.sizeClass,
+                        temperature = truck.temperature,
                         plate = truck.licencePlate,
                         capacityTons = truck.capacityKg?.let { kg -> kg / 1000.0 } ?: 0.0,
                     )
-                } ?: Vehicle(TruckType.DRY, TruckSize.CLOSED_LORRY, plate = "", capacityTons = 0.0),
+                } ?: Vehicle(
+                    EquipmentBody.BOX,
+                    EquipmentSize.MEDIUM,
+                    EquipmentTemperature.AMBIENT,
+                    plate = "",
+                    capacityTons = 0.0,
+                ),
             )
         }
         return AppResult.Success(updated)

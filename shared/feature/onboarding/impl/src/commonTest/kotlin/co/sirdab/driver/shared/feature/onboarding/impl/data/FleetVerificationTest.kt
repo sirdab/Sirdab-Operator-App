@@ -35,10 +35,31 @@ class FleetVerificationTest {
 
         val verification = harness.auth.observeVerification().first()
         assertThat(verification?.canAcceptLoads).isEqualTo(true)
+        assertThat(verification?.canBid).isEqualTo(true)
         assertThat(verification?.status).isEqualTo(VerificationSummary.APPROVED)
         assertThat(verification?.documents?.map { it.kind }).isEqualTo(
             listOf(VerificationDocumentKind.NATIONAL_ID, VerificationDocumentKind.ISTIMARA),
         )
+    }
+
+    @Test
+    fun `a company carrier's driver works but does not bid`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                Api.VERIFY -> respondJson(session(DRIVER_TOKEN))
+                Api.PROFILE -> respondJson(activeProfile)
+                Api.ME -> respondJson(meJson(canAcceptLoads = true, status = "approved", carrierKind = "company"))
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+
+        harness.auth.requestOtp("+966500000001")
+        harness.auth.verifyOtp("123456")
+
+        val verification = harness.auth.observeVerification().first()
+        // The company bids for its drivers; the server refuses them the board, so the app hides it.
+        assertThat(verification?.canBid).isEqualTo(false)
+        assertThat(verification?.canAcceptLoads).isEqualTo(true)
     }
 
     @Test
@@ -180,6 +201,7 @@ class FleetVerificationTest {
     private fun meJson(
         canAcceptLoads: Boolean,
         status: String,
+        carrierKind: String = "independent",
         documents: List<String> = listOf(
             meDocument(kind = "national_id", status = "approved"),
             meDocument(kind = "istimara", status = "approved"),
@@ -189,7 +211,7 @@ class FleetVerificationTest {
      "workspaceId":"ws-1",
      "driver":{"id":"drv-7","name":"Nayef Al Rashidi","status":"active",
                "licenceNumber":"DL-2020202","licenceExpiresAt":"2027-09-21"},
-     "carrier":{"id":"c-1","name":"Nayef","kind":"independent"},
+     "carrier":{"id":"c-1","name":"Nayef","kind":"$carrierKind"},
      "trucks":[],
      "documents":${documents.joinToString(prefix = "[", postfix = "]")},
      "verification":{"status":"$status","canAcceptLoads":$canAcceptLoads}}

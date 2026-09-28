@@ -3,8 +3,9 @@ package co.sirdab.driver.shared.feature.onboarding.api.domain
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverDocumentKind
 import co.sirdab.driver.shared.core.model.Nationality
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import kotlinx.coroutines.flow.StateFlow
 
 /** What the driver types about themselves. Every field here is one PATCH away from the server. */
@@ -30,8 +31,9 @@ data class DetailsDraft(
 /** What the driver says about the truck they drive. */
 data class TruckDraft(
     val licencePlate: String = "",
-    val truckType: TruckType = TruckType.DRY,
-    val truckSize: TruckSize = TruckSize.CLOSED_LORRY,
+    val bodyType: EquipmentBody = EquipmentBody.BOX,
+    val sizeClass: EquipmentSize = EquipmentSize.MEDIUM,
+    val temperature: EquipmentTemperature = EquipmentTemperature.AMBIENT,
     val capacityTons: String = "",
 ) {
     /** The contract wants a plate; everything else it will take a default for. */

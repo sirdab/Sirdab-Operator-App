@@ -22,6 +22,7 @@ enum class ApiErrorCode(val wire: String) {
     NoActiveWorkspace("no_active_workspace"),
     NoActiveAccount("no_active_account"),
     Forbidden("forbidden"),
+    BidderNotIndependent("bidder_not_independent"),
     NotFound("not_found"),
     IdempotencyKeyReused("idempotency_key_reused"),
     UnknownReference("unknown_reference"),
@@ -104,9 +105,9 @@ val ApiFailure.disposition: FailureDisposition
 /**
  * Bridges a transport failure into the result type the existing screens already render.
  *
- * Two server answers are named rather than relayed, because they are not errors the driver can do
- * anything about and the server's own wording says so badly: an endpoint that has not shipped yet,
- * and a token with no workspace on it. Everything else keeps the server's message, which for a
+ * Three server answers are named rather than relayed, because they are not errors the driver can
+ * do anything about and the server's own wording says so badly: an endpoint that has not shipped
+ * yet, a token with no workspace on it, and a company driver asking for the board. Everything else keeps the server's message, which for a
  * validation failure beats anything the app could invent.
  */
 fun ApiFailure.toAppError(): AppError = when (this) {
@@ -120,5 +121,6 @@ private fun ApiFailure.Http.reason(): AppErrorReason? = when {
     status == 501 || code == ApiErrorCode.NotImplemented -> AppErrorReason.UNAVAILABLE
     code == ApiErrorCode.NoActiveWorkspace || code == ApiErrorCode.NoActiveAccount ->
         AppErrorReason.NOT_PROVISIONED
+    code == ApiErrorCode.BidderNotIndependent -> AppErrorReason.NOT_A_BIDDER
     else -> null
 }

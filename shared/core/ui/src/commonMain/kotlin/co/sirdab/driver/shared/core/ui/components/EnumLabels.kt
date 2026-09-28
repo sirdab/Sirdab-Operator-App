@@ -37,24 +37,30 @@ import co.sirdab.driver.shared.core.ui.generated.resources.err_document_type
 import co.sirdab.driver.shared.core.ui.generated.resources.err_driver_suspended
 import co.sirdab.driver.shared.core.ui.generated.resources.err_last_truck
 import co.sirdab.driver.shared.core.ui.generated.resources.err_unavailable
+import co.sirdab.driver.shared.core.ui.generated.resources.err_not_a_bidder
 import co.sirdab.driver.shared.core.ui.generated.resources.err_unsent_work
 import co.sirdab.driver.shared.core.ui.generated.resources.err_workspace_suspended
-import co.sirdab.driver.shared.core.ui.generated.resources.tt_dry
-import co.sirdab.driver.shared.core.ui.generated.resources.tt_chilled
-import co.sirdab.driver.shared.core.ui.generated.resources.tt_frozen
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_cargo_van
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_open_dyna
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_closed_dyna
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_open_lorry
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_closed_lorry
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_winch
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_flatbed
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_curtain_side
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_ltl
-import co.sirdab.driver.shared.core.ui.generated.resources.ts_trailer
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_body_box
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_body_open
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_body_flatbed
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_body_curtain_side
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_body_lowbed
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_body_tanker
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_body_container
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_body_tipper
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_size_pickup
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_size_light
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_size_medium
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_size_heavy
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_size_trailer
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_temp_ambient
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_temp_chilled
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_temp_frozen
+import co.sirdab.driver.shared.core.ui.generated.resources.equip_temp_multi
 import co.sirdab.driver.shared.core.model.AppErrorReason
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.VehicleType
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.cargo_container
@@ -77,7 +83,9 @@ import co.sirdab.driver.shared.core.ui.generated.resources.vt_lowbed
 import co.sirdab.driver.shared.core.ui.generated.resources.vt_reefer
 import co.sirdab.driver.shared.core.ui.generated.resources.vt_tanker
 import co.sirdab.driver.shared.core.ui.generated.resources.vt_van_3t
+import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 fun VehicleType.labelRes(): StringResource = when (this) {
     VehicleType.FLATBED -> Res.string.vt_flatbed
@@ -108,24 +116,41 @@ fun HandlingFlag.labelRes(): StringResource = when (this) {
     HandlingFlag.TAIL_LIFT -> Res.string.flag_tail_lift
 }
 
-fun TruckType.labelRes(): StringResource = when (this) {
-    TruckType.DRY -> Res.string.tt_dry
-    TruckType.CHILLED -> Res.string.tt_chilled
-    TruckType.FROZEN -> Res.string.tt_frozen
+fun EquipmentBody.labelRes(): StringResource = when (this) {
+    EquipmentBody.BOX -> Res.string.equip_body_box
+    EquipmentBody.OPEN -> Res.string.equip_body_open
+    EquipmentBody.FLATBED -> Res.string.equip_body_flatbed
+    EquipmentBody.CURTAIN_SIDE -> Res.string.equip_body_curtain_side
+    EquipmentBody.LOWBED -> Res.string.equip_body_lowbed
+    EquipmentBody.TANKER -> Res.string.equip_body_tanker
+    EquipmentBody.CONTAINER -> Res.string.equip_body_container
+    EquipmentBody.TIPPER -> Res.string.equip_body_tipper
 }
 
-fun TruckSize.labelRes(): StringResource = when (this) {
-    TruckSize.CARGO_VAN -> Res.string.ts_cargo_van
-    TruckSize.OPEN_DYNA -> Res.string.ts_open_dyna
-    TruckSize.CLOSED_DYNA -> Res.string.ts_closed_dyna
-    TruckSize.OPEN_LORRY -> Res.string.ts_open_lorry
-    TruckSize.CLOSED_LORRY -> Res.string.ts_closed_lorry
-    TruckSize.WINCH -> Res.string.ts_winch
-    TruckSize.FLATBED -> Res.string.ts_flatbed
-    TruckSize.CURTAIN_SIDE -> Res.string.ts_curtain_side
-    TruckSize.LTL -> Res.string.ts_ltl
-    TruckSize.TRAILER -> Res.string.ts_trailer
+fun EquipmentSize.labelRes(): StringResource = when (this) {
+    EquipmentSize.PICKUP -> Res.string.equip_size_pickup
+    EquipmentSize.LIGHT -> Res.string.equip_size_light
+    EquipmentSize.MEDIUM -> Res.string.equip_size_medium
+    EquipmentSize.HEAVY -> Res.string.equip_size_heavy
+    EquipmentSize.TRAILER -> Res.string.equip_size_trailer
 }
+
+fun EquipmentTemperature.labelRes(): StringResource = when (this) {
+    EquipmentTemperature.AMBIENT -> Res.string.equip_temp_ambient
+    EquipmentTemperature.CHILLED -> Res.string.equip_temp_chilled
+    EquipmentTemperature.FROZEN -> Res.string.equip_temp_frozen
+    EquipmentTemperature.MULTI -> Res.string.equip_temp_multi
+}
+
+/** A truck in the platform's three axes, size first the way a driver says it. An unclassified axis is left out. */
+@Composable
+fun equipmentLabel(
+    bodyType: EquipmentBody?,
+    sizeClass: EquipmentSize?,
+    temperature: EquipmentTemperature?,
+): String = listOfNotNull(sizeClass?.labelRes(), bodyType?.labelRes(), temperature?.labelRes())
+    .map { stringResource(it) }
+    .joinToString(" · ")
 
 /** The words for a failure the data layer only named. */
 fun AppErrorReason.labelRes(): StringResource = when (this) {
@@ -141,6 +166,7 @@ fun AppErrorReason.labelRes(): StringResource = when (this) {
     AppErrorReason.DOCUMENT_TYPE -> Res.string.err_document_type
     AppErrorReason.DOCUMENT_MISSING -> Res.string.err_document_missing
     AppErrorReason.UNSENT_WORK -> Res.string.err_unsent_work
+    AppErrorReason.NOT_A_BIDDER -> Res.string.err_not_a_bidder
 }
 
 fun Nationality.labelRes(): StringResource = when (this) {

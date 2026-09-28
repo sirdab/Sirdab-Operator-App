@@ -190,10 +190,12 @@ internal fun profileJson(
 internal fun truckJson(
     id: String = "t1",
     plate: String = "RUH 9002",
-    type: String = "chilled",
-    size: String = "closed_dyna",
+    body: String = "box",
+    size: String = "light",
+    temperature: String = "chilled",
 ): String =
-    """{"id":"$id","licencePlate":"$plate","truckType":"$type","truckSize":"$size","capacityKg":4000}"""
+    """{"id":"$id","licencePlate":"$plate","bodyType":"$body","sizeClass":"$size",""" +
+        """"temperature":"$temperature","capacityKg":4000}"""
 
 internal fun documentJson(
     id: String = "d1",

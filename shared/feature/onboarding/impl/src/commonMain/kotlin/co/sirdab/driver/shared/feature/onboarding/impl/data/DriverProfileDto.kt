@@ -2,9 +2,10 @@ package co.sirdab.driver.shared.feature.onboarding.impl.data
 
 import co.sirdab.driver.shared.core.model.DriverDocumentKind
 import co.sirdab.driver.shared.core.model.DriverDocumentStatus
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.Nationality
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfileStatus
 import co.sirdab.driver.shared.feature.onboarding.api.domain.OnboardingGap
@@ -35,8 +36,9 @@ internal data class DriverProfileDto(
 internal data class ProfileTruckDto(
     val id: String,
     val licencePlate: String,
-    val truckType: String,
-    val truckSize: String,
+    val bodyType: String,
+    val sizeClass: String,
+    val temperature: String,
     val capacityKg: Int? = null,
 )
 
@@ -71,12 +73,13 @@ internal data class UpdateProfileDto(
     val licenceExpiresAt: String? = null,
 )
 
-/** `POST /api/driver/profile/trucks`. */
+/** `POST /api/driver/profile/trucks`. All three axes are required: a truck missing one never matches. */
 @Serializable
 internal data class AddTruckDto(
     val licencePlate: String,
-    val truckType: String,
-    val truckSize: String,
+    val bodyType: String,
+    val sizeClass: String,
+    val temperature: String,
     val capacityKg: Int? = null,
 )
 
@@ -130,12 +133,12 @@ internal fun DriverProfileDto.toDomain(): DriverProfile = DriverProfile(
         ProfileTruck(
             id = truck.id,
             licencePlate = truck.licencePlate,
-            // An unknown truck type or size is a contract that moved on without the app. Falling
-            // back keeps the profile readable; the picker is built off the enum, so the swap when
-            // the vocabulary widens is one enum and its labels.
-            truckType = TruckType.entries.firstOrNull { it.wire == truck.truckType } ?: TruckType.DRY,
-            truckSize = TruckSize.entries.firstOrNull { it.wire == truck.truckSize }
-                ?: TruckSize.CLOSED_LORRY,
+            // An unknown axis value is a contract that moved on without the app. Falling back keeps
+            // the profile readable; the pickers are built off the enums, so the swap when the
+            // vocabulary widens is an enum and its labels.
+            bodyType = EquipmentBody.fromWire(truck.bodyType) ?: EquipmentBody.BOX,
+            sizeClass = EquipmentSize.fromWire(truck.sizeClass) ?: EquipmentSize.MEDIUM,
+            temperature = EquipmentTemperature.fromWire(truck.temperature) ?: EquipmentTemperature.AMBIENT,
             capacityKg = truck.capacityKg,
         )
     },

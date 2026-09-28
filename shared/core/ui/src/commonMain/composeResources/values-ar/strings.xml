@@ -254,21 +254,26 @@
     <string name="nat_tr">تركي</string>
     <string name="nat_ye">يمني</string>
 
-    <string name="tt_dry">جاف</string>
-    <string name="tt_chilled">مبرد</string>
-    <string name="tt_frozen">مجمد</string>
-    <string name="ts_cargo_van">فان</string>
-    <string name="ts_open_dyna">دينا مكشوفة</string>
-    <string name="ts_closed_dyna">دينا مغلقة</string>
-    <string name="ts_open_lorry">لوري مكشوف</string>
-    <string name="ts_closed_lorry">لوري مغلق</string>
-    <string name="ts_winch">ونش</string>
-    <string name="ts_flatbed">سطحة</string>
-    <string name="ts_curtain_side">ستاير</string>
-    <string name="ts_ltl">شحنة جزئية</string>
-    <string name="ts_trailer">تريلا</string>
-    <string name="truck_type">نوع الشاحنة</string>
+    <string name="equip_body_box">صندوق مغلق</string>
+    <string name="equip_body_open">مكشوف</string>
+    <string name="equip_body_flatbed">سطحة</string>
+    <string name="equip_body_curtain_side">ستاير</string>
+    <string name="equip_body_lowbed">لوبد</string>
+    <string name="equip_body_tanker">صهريج</string>
+    <string name="equip_body_container">حاوية</string>
+    <string name="equip_body_tipper">قلاب</string>
+    <string name="equip_size_pickup">ونيت</string>
+    <string name="equip_size_light">خفيف</string>
+    <string name="equip_size_medium">متوسط</string>
+    <string name="equip_size_heavy">ثقيل</string>
+    <string name="equip_size_trailer">تريلا</string>
+    <string name="equip_temp_ambient">جاف</string>
+    <string name="equip_temp_chilled">مبرد</string>
+    <string name="equip_temp_frozen">مجمد</string>
+    <string name="equip_temp_multi">متعدد الحرارة</string>
+    <string name="truck_body">نوع الهيكل</string>
     <string name="truck_size">حجم الشاحنة</string>
+    <string name="truck_temperature">درجة الحرارة</string>
 
     <!-- Exceptions -->
     <string name="exc_report">بلّغ عن مشكلة</string>
@@ -356,6 +361,7 @@
     <string name="profile_fleet">الأسطول</string>
     <string name="paperwork_outstanding">مستنداتك غير مكتملة (%1$d متبقٍ). اضغط لإكمالها.</string>
     <string name="err_unsent_work">بعض أعمالك لم تُرسل بعد. أعد المحاولة عند توفر الشبكة.</string>
+    <string name="err_not_a_bidder">شركتك تقدّم العروض على الشحنات نيابةً عنك. تظهر رحلاتك في تبويب الرحلة.</string>
     <string name="doc_view">عرض ما أرسلته</string>
     <string name="otp_wrong_number">الرقم غير صحيح؟</string>
     <string name="signup_identity">أي وثيقة تحمل؟</string>

@@ -8,8 +8,9 @@ import co.sirdab.driver.shared.core.model.VerificationDocument
 import co.sirdab.driver.shared.core.model.VerificationDocumentKind
 import co.sirdab.driver.shared.core.model.VerificationDocumentStatus
 import co.sirdab.driver.shared.core.model.VerificationSummary
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.Vehicle
 import co.sirdab.driver.shared.core.model.VerificationState
 import co.sirdab.driver.shared.core.network.TmsApiClient
@@ -80,12 +81,22 @@ internal data class CarrierDto(
     val kind: String? = null,
 )
 
+/**
+ * The fleet's own catalog row for a truck. `/me` is workspace scoped, so it names the dispatcher's
+ * equipment; the app keeps only the platform axes, any of which the row may leave unclassified.
+ */
+@Serializable
+internal data class EquipmentSummaryDto(
+    val bodyType: String? = null,
+    val sizeClass: String? = null,
+    val temperature: String? = null,
+)
+
 @Serializable
 internal data class TruckDto(
     val id: String,
     val licencePlate: String,
-    val truckType: String,
-    val truckSize: String,
+    val equipment: EquipmentSummaryDto,
     val capacityKg: Int? = null,
     val status: String = "active",
 )
@@ -120,6 +131,9 @@ internal fun DriverMeDto.toFleetDriver(): FleetDriver = FleetDriver(
     verification = DriverVerification(
         status = VerificationSummary.fromWire(verification.status),
         canAcceptLoads = verification.canAcceptLoads,
+        // Only a company carrier is refused, so a kind this build does not know keeps the board and
+        // lets the server's own answer decide.
+        canBid = carrier.kind != "company",
         documents = documents.mapNotNull { document ->
             // A kind this build cannot name is one it cannot label or act on, and a blank row in
             // the document list helps nobody.
@@ -157,9 +171,9 @@ internal fun DriverMeDto.toDomain(): Driver = Driver(
     // The contract does not say yet, so the first is shown rather than none.
     vehicle = trucks.firstOrNull()?.let { truck ->
         Vehicle(
-            truckType = TruckType.entries.firstOrNull { it.wire == truck.truckType } ?: TruckType.DRY,
-            truckSize = TruckSize.entries.firstOrNull { it.wire == truck.truckSize }
-                ?: TruckSize.CLOSED_LORRY,
+            bodyType = EquipmentBody.fromWire(truck.equipment.bodyType),
+            sizeClass = EquipmentSize.fromWire(truck.equipment.sizeClass),
+            temperature = EquipmentTemperature.fromWire(truck.equipment.temperature),
             plate = truck.licencePlate,
             // The contract carries kilograms; the app has always shown tonnes.
             capacityTons = truck.capacityKg?.let { it / 1000.0 } ?: 0.0,

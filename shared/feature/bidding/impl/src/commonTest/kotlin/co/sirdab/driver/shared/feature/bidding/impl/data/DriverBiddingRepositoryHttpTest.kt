@@ -5,12 +5,14 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
+import co.sirdab.driver.shared.core.model.EquipmentBody
+import co.sirdab.driver.shared.core.model.EquipmentSize
+import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.DriverBidStatus
 import co.sirdab.driver.shared.core.model.Money
 import co.sirdab.driver.shared.core.model.PostingStatus
-import co.sirdab.driver.shared.core.model.TruckSize
-import co.sirdab.driver.shared.core.model.TruckType
 import co.sirdab.driver.shared.core.network.ServerClock
 import co.sirdab.driver.shared.core.network.TmsApiClient
 import co.sirdab.driver.shared.core.network.TmsJson
@@ -42,7 +44,8 @@ class DriverBiddingRepositoryHttpTest {
                    "biddingClosesAt":"2026-09-30T20:00:00+03:00",
                    "origin":{"label":"Depot","city":"Riyadh"},
                    "destination":{"label":"Store","city":"Jeddah"},
-                   "truckType":"chilled","truckSize":"trailer"}],"nextCursor":null}""",
+                   "equipment":{"name":"Reefer trailer","nameAr":null,"bodyType":"box",
+                     "sizeClass":"trailer","temperature":"chilled"}}],"nextCursor":null}""",
                 HttpStatusCode.OK,
                 jsonHeaders(),
             )
@@ -51,8 +54,9 @@ class DriverBiddingRepositoryHttpTest {
         val posting = (repo.postings() as AppResult.Success).data.items.single()
 
         assertThat(posting.status).isEqualTo(PostingStatus.OPEN)
-        assertThat(posting.truckType).isEqualTo(TruckType.CHILLED)
-        assertThat(posting.truckSize).isEqualTo(TruckSize.TRAILER)
+        assertThat(posting.bodyType).isEqualTo(EquipmentBody.BOX)
+        assertThat(posting.sizeClass).isEqualTo(EquipmentSize.TRAILER)
+        assertThat(posting.temperature).isEqualTo(EquipmentTemperature.CHILLED)
         assertThat(posting.targetRate).isEqualTo(Money(185000, "SAR"))
         assertThat(posting.origin.city).isEqualTo("Riyadh")
         assertThat(posting.biddingClosesAtMillis).isNotNull()
@@ -66,7 +70,8 @@ class DriverBiddingRepositoryHttpTest {
             respond(
                 """{"items":[{"id":"p1","loadId":"l1","status":"open","targetRate":null,
                    "origin":{"label":"Depot"},"destination":{"label":"Store"},
-                   "truckType":"dry","truckSize":"flatbed"}],"nextCursor":null}""",
+                   "equipment":{"name":"Flatbed","nameAr":null,"bodyType":"flatbed",
+                     "sizeClass":null,"temperature":null}}],"nextCursor":null}""",
                 HttpStatusCode.OK,
                 jsonHeaders(),
             )
@@ -76,6 +81,10 @@ class DriverBiddingRepositoryHttpTest {
 
         assertThat(posting.targetRate).isNull()
         assertThat(posting.isFixedRate).isEqualTo(false)
+        // An axis the posting never classified stays null rather than a guessed default.
+        assertThat(posting.bodyType).isEqualTo(EquipmentBody.FLATBED)
+        assertThat(posting.sizeClass).isNull()
+        assertThat(posting.temperature).isNull()
     }
 
     @Test
@@ -163,8 +172,10 @@ class DriverBiddingRepositoryHttpTest {
         val repo = repository {
             respond(
                 """{"driverId":"d1","trucks":[
-                   {"id":"t1","licencePlate":"RUH 1234","truckType":"dry","truckSize":"closed_lorry"},
-                   {"id":"t2","licencePlate":"RUH 2345","truckType":"chilled","truckSize":"trailer"}]}""",
+                   {"id":"t1","licencePlate":"RUH 1234","equipment":{"id":"e1","name":"Closed lorry",
+                     "nameAr":null,"code":null,"bodyType":"box","sizeClass":"medium","temperature":"ambient"}},
+                   {"id":"t2","licencePlate":"RUH 2345","equipment":{"id":"e2","name":"Reefer trailer",
+                     "nameAr":null,"code":"RT","bodyType":"box","sizeClass":"trailer","temperature":"chilled"}}]}""",
                 HttpStatusCode.OK,
                 jsonHeaders(),
             )
@@ -173,8 +184,24 @@ class DriverBiddingRepositoryHttpTest {
         val trucks = (repo.trucks() as AppResult.Success).data
 
         assertThat(trucks.size).isEqualTo(2)
-        assertThat(trucks[1].truckType).isEqualTo(TruckType.CHILLED)
+        assertThat(trucks[1].temperature).isEqualTo(EquipmentTemperature.CHILLED)
+        assertThat(trucks[1].sizeClass).isEqualTo(EquipmentSize.TRAILER)
         assertThat(trucks[0].licencePlate).isEqualTo("RUH 1234")
+    }
+
+    @Test
+    fun `a company driver's refusal is named, not relayed`() = runTest {
+        val repo = repository {
+            respond(
+                """{"error":{"code":"bidder_not_independent","message":"only independent operators bid from the app"}}""",
+                HttpStatusCode.Forbidden,
+                jsonHeaders(),
+            )
+        }
+
+        val failure = repo.postings() as AppResult.Failure
+
+        assertThat(failure.error.reason).isEqualTo(AppErrorReason.NOT_A_BIDDER)
     }
 
     private fun jsonHeaders() = headersOf("Content-Type", ContentType.Application.Json.toString())
