@@ -139,6 +139,11 @@
     <string name="logout_title">تسجيل الخروج؟</string>
     <string name="logout_body">ستحتاج إلى رقم هاتفك ورمز جديد للدخول مرة أخرى.</string>
     <string name="logout_unsent">هناك %1$d إجراء لم يُرسل بعد. إذا سجّلت الخروج ستفقده.</string>
+    <string name="profile_delete_account">حذف الحساب</string>
+    <string name="delete_account_title">حذف حسابك؟</string>
+    <string name="delete_account_body">سيتم حذف ملفك الشخصي وشاحناتك ومستنداتك وبيانات الدخول نهائيًا. تبقى الرحلات التي أكملتها لدى أسطولك. لا يمكن التراجع عن ذلك.</string>
+    <string name="delete_account_unsent">هناك %1$d إجراء لم يُرسل بعد. إذا حذفت الحساب الآن ستفقده.</string>
+    <string name="delete_account_confirm">حذف</string>
     <string name="profile_settings">الإعدادات</string>
     <string name="profile_language">اللغة</string>
     <string name="profile_persona">شخصية العرض</string>
@@ -362,6 +367,7 @@
     <string name="paperwork_outstanding">مستنداتك غير مكتملة (%1$d متبقٍ). اضغط لإكمالها.</string>
     <string name="err_unsent_work">بعض أعمالك لم تُرسل بعد. أعد المحاولة عند توفر الشبكة.</string>
     <string name="err_not_a_bidder">شركتك تقدّم العروض على الشحنات نيابةً عنك. تظهر رحلاتك في تبويب الرحلة.</string>
+    <string name="err_manages_organization">أنت تدير شركة في سرداب. اطلب من مسؤول آخر إزالتك منها أولًا.</string>
     <string name="doc_view">عرض ما أرسلته</string>
     <string name="otp_wrong_number">الرقم غير صحيح؟</string>
     <string name="signup_identity">أي وثيقة تحمل؟</string>

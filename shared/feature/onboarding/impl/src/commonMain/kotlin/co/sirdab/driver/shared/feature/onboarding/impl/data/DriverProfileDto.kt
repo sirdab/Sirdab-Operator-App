@@ -108,6 +108,10 @@ internal data class CreateDocumentResultDto(
     val path: String = "",
 )
 
+/** `DELETE /api/driver/account`. Nothing beyond the fact: the session it answered is gone. */
+@Serializable
+internal data class DeletedAccountDto(val deleted: Boolean)
+
 /** `POST /api/v1/me/active-workspace`. */
 @Serializable
 internal data class SwitchWorkspaceDto(val workspaceId: String)

@@ -118,4 +118,14 @@ interface AuthRepository {
      * handed between drivers, and the next one's session must not send the last one's work.
      */
     suspend fun signOut()
+
+    /**
+     * Delete the account on the server, then everything of it on the phone.
+     *
+     * The store-required "delete my account": the profile, trucks, documents, devices and sign-in
+     * all go, and the session is dead from the server's answer on. A failure leaves the driver
+     * signed in and able to try again; an organization owner or admin is refused with
+     * [co.sirdab.driver.shared.core.model.AppErrorReason.MANAGES_ORGANIZATION].
+     */
+    suspend fun deleteAccount(): AppResult<Unit>
 }

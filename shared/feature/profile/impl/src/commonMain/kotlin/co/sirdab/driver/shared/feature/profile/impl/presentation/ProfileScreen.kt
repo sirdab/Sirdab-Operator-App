@@ -65,6 +65,10 @@ import co.sirdab.driver.shared.core.ui.generated.resources.docstat_expiring
 import co.sirdab.driver.shared.core.ui.generated.resources.docstat_missing
 import co.sirdab.driver.shared.core.ui.generated.resources.docstat_verified
 import co.sirdab.driver.shared.core.ui.generated.resources.docstat_verifying
+import co.sirdab.driver.shared.core.ui.generated.resources.delete_account_body
+import co.sirdab.driver.shared.core.ui.generated.resources.delete_account_confirm
+import co.sirdab.driver.shared.core.ui.generated.resources.delete_account_title
+import co.sirdab.driver.shared.core.ui.generated.resources.delete_account_unsent
 import co.sirdab.driver.shared.core.ui.generated.resources.logout_body
 import co.sirdab.driver.shared.core.ui.generated.resources.logout_title
 import co.sirdab.driver.shared.core.ui.generated.resources.logout_unsent
@@ -74,6 +78,7 @@ import co.sirdab.driver.shared.core.ui.generated.resources.profile_logout
 import co.sirdab.driver.shared.core.ui.generated.resources.review_under_way
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_item_in_review
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_item_rejected
+import co.sirdab.driver.shared.core.ui.generated.resources.profile_delete_account
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_history
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_language
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_ontime
@@ -112,7 +117,10 @@ fun ProfileScreen(
     val isSwitchingFleet by viewModel.isSwitchingFleet.collectAsState()
     val fleetSwitchError by viewModel.fleetSwitchError.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val isDeletingAccount by viewModel.isDeletingAccount.collectAsState()
+    val deleteAccountError by viewModel.deleteAccountError.collectAsState()
     var confirmingLogout by remember { mutableStateOf(false) }
+    var confirmingDelete by remember { mutableStateOf(false) }
     val lang = Locale.current.language
     val driver = state.driver
     val now = Clock.System.now().toEpochMilliseconds()
@@ -239,13 +247,16 @@ fun ProfileScreen(
                 }
             }
 
-            // Settings — persona
-            Spacer(Modifier.height(Spacing.md))
-            Text(stringResource(Res.string.profile_persona), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(Spacing.xxs))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                state.personas.forEach { p ->
-                    SelectableChip(personaLabel(p.personaKey), p.personaKey == driver.personaKey) { viewModel.switchPersona(p.personaKey) }
+            // Settings — persona. Demo mode only: against the TMS there are no personas, and a
+            // heading over nothing is a demo switch showing through in a store build.
+            if (state.personas.isNotEmpty()) {
+                Spacer(Modifier.height(Spacing.md))
+                Text(stringResource(Res.string.profile_persona), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(Spacing.xxs))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    state.personas.forEach { p ->
+                        SelectableChip(personaLabel(p.personaKey), p.personaKey == driver.personaKey) { viewModel.switchPersona(p.personaKey) }
+                    }
                 }
             }
             // Settings — leaving
@@ -255,8 +266,33 @@ fun ProfileScreen(
                 isBusy = isSigningOut,
                 onClick = { confirmingLogout = true },
             )
+            Spacer(Modifier.height(Spacing.sm))
+            LogoutRow(
+                label = stringResource(Res.string.profile_delete_account),
+                isBusy = isDeletingAccount,
+                onClick = { confirmingDelete = true },
+            )
+            deleteAccountError?.let { error ->
+                Spacer(Modifier.height(Spacing.xs))
+                Text(
+                    error.reason?.let { stringResource(it.labelRes()) } ?: error.message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             Spacer(Modifier.height(Spacing.xl))
         }
+    }
+
+    if (confirmingDelete) {
+        DeleteAccountDialog(
+            unsentWrites = state.unsentWrites,
+            onConfirm = {
+                confirmingDelete = false
+                viewModel.deleteAccount(onLoggedOut)
+            },
+            onDismiss = { confirmingDelete = false },
+        )
     }
 
     if (confirmingLogout) {
@@ -302,6 +338,45 @@ private fun LogoutDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     stringResource(Res.string.profile_logout),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.common_cancel)) }
+        },
+    )
+}
+
+/**
+ * Asked before it happens, because unlike logging out there is no way back: the same phone number
+ * can sign up again, but as a stranger with nothing on file.
+ */
+@Composable
+private fun DeleteAccountDialog(
+    unsentWrites: Int,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.delete_account_title)) },
+        text = {
+            Column {
+                Text(stringResource(Res.string.delete_account_body))
+                if (unsentWrites > 0) {
+                    Spacer(Modifier.height(Spacing.sm))
+                    Text(
+                        stringResource(Res.string.delete_account_unsent, unsentWrites),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    stringResource(Res.string.delete_account_confirm),
                     color = MaterialTheme.colorScheme.error,
                 )
             }

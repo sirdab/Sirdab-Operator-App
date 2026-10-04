@@ -37,6 +37,7 @@ import co.sirdab.driver.shared.core.ui.generated.resources.err_document_type
 import co.sirdab.driver.shared.core.ui.generated.resources.err_driver_suspended
 import co.sirdab.driver.shared.core.ui.generated.resources.err_last_truck
 import co.sirdab.driver.shared.core.ui.generated.resources.err_unavailable
+import co.sirdab.driver.shared.core.ui.generated.resources.err_manages_organization
 import co.sirdab.driver.shared.core.ui.generated.resources.err_not_a_bidder
 import co.sirdab.driver.shared.core.ui.generated.resources.err_unsent_work
 import co.sirdab.driver.shared.core.ui.generated.resources.err_workspace_suspended
@@ -167,6 +168,7 @@ fun AppErrorReason.labelRes(): StringResource = when (this) {
     AppErrorReason.DOCUMENT_MISSING -> Res.string.err_document_missing
     AppErrorReason.UNSENT_WORK -> Res.string.err_unsent_work
     AppErrorReason.NOT_A_BIDDER -> Res.string.err_not_a_bidder
+    AppErrorReason.MANAGES_ORGANIZATION -> Res.string.err_manages_organization
 }
 
 fun Nationality.labelRes(): StringResource = when (this) {

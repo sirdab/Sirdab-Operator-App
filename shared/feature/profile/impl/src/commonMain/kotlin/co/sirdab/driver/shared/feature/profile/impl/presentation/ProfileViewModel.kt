@@ -84,6 +84,14 @@ class ProfileViewModel(
     /** Separate from [state]: it is the button's business, not a fact about the driver. */
     val isSigningOut: StateFlow<Boolean> = _isSigningOut.asStateFlow()
 
+    private val _isDeletingAccount = MutableStateFlow(false)
+    val isDeletingAccount: StateFlow<Boolean> = _isDeletingAccount.asStateFlow()
+
+    private val _deleteAccountError = MutableStateFlow<AppError?>(null)
+
+    /** Why the account is still here: no signal, or an organization still to hand over. */
+    val deleteAccountError: StateFlow<AppError?> = _deleteAccountError.asStateFlow()
+
     val state = combine(
         // The signed-in driver, not the demo world's: against a real TMS these
         // are two different people, and the world's one is nobody.
@@ -193,6 +201,27 @@ class ProfileViewModel(
                 _isSigningOut.value = false
             }
             onSignedOut()
+        }
+    }
+
+    /**
+     * [onDeleted] runs only once the server has deleted the account. On a failure the driver stays
+     * signed in, on this screen, with [deleteAccountError] saying why.
+     */
+    fun deleteAccount(onDeleted: () -> Unit) {
+        if (_isDeletingAccount.value) return
+        _isDeletingAccount.value = true
+        _deleteAccountError.value = null
+        viewModelScope.launch {
+            val result = try {
+                authRepository.deleteAccount()
+            } finally {
+                _isDeletingAccount.value = false
+            }
+            when (result) {
+                is AppResult.Success -> onDeleted()
+                is AppResult.Failure -> _deleteAccountError.value = result.error
+            }
         }
     }
 }

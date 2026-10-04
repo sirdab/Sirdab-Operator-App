@@ -115,6 +115,7 @@ internal object Api {
     const val ME = "/api/driver/me"
     const val EVENTS = "/api/driver/trips/t1/events"
     const val ACTIVE_WORKSPACE = "/api/v1/me/active-workspace"
+    const val ACCOUNT = "/api/driver/account"
     const val STORAGE = "/storage/v1/object/upload/driver-documents/doc.jpg"
     const val STORAGE_URL = "http://127.0.0.1:54321$STORAGE?token=signed"
 }

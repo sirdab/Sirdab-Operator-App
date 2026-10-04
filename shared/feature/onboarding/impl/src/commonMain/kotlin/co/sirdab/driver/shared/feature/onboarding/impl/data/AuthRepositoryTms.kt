@@ -10,6 +10,7 @@ import co.sirdab.driver.shared.core.model.Driver
 import co.sirdab.driver.shared.core.model.DriverVerification
 import co.sirdab.driver.shared.core.model.Vehicle
 import co.sirdab.driver.shared.core.model.VerificationState
+import co.sirdab.driver.shared.core.network.ApiFailure
 import co.sirdab.driver.shared.core.network.TmsApiClient
 import co.sirdab.driver.shared.core.network.apiFailure
 import co.sirdab.driver.shared.core.network.toAppError
@@ -257,6 +258,27 @@ class AuthRepositoryTms(
         // Best effort and last chance: in signal this empties the outbox, and out of it the rows
         // are lost either way, because the only session that could have sent them ends here.
         runCatching { queue.drain() }
+        endSession()
+    }
+
+    override suspend fun deleteAccount(): AppResult<Unit> {
+        // The trip events already recorded are the fleet's records and outlive the account, so
+        // they get their chance to land while there is still a session to send them with.
+        runCatching { queue.drain() }
+
+        val result = api.delete(path = ACCOUNT_PATH, deserializer = DeletedAccountDto.serializer())
+        return result.fold(
+            onSuccess = {
+                // The server has already killed the sign-in, so this is only the phone's half: no
+                // token, no outbox and no profile of someone who no longer exists.
+                endSession()
+                AppResult.Success(Unit)
+            },
+            onFailure = { AppResult.Failure(it.toAccountError()) },
+        )
+    }
+
+    private suspend fun endSession() {
         queue.clear()
         session.signOut()
         runCatching { store.remove(LAST_DESTINATION_KEY) }
@@ -276,6 +298,7 @@ class AuthRepositoryTms(
 }
 
 private const val LAST_DESTINATION_KEY = "driver.last_destination"
+private const val ACCOUNT_PATH = "api/driver/account"
 
 /**
  * The driver's own profile, as the rest of the app models a driver.
@@ -308,3 +331,13 @@ internal fun DriverProfile.toDriver(): Driver = Driver(
 
 private fun Throwable.toAppError(): AppError =
     apiFailure?.toAppError() ?: AppError(message ?: "Something went wrong.")
+
+/** The one refusal deleting has its own words for; everything else is the usual mapping. */
+private fun Throwable.toAccountError(): AppError {
+    val failure = apiFailure
+    return if (failure is ApiFailure.Http && failure.rawCode == "account_manages_organization") {
+        AppError(failure.message, reason = AppErrorReason.MANAGES_ORGANIZATION)
+    } else {
+        toAppError()
+    }
+}

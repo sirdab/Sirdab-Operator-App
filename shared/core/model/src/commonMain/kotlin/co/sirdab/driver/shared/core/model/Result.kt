@@ -56,6 +56,9 @@ enum class AppErrorReason {
 
     /** A company carrier's driver: the company bids, so the app has no board for them. */
     NOT_A_BIDDER,
+
+    /** An organization owner or admin, who has a company to hand over before they can leave. */
+    MANAGES_ORGANIZATION,
 }
 
 data class AppError(

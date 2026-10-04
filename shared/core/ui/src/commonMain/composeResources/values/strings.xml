@@ -147,6 +147,11 @@
     <string name="logout_title">Log out?</string>
     <string name="logout_body">You will need your phone number and a new code to get back in.</string>
     <string name="logout_unsent">%1$d recorded action(s) have not been sent yet. Log out and they are lost.</string>
+    <string name="profile_delete_account">Delete account</string>
+    <string name="delete_account_title">Delete your account?</string>
+    <string name="delete_account_body">Your profile, trucks, documents and sign-in are removed for good. Trips you already completed stay with your fleet. This cannot be undone.</string>
+    <string name="delete_account_unsent">%1$d recorded action(s) have not been sent yet. Delete now and they are lost.</string>
+    <string name="delete_account_confirm">Delete</string>
     <string name="profile_settings">Settings</string>
     <string name="profile_language">Language</string>
     <string name="profile_persona">Demo persona</string>
@@ -369,6 +374,7 @@
     <string name="paperwork_outstanding">Your paperwork is not complete (%1$d outstanding). Tap to finish.</string>
     <string name="err_unsent_work">Some of your work has not been sent yet. Try again when you have signal.</string>
     <string name="err_not_a_bidder">Your company bids on loads for you. Your trips show up in the Trip tab.</string>
+    <string name="err_manages_organization">You manage a company in Sirdab. Ask another admin to remove you from it first.</string>
     <string name="doc_view">View what you sent</string>
     <string name="otp_wrong_number">Wrong number?</string>
     <string name="signup_identity">Which do you carry?</string>

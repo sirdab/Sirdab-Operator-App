@@ -131,6 +131,11 @@
     <string name="logout_title">لاگ آؤٹ کریں؟</string>
     <string name="logout_body">دوبارہ داخل ہونے کے لیے آپ کو اپنا فون نمبر اور نیا کوڈ درکار ہوگا۔</string>
     <string name="logout_unsent">%1$d محفوظ کارروائیاں ابھی نہیں بھیجی گئیں۔ لاگ آؤٹ کرنے پر یہ ضائع ہو جائیں گی۔</string>
+    <string name="profile_delete_account">اکاؤنٹ حذف کریں</string>
+    <string name="delete_account_title">اپنا اکاؤنٹ حذف کریں؟</string>
+    <string name="delete_account_body">آپ کی پروفائل، ٹرک، دستاویزات اور لاگ اِن ہمیشہ کے لیے ہٹا دیے جائیں گے۔ مکمل کیے گئے سفر آپ کے فلیٹ کے پاس رہیں گے۔ اسے واپس نہیں کیا جا سکتا۔</string>
+    <string name="delete_account_unsent">%1$d محفوظ کارروائیاں ابھی نہیں بھیجی گئیں۔ ابھی حذف کرنے پر یہ ضائع ہو جائیں گی۔</string>
+    <string name="delete_account_confirm">حذف کریں</string>
     <string name="profile_settings">ترتیبات</string>
     <string name="profile_language">زبان</string>
     <string name="profile_persona">ڈیمو کردار</string>
@@ -351,6 +356,7 @@
     <string name="paperwork_outstanding">آپ کی دستاویزات مکمل نہیں (%1$d باقی)۔ مکمل کرنے کے لیے دبائیں۔</string>
     <string name="err_unsent_work">آپ کا کچھ کام ابھی نہیں بھیجا گیا۔ سگنل آنے پر دوبارہ کوشش کریں۔</string>
     <string name="err_not_a_bidder">آپ کی کمپنی آپ کی طرف سے لوڈ پر بولی لگاتی ہے۔ آپ کے ٹرپ سفر ٹیب میں نظر آئیں گے۔</string>
+    <string name="err_manages_organization">آپ سرداب میں ایک کمپنی کا انتظام کرتے ہیں۔ پہلے کسی دوسرے ایڈمن سے کہیں کہ آپ کو اس سے ہٹا دے۔</string>
     <string name="doc_view">جو بھیجا وہ دیکھیں</string>
     <string name="otp_wrong_number">نمبر غلط ہے؟</string>
     <string name="signup_identity">آپ کے پاس کون سی دستاویز ہے؟</string>

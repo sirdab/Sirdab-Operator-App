@@ -21,3 +21,8 @@ build/
 # Xcode user state
 **/xcuserdata/
 *.xcuserstate
+
+# Play upload key and its passwords (see keystore.properties.example)
+keystore.properties
+*.jks
+*.keystore

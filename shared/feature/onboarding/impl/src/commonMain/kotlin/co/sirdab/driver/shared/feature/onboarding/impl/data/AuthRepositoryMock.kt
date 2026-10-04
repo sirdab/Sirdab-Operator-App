@@ -76,4 +76,11 @@ class AuthRepositoryMock(
 
     /** Back to the start: the demo world is the session, so resetting it is signing out. */
     override suspend fun signOut() = world.reset()
+
+    /** The demo world is all there is of the account, so deleting it is the same reset. */
+    override suspend fun deleteAccount(): AppResult<Unit> {
+        demoLatency()
+        world.reset()
+        return AppResult.Success(Unit)
+    }
 }

@@ -24,6 +24,13 @@ private fun appColorScheme() = lightColorScheme(
     onSurface = AppColors.Gray.c900,
     surfaceVariant = AppColors.Gray.c100,
     onSurfaceVariant = AppColors.Gray.c600,
+    // M3 dialogs, bottom sheets, menus and pickers draw on these roles; keep them plain white
+    // instead of the default tinted containers.
+    surfaceContainerLowest = AppColors.White,
+    surfaceContainerLow = AppColors.White,
+    surfaceContainer = AppColors.White,
+    surfaceContainerHigh = AppColors.White,
+    surfaceContainerHighest = AppColors.White,
     outline = AppColors.Gray.c300,
     outlineVariant = AppColors.Gray.c200,
     error = AppColors.Red.c500,

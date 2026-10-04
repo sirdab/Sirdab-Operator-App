@@ -24,9 +24,9 @@ class DriverApp : Application() {
                 // photo uploads are filtered, so what lands in logcat is readable.
                 // Filter it with: adb logcat -s TmsApi:D
                 //
-                // Driven by `driver.httpLog`, not by the build type: the builds being tested
-                // against the real stack are not always debuggable ones, and a release build that
-                // cannot say what it sent is a release build nobody can help with.
+                // Driven by `driver.httpLog` (debug) and `driver.httpLog.release` (release, off
+                // unless set) rather than by the build type alone: a release build handed to a
+                // tester can be made to say what it sent, and a store build never does.
                 logLevel = if (BuildConfig.HTTP_LOG) LogLevel.ALL else LogLevel.NONE,
             )
         } else {
