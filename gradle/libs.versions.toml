@@ -47,6 +47,9 @@ observable-viewmodel = "1.0.5"
 
 # Desugaring
 desugar = "2.1.5"
+firebase-bom = "34.19.0"
+google-services = "4.5.0"
+firebase-crashlytics-gradle = "3.0.8"
 
 # Compose Material Icons Extended
 compose-material-icons-extended = "1.7.3"
@@ -120,6 +123,11 @@ kmp-observableviewmodel = { module = "com.rickclephas.kmp:kmp-observableviewmode
 
 # Desugaring
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
+
+# Firebase (androidApp only; iOS takes the Firebase SDK through Swift Package Manager)
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 
 # Testing
 assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }

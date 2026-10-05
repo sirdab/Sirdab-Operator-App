@@ -31,6 +31,29 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- Firebase Cloud Messaging: new tokens, and messages that arrive while the app is open. -->
+        <service
+            android:name=".push.DriverMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <!-- How Android shows a push that arrives while the app is in the background. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="driver_updates" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notify" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/ic_launcher_background" />
+        <!-- Off in debug builds (see build.gradle.kts), on in release. -->
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="${crashlyticsEnabled}" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

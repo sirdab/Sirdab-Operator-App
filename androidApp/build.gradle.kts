@@ -4,6 +4,9 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
+    // Reads androidApp/google-services.json, which comes from the Firebase console.
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 // The Play upload key, kept out of the repository: `keystore.properties` at the project root is
@@ -63,9 +66,12 @@ android {
     buildTypes {
         debug {
             buildConfigField("boolean", "HTTP_LOG", "${property("driver.httpLog")}")
+            // Crashes on a developer's phone are not drivers' crashes; keep them out of the console.
+            manifestPlaceholders["crashlyticsEnabled"] = false
         }
         release {
             buildConfigField("boolean", "HTTP_LOG", "${findProperty("driver.httpLog.release") ?: false}")
+            manifestPlaceholders["crashlyticsEnabled"] = true
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -96,6 +102,10 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.koin.android)
     implementation(libs.koin.android.compose)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.crashlytics)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

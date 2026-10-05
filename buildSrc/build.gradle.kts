@@ -28,6 +28,10 @@ dependencies {
     // Compose Multiplatform
     implementation("org.jetbrains.compose:compose-gradle-plugin:${libs.versions.compose.multiplatform.get()}")
 
+    // Firebase: google-services.json processing and Crashlytics, applied by androidApp
+    implementation("com.google.gms:google-services:${libs.versions.google.services.get()}")
+    implementation("com.google.firebase:firebase-crashlytics-gradle:${libs.versions.firebase.crashlytics.gradle.get()}")
+
     // Kover
     implementation("org.jetbrains.kotlinx:kover-gradle-plugin:${libs.versions.kover.get()}")
 

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="push_channel_name">यात्राएँ और लोड</string>
+    <string name="push_channel_description">नई यात्राएँ, लोड और आपके दस्तावेज़ों की अपडेट</string>
+</resources>

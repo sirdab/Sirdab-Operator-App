@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="push_channel_name">سفر اور لوڈز</string>
+    <string name="push_channel_description">نئے سفر، لوڈز اور آپ کے دستاویزات کی اپ ڈیٹس</string>
+</resources>

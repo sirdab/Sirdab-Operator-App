@@ -1,11 +1,18 @@
 package co.sirdab.driver
 
 import android.app.Application
+import co.sirdab.driver.push.DriverMessagingService
 import co.sirdab.driver.shared.core.network.TmsEnvironment
 import co.sirdab.driver.shared.di.createTmsModules
+import co.sirdab.driver.shared.feature.notifications.api.DevicePlatform
+import co.sirdab.driver.shared.feature.notifications.api.PushDevice
+import co.sirdab.driver.shared.feature.notifications.api.PushTokens
+import com.google.firebase.messaging.FirebaseMessaging
 import io.ktor.client.plugins.logging.LogLevel
+import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import org.koin.dsl.module
 
 class DriverApp : Application() {
     override fun onCreate() {
@@ -27,10 +34,17 @@ class DriverApp : Application() {
             // tester can be made to say what it sent, and a store build never does.
             logLevel = if (BuildConfig.HTTP_LOG) LogLevel.ALL else LogLevel.NONE,
         )
+        val platform = module {
+            single { PushDevice(DevicePlatform.ANDROID, BuildConfig.VERSION_NAME) }
+        }
 
         startKoin {
             androidContext(this@DriverApp)
-            modules(modules)
+            modules(modules + platform)
         }
+
+        DriverMessagingService.createChannel(this)
+        // The token Firebase already holds. A later rotation arrives through the messaging service.
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { get<PushTokens>().update(it) }
     }
 }

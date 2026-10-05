@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">سرداب للسائقين</string>
+    <string name="push_channel_name">الرحلات والحمولات</string>
+    <string name="push_channel_description">الرحلات والحمولات الجديدة وتحديثات مستنداتك</string>
 </resources>

@@ -33,6 +33,14 @@
     <array>
         <string>comgooglemaps</string>
     </array>
+    <!-- Lets a push wake the app in the background, so data-only messages are delivered too. -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>remote-notification</string>
+    </array>
+    <!-- Standard HTTPS only, which is exempt: App Store Connect stops asking on every build. -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
     <key>UILaunchScreen</key>
     <dict/>
     <key>UIApplicationSceneManifest</key>

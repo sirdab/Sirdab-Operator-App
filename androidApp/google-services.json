@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "652052041759",
+    "project_id": "sirdab-driver",
+    "storage_bucket": "sirdab-driver.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:652052041759:android:60a2f361d5c551c5b6c52a",
+        "android_client_info": {
+          "package_name": "co.sirdab.driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_hpFyRx2BkRL1O-jBlugZ2Xj7SsIrWvs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

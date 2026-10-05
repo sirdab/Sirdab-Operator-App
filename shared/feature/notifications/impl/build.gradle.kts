@@ -12,6 +12,7 @@ kotlin {
             implementation(projects.shared.core.preferences)
             implementation(projects.shared.core.navigation)
             implementation(projects.shared.core.network)
+            implementation(projects.shared.core.auth)
             implementation(libs.kotlinx.datetime)
         }
     }

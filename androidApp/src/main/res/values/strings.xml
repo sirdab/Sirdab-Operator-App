@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Sirdab Driver</string>
+    <string name="push_channel_name">Trips and loads</string>
+    <string name="push_channel_description">New trips, loads and updates on your documents</string>
 </resources>

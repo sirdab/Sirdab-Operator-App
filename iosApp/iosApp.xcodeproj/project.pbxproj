@@ -11,6 +11,9 @@
 		B0000000000000000000B002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F002 /* ContentView.swift */; };
 		B0000000000000000000B004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F004 /* Assets.xcassets */; };
 		B0000000000000000000B007 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F007 /* InfoPlist.strings */; };
+		B0000000000000000000B008 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F008 /* GoogleService-Info.plist */; };
+		B0000000000000000000B009 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = D0000000000000000000DMSG /* FirebaseMessaging */; };
+		B0000000000000000000B010 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0000000000000000000DCRA /* FirebaseCrashlytics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +24,7 @@
 		F0000000000000000000F005 /* iosApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = iosApp.entitlements; sourceTree = "<group>"; };
 		F0000000000000000000F006 /* Sirdab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sirdab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0000000000000000000FAR1 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		F0000000000000000000F008 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -28,6 +32,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0000000000000000000B009 /* FirebaseMessaging in Frameworks */,
+				B0000000000000000000B010 /* FirebaseCrashlytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -51,6 +57,7 @@
 				F0000000000000000000F007 /* InfoPlist.strings */,
 				F0000000000000000000F003 /* Info.plist */,
 				F0000000000000000000F005 /* iosApp.entitlements */,
+				F0000000000000000000F008 /* GoogleService-Info.plist */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -74,12 +81,17 @@
 				P0000000000000000000PSRC /* Sources */,
 				P0000000000000000000PFRA /* Frameworks */,
 				P0000000000000000000PRES /* Resources */,
+				P0000000000000000000PCRA /* Upload Crashlytics Symbols */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = iosApp;
+			packageProductDependencies = (
+				D0000000000000000000DMSG /* FirebaseMessaging */,
+				D0000000000000000000DCRA /* FirebaseCrashlytics */,
+			);
 			productName = iosApp;
 			productReference = F0000000000000000000F006 /* Sirdab.app */;
 			productType = "com.apple.product-type.application";
@@ -109,6 +121,9 @@
 				ar,
 			);
 			mainGroup = G000000000000000000GMAIN;
+			packageReferences = (
+				R0000000000000000000RFIR /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = G000000000000000000GPROD /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -125,6 +140,7 @@
 			files = (
 				B0000000000000000000B004 /* Assets.xcassets in Resources */,
 				B0000000000000000000B007 /* InfoPlist.strings in Resources */,
+				B0000000000000000000B008 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,6 +165,29 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "cd \"$SRCROOT/..\"\nif [ \"$GRADLE_SKIP_KOTLIN\" = \"YES\" ]; then\n  echo \"note: GRADLE_SKIP_KOTLIN=YES - skipping Gradle framework build\"\n  exit 0\nfi\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+		};
+		P0000000000000000000PCRA /* Upload Crashlytics Symbols */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+			);
+			name = "Upload Crashlytics Symbols";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Debug builds carry no dSYM and their crashes are not reported, so only release uploads.\nif [ \"$CONFIGURATION\" != \"Release\" ]; then\n  exit 0\nfi\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -324,6 +363,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		R0000000000000000000RFIR /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D0000000000000000000DMSG /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = R0000000000000000000RFIR /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		D0000000000000000000DCRA /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = R0000000000000000000RFIR /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = PROJ000000000000000PROJ /* Project object */;
 }

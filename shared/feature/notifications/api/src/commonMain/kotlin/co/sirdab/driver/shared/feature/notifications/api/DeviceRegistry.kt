@@ -1,6 +1,9 @@
 package co.sirdab.driver.shared.feature.notifications.api
 
 import co.sirdab.driver.shared.core.model.AppResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 enum class DevicePlatform(val wire: String) { ANDROID("android"), IOS("ios") }
 
@@ -21,12 +24,20 @@ interface DeviceRegistry {
     ): AppResult<Unit>
 }
 
+/** What this install is, as the device registry wants it. Bound by each platform's entry point. */
+data class PushDevice(val platform: DevicePlatform, val appVersion: String?)
+
 /**
- * Supplies the push token from FCM or APNs.
+ * The current Firebase Cloud Messaging token.
  *
- * No implementation yet: the project has no Firebase configuration and no APNs entitlement, so
- * there is nothing to ask. [DeviceRegistry] is complete and exercised independently of this.
+ * The platform writes it: on Android the messaging service and the first token fetch, on iOS the
+ * Firebase messaging delegate. FCM on both, so the server sends to one provider either way.
  */
-interface PushTokenProvider {
-    suspend fun currentToken(): String?
+class PushTokens {
+    private val _token = MutableStateFlow<String?>(null)
+    val token: StateFlow<String?> = _token.asStateFlow()
+
+    fun update(token: String) {
+        if (token.isNotBlank()) _token.value = token
+    }
 }
