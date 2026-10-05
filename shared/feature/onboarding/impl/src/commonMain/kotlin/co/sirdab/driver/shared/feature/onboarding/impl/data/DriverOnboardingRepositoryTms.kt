@@ -8,9 +8,9 @@ import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DocumentUpload
 import co.sirdab.driver.shared.core.model.DriverDocumentKind
 import co.sirdab.driver.shared.core.network.ApiFailure
+import co.sirdab.driver.shared.core.network.ApiSuccess
 import co.sirdab.driver.shared.core.network.TmsApiClient
 import co.sirdab.driver.shared.core.network.apiFailure
-import co.sirdab.driver.shared.core.network.toAppError
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DetailsDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
@@ -139,7 +139,7 @@ class DriverOnboardingRepositoryTms(
     }
 
     /** Every call lands here: cache the profile, and keep the session's claims in step with it. */
-    private suspend fun <T : DriverProfileDto> Result<co.sirdab.driver.shared.core.network.ApiSuccess<T>>.toProfile(): AppResult<DriverProfile> =
+    private suspend fun Result<ApiSuccess<DriverProfileDto>>.toProfile(): AppResult<DriverProfile> =
         fold(
             onSuccess = { success ->
                 val profile = success.value.toDomain()

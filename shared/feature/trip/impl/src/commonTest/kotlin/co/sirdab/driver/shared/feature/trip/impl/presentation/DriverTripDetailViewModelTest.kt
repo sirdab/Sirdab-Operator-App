@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -152,6 +153,7 @@ private class FixedClock(private val millis: Long) : Clock {
     override fun now(): Instant = Instant.fromEpochMilliseconds(millis)
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class DriverTripDetailViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()

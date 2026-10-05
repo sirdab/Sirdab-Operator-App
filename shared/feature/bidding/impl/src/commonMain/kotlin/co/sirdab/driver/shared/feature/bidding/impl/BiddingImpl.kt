@@ -8,14 +8,8 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-/**
- * Postings and bids from the TMS.
- *
- * The demo board's negotiation model went with its screens: it had counters,
- * outbid events and auto-bid rules the TMS has no concept of. A posting is
- * answered once and the dispatcher awards.
- */
-val tmsBiddingModule: Module = module {
+/** Postings and bids from the TMS. A posting is answered once and the dispatcher awards. */
+val biddingModule: Module = module {
     single { DriverBiddingRepositoryHttp(get()) } bind DriverBiddingRepository::class
     viewModelOf(::DriverPostingsViewModel)
 }

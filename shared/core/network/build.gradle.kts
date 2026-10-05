@@ -8,7 +8,6 @@ kotlin {
             implementation(projects.shared.core.model)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization)
-            implementation(libs.kotlinx.datetime)
             implementation(libs.bundles.ktor.common)
             implementation(libs.bundles.koin.common)
         }

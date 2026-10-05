@@ -32,6 +32,11 @@ data class DriverPostingsUiState(
     /** The posting whose offer sheet is open. */
     val bidding: DriverPosting? = null,
     val bidSent: Boolean = false,
+    /**
+     * The next page failed. Kept apart from [errorMessage], which the offer sheet also uses: a bid
+     * refused in the sheet must not turn into a "load more" retry under the list.
+     */
+    val failedLoadMore: Boolean = false,
 ) {
     val canLoadMore: Boolean get() = nextCursor != null && !isLoadingMore
     val isEmpty: Boolean get() = postings.isEmpty() && !isLoading
@@ -104,6 +109,7 @@ class DriverPostingsViewModel(
         loadingMore?.cancel()
         _state.value = _state.value.copy(
             isLoadingMore = false,
+            failedLoadMore = false,
             isLoading = !pulled && _state.value.postings.isEmpty(),
             isRefreshing = pulled,
             errorMessage = null,
@@ -140,7 +146,7 @@ class DriverPostingsViewModel(
         // A double tap would fetch the same page twice and append it twice.
         if (_state.value.isLoadingMore) return
 
-        _state.value = _state.value.copy(isLoadingMore = true)
+        _state.value = _state.value.copy(isLoadingMore = true, failedLoadMore = false)
         loadingMore = viewModelScope.launch {
             when (val result = repository.postings(cursor = cursor)) {
                 is AppResult.Success -> _state.value = _state.value.copy(
@@ -148,8 +154,11 @@ class DriverPostingsViewModel(
                     nextCursor = result.data.nextCursor,
                     isLoadingMore = false,
                 )
-                is AppResult.Failure -> _state.value =
-                    _state.value.copy(errorMessage = result.error.message, isLoadingMore = false)
+                is AppResult.Failure -> _state.value = _state.value.copy(
+                    errorMessage = result.error.message,
+                    isLoadingMore = false,
+                    failedLoadMore = true,
+                )
             }
         }
     }

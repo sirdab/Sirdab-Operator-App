@@ -16,9 +16,6 @@ enum class DriverDocumentKind(val wire: String) {
     DRIVING_LICENCE("driving_licence"),
     VEHICLE_REGISTRATION("vehicle_registration");
 
-    /** One of the two the driver picks between to prove who they are. */
-    val isIdentity: Boolean get() = this == NATIONAL_ID || this == IQAMA
-
     /**
      * A vehicle registration names its truck; the other two are refused if they carry one.
      *

@@ -14,6 +14,3 @@ object AppLocale {
 }
 
 fun isRtlLanguage(code: String): Boolean = code == "ar" || code == "ur"
-
-fun localizedText(en: String, ar: String): String =
-    if (AppLocale.current() == "ar") ar else en

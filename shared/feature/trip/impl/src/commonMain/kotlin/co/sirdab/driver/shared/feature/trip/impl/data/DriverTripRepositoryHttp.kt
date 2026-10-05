@@ -1,13 +1,11 @@
 package co.sirdab.driver.shared.feature.trip.impl.data
 
-import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
 import co.sirdab.driver.shared.core.model.Page
 import co.sirdab.driver.shared.core.network.Paginated
 import co.sirdab.driver.shared.core.network.TmsApiClient
-import co.sirdab.driver.shared.core.network.apiFailure
-import co.sirdab.driver.shared.core.network.toAppError
+import co.sirdab.driver.shared.core.network.toAppResult
 import co.sirdab.driver.shared.feature.trip.api.DriverTripRepository
 import kotlinx.serialization.builtins.serializer
 
@@ -31,24 +29,14 @@ class DriverTripRepositoryHttp(private val api: TmsApiClient) : DriverTripReposi
             path = TRIPS,
             deserializer = Paginated.serializer(DriverTripSummaryDto.serializer()),
             query = query,
-        ).toAppResult { page ->
+        ).toAppResult("Could not load trips.") { page ->
             Page(items = page.items.map { it.toDomain() }, nextCursor = page.nextCursor)
         }
     }
 
     override suspend fun trip(id: String): AppResult<DriverTrip> =
-        api.get("$TRIPS/$id", DriverTripDetailDto.serializer()).toAppResult { it.toDomain() }
-
-    private fun <T, R> Result<co.sirdab.driver.shared.core.network.ApiSuccess<T>>.toAppResult(
-        transform: (T) -> R,
-    ): AppResult<R> = fold(
-        onSuccess = { AppResult.Success(transform(it.value)) },
-        onFailure = { error ->
-            AppResult.Failure(
-                error.apiFailure?.toAppError() ?: AppError(error.message ?: "Could not load trips."),
-            )
-        },
-    )
+        api.get("$TRIPS/$id", DriverTripDetailDto.serializer())
+            .toAppResult("Could not load trips.") { it.toDomain() }
 
     private companion object {
         const val TRIPS = "api/driver/trips"

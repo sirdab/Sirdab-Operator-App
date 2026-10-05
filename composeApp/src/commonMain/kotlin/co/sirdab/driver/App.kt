@@ -27,10 +27,6 @@ import co.sirdab.driver.locale.applyPlatformLocale
 import co.sirdab.driver.locale.languageChangeRequiresRestart
 import co.sirdab.driver.shared.core.preferences.locale.LanguageStore
 import co.sirdab.driver.shared.core.ui.theme.AppTheme
-import co.sirdab.driver.shared.feature.notifications.api.NotificationsRoute
-import co.sirdab.driver.shared.feature.notifications.impl.navigation.notificationsEntries
-import co.sirdab.driver.shared.feature.profile.api.navigation.ProfileRoute
-import co.sirdab.driver.shared.feature.profile.impl.navigation.profileEntries
 import co.sirdab.driver.shared.feature.trip.api.TripRoute
 import co.sirdab.driver.shared.feature.trip.impl.navigation.tripEntries
 import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
@@ -111,8 +107,6 @@ private fun AppNavHost(
                 entry<MainRoute> { route ->
                     MainShell(
                         initialTab = route.tab,
-                        onOpenInbox = { backStack.add(NotificationsRoute.Inbox) },
-                        onOpenHistory = { backStack.add(ProfileRoute.History) },
                         onOpenTrip = { tripId -> backStack.add(TripRoute.Detail(tripId)) },
                         // Right back to the beginning: the session is gone, so every screen
                         // behind this one would be showing a driver who is no longer signed in.
@@ -127,12 +121,6 @@ private fun AppNavHost(
                     )
                 }
                 tripEntries(
-                    onBack = { backStack.removeLastOrNull() },
-                )
-                notificationsEntries(
-                    onBack = { backStack.removeLastOrNull() },
-                )
-                profileEntries(
                     onBack = { backStack.removeLastOrNull() },
                 )
             },

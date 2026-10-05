@@ -26,7 +26,6 @@
             <option value="$PROJECT_DIR$/shared" />
             <option value="$PROJECT_DIR$/shared/core" />
             <option value="$PROJECT_DIR$/shared/core/auth" />
-            <option value="$PROJECT_DIR$/shared/core/demo" />
             <option value="$PROJECT_DIR$/shared/core/media" />
             <option value="$PROJECT_DIR$/shared/core/model" />
             <option value="$PROJECT_DIR$/shared/core/navigation" />
@@ -47,7 +46,6 @@
             <option value="$PROJECT_DIR$/shared/feature/onboarding/api" />
             <option value="$PROJECT_DIR$/shared/feature/onboarding/impl" />
             <option value="$PROJECT_DIR$/shared/feature/profile" />
-            <option value="$PROJECT_DIR$/shared/feature/profile/api" />
             <option value="$PROJECT_DIR$/shared/feature/profile/impl" />
             <option value="$PROJECT_DIR$/shared/feature/trip" />
             <option value="$PROJECT_DIR$/shared/feature/trip/api" />

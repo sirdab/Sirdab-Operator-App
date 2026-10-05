@@ -1,10 +1,8 @@
 <resources>
-    <string name="app_name">Sirdab Operators</string>
 
     <!-- Common -->
     <string name="common_back">Back</string>
     <string name="common_continue">Continue</string>
-    <string name="common_finish">Finish</string>
     <string name="common_ok">OK</string>
     <string name="common_cancel">Cancel</string>
 
@@ -23,124 +21,26 @@
     <!-- OTP -->
     <string name="otp_title">Verify your number</string>
     <string name="otp_subtitle">Enter the 6-digit code we sent you.</string>
-    <string name="otp_hint_demo">Demo: any 6 digits will work</string>
     <string name="verify">Verify</string>
     <string name="resend_code">Resend code</string>
     <string name="otp_resend_in">Resend code in %1$s</string>
     <string name="otp_code_sent">A new code is on its way.</string>
 
-
-    <!-- Documents -->
-    <string name="docs_title">Upload your documents</string>
-    <string name="docs_subtitle">Snap a photo or pick from your gallery.</string>
-    <string name="doc_national_id">National ID</string>
-    <string name="doc_license">Driving license</string>
-    <string name="doc_vehicle_reg">Vehicle registration</string>
-    <string name="upload">Upload</string>
-    <string name="uploading">Uploading…</string>
-    <string name="verified">Verified ✓</string>
-
     <!-- Vehicle -->
-    <string name="vehicle_title">Your vehicle</string>
     <string name="vehicle_subtitle">Tell us what you drive.</string>
     <string name="plate_number">Plate number</string>
     <string name="capacity_tons">Capacity (tons)</string>
-
-    <!-- Vehicle types -->
-    <string name="vt_flatbed">Flatbed</string>
-    <string name="vt_curtain">Curtain-sider</string>
-    <string name="vt_reefer">Reefer</string>
-    <string name="vt_container">40ft Container</string>
-    <string name="vt_dry_van">Dry van</string>
-    <string name="vt_van_3t">3t Van</string>
-    <string name="vt_lowbed">Lowbed</string>
-    <string name="vt_tanker">Tanker</string>
 
     <!-- Main tabs -->
     <string name="tab_loads">Loads</string>
     <string name="tab_trip">Trip</string>
     <string name="tab_profile">Profile</string>
     <string name="coming_soon">Coming soon</string>
-    <string name="section_in_progress">This section arrives in the next build.</string>
 
     <!-- Units -->
     <string name="unit_sar">SAR</string>
 
-    <!-- Load board -->
-
-    <!-- Load detail -->
-
-    <!-- Cargo types -->
-    <string name="cargo_general">General</string>
-    <string name="cargo_reefer">Refrigerated</string>
-    <string name="cargo_hazmat">Hazardous</string>
-    <string name="cargo_oversized">Oversized</string>
-    <string name="cargo_container">Container</string>
-    <string name="cargo_livestock">Livestock</string>
-
-    <!-- Handling flags -->
-    <string name="flag_fragile">Fragile</string>
-    <string name="flag_reefer_temp">Temperature-controlled</string>
-    <string name="flag_hazmat">Hazmat</string>
-    <string name="flag_oversized_permit">Oversized permit</string>
-    <string name="flag_multi_stop">Multi-stop</string>
-    <string name="flag_tail_lift">Tail lift</string>
-
-    <!-- Bid composer -->
-
-    <!-- My bids -->
-
-    <!-- Notifications -->
-
-    <!-- Demo control panel -->
-
-    <!-- Trip -->
-    <string name="trip_title">Active trip</string>
-    <string name="trip_no_active_title">No active trip</string>
-    <string name="trip_no_active_body">Win a load and your trip appears here.</string>
-    <string name="trip_eta">ETA</string>
-    <string name="trip_min">min</string>
-    <string name="trip_detention">Detention</string>
-    <string name="trip_detention_note">Auto-billed after free time</string>
-    <string name="trip_call_shipper">Call shipper</string>
-
-    <!-- Trip status -->
-    <string name="st_assigned">Assigned</string>
-    <string name="st_enroute_pickup">To pickup</string>
-    <string name="st_at_pickup">At pickup</string>
-    <string name="st_loading">Loading</string>
-    <string name="st_enroute_dropoff">En route</string>
-    <string name="st_at_dropoff">At drop-off</string>
-    <string name="st_unloading">Unloading</string>
-    <string name="st_pod_pending">Delivery proof</string>
-    <string name="st_completed">Completed</string>
-
-    <!-- Trip actions -->
-    <string name="act_navigate_pickup">Navigate to pickup</string>
-    <string name="act_arrived_pickup">Confirm arrival</string>
-    <string name="act_start_loading">Start loading</string>
-    <string name="act_depart">Depart to drop-off</string>
-    <string name="act_arrived_dropoff">Confirm arrival</string>
-    <string name="act_start_unloading">Start unloading</string>
-    <string name="act_capture_pod">Capture proof of delivery</string>
-
-    <!-- POD -->
-    <string name="pod_title">Proof of delivery</string>
-    <string name="pod_photos">Photos</string>
-    <string name="pod_add_photo">Add photo</string>
-    <string name="pod_recipient">Recipient name</string>
-    <string name="pod_seal">Seal number</string>
-    <string name="pod_signature">Recipient signature</string>
-    <string name="pod_clear">Clear</string>
-    <string name="pod_submit">Complete delivery</string>
-
-
-    <!-- Backhaul notification -->
-
     <!-- Profile -->
-    <string name="profile_score">Carrier score</string>
-    <string name="profile_trips">Trips</string>
-    <string name="profile_ontime">On-time</string>
     <string name="profile_vehicle">Vehicle</string>
     <string name="profile_documents">Document vault</string>
     <string name="profile_logout">Log out</string>
@@ -154,37 +54,11 @@
     <string name="delete_account_confirm">Delete</string>
     <string name="profile_settings">Settings</string>
     <string name="profile_language">Language</string>
-    <string name="profile_persona">Demo persona</string>
-    <string name="profile_history">Trip history &amp; earnings</string>
 
     <!-- Document types + status -->
-    <string name="doc_insurance">Insurance</string>
-    <string name="doc_operating_card">Operating card</string>
     <string name="docstat_verified">Verified</string>
     <string name="docstat_verifying">Verifying</string>
-    <string name="docstat_expiring">Expiring soon</string>
     <string name="docstat_expired">Expired</string>
-    <string name="docstat_missing">Missing</string>
-    <string name="doc_days_left">days left</string>
-
-    <!-- Personas -->
-    <string name="persona_flatbed">Flatbed operator</string>
-    <string name="persona_van">3t van driver</string>
-    <string name="persona_new">New driver</string>
-
-    <!-- Notifications inbox -->
-    <string name="notif_inbox_title">Notifications</string>
-    <string name="notif_inbox_empty">No notifications yet</string>
-
-    <!-- Trip history + earnings -->
-    <string name="history_title">History &amp; earnings</string>
-    <string name="history_earnings">Earnings (last weeks)</string>
-    <string name="history_completed_trips">Completed trips</string>
-    <string name="history_empty">No completed trips yet</string>
-
-    <!-- Auto-bid -->
-
-    <!-- Demo scenarios -->
 
     <!-- Driver trips (TMS) -->
     <string name="trips_title">My trips</string>
@@ -203,7 +77,6 @@
     <string name="trip_stop_planned">Planned</string>
     <string name="trip_stop_arrived">Arrived</string>
     <string name="trip_stop_departed">Departed</string>
-    <string name="trip_stop_now">Now</string>
     <string name="sst_pending">Pending</string>
     <string name="sst_arrived">Arrived</string>
     <string name="sst_departed">Departed</string>
@@ -235,13 +108,8 @@
     <string name="signup_licence_number">Driving licence number</string>
     <string name="signup_licence_expiry">Licence expiry</string>
     <string name="signup_date_hint">YYYY-MM-DD</string>
-    <string name="signup_docs_title">Your documents</string>
-    <string name="signup_docs_subtitle">Photograph each one. We check them before you can take loads.</string>
     <string name="doc_national_id_short">National ID</string>
     <string name="doc_driving_licence">Driving licence</string>
-    <string name="doc_uploaded">Uploaded</string>
-    <string name="doc_tap_to_add">Tap to photograph</string>
-    <string name="signup_docs_progress">%1$d of %2$d uploaded</string>
     <string name="trip_pending_sync">%1$d not sent yet</string>
     <string name="trip_pending_sync_note">Saved on your phone. They\'ll send when you\'re back online.</string>
     <string name="trip_dropped_sync">%1$d not accepted</string>
@@ -319,7 +187,6 @@
     <string name="postings_closed">Closed</string>
     <string name="postings_accept">Accept %1$s</string>
     <string name="postings_bid">Place a bid</string>
-    <string name="postings_my_bids">My bids</string>
     <string name="postings_open_price">Open price</string>
     <string name="bid_title">Your offer</string>
     <string name="bid_amount">Amount (SAR)</string>
@@ -328,7 +195,6 @@
     <string name="bid_send">Send offer</string>
     <string name="bid_accept_confirm">Accept at %1$s</string>
     <string name="bid_sent">Offer sent.</string>
-    <string name="bids_empty">You haven\'t bid on anything yet.</string>
     <string name="bs_pending">Waiting</string>
     <string name="bs_won">Won</string>
     <string name="bs_lost">Not selected</string>

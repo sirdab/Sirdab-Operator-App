@@ -57,7 +57,6 @@ import co.sirdab.driver.shared.core.platform.maps.MapLauncher
 import co.sirdab.driver.shared.core.platform.locale.AppLocale
 import co.sirdab.driver.shared.core.ui.components.ChipTone
 import co.sirdab.driver.shared.core.ui.components.TagChip
-import co.sirdab.driver.shared.core.model.DriverTrip
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.common_back
 import co.sirdab.driver.shared.core.ui.generated.resources.common_ok
@@ -75,8 +74,6 @@ import co.sirdab.driver.shared.core.ui.generated.resources.trips_retry
 import co.sirdab.driver.shared.core.ui.generated.resources.exc_report
 import co.sirdab.driver.shared.core.ui.generated.resources.exc_sent
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_pending_sync
-import co.sirdab.driver.shared.core.ui.generated.resources.exc_report
-import co.sirdab.driver.shared.core.ui.generated.resources.exc_sent
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_pending_sync_note
 import co.sirdab.driver.shared.core.ui.generated.resources.trips_stops_count
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_start
@@ -192,7 +189,7 @@ fun DriverTripDetailScreen(
                         }
                     }
 
-                    tripActionFor(trip)?.let { action ->
+                    if (tripActionFor(trip) != null) {
                         item {
                             Button(
                                 onClick = viewModel::startTrip,

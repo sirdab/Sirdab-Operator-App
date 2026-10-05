@@ -1,16 +1,13 @@
 package co.sirdab.driver.shared.feature.bidding.impl.data
 
-import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverBid
 import co.sirdab.driver.shared.core.model.DriverPosting
 import co.sirdab.driver.shared.core.model.DriverTruck
 import co.sirdab.driver.shared.core.model.Page
-import co.sirdab.driver.shared.core.network.ApiSuccess
 import co.sirdab.driver.shared.core.network.Paginated
 import co.sirdab.driver.shared.core.network.TmsApiClient
-import co.sirdab.driver.shared.core.network.apiFailure
-import co.sirdab.driver.shared.core.network.toAppError
+import co.sirdab.driver.shared.core.network.toAppResult
 import co.sirdab.driver.shared.feature.bidding.api.DriverBiddingRepository
 
 /**
@@ -80,15 +77,6 @@ class DriverBiddingRepositoryHttp(
             Page(page.items.map { it.toDomain() }, page.nextCursor)
         }
     }
-
-    private fun <T, R> Result<ApiSuccess<T>>.toAppResult(transform: (T) -> R): AppResult<R> = fold(
-        onSuccess = { AppResult.Success(transform(it.value)) },
-        onFailure = { error ->
-            AppResult.Failure(
-                error.apiFailure?.toAppError() ?: AppError(error.message ?: "Something went wrong."),
-            )
-        },
-    )
 
     private companion object {
         const val POSTINGS = "api/driver/postings"

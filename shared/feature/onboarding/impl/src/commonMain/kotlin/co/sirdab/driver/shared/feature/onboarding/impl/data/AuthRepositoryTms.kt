@@ -85,8 +85,6 @@ class AuthRepositoryTms(
             )
         }
 
-    override fun observeHasWorkspace(): Flow<Boolean> = session.state.map { it is AuthState.Ready }
-
     override fun hasWorkspace(): Boolean = session.state.value is AuthState.Ready
 
     override fun observeVerification(): Flow<DriverVerification?> = fleetVerification
@@ -308,7 +306,7 @@ private const val ACCOUNT_PATH = "api/driver/account"
  */
 internal fun DriverProfile.toDriver(): Driver = Driver(
     id = userId,
-    // The server keeps one name, not the two the demo world carries.
+    // The server keeps one name, not the two [Driver] carries.
     fullNameEn = name,
     fullNameAr = name,
     phone = phone.orEmpty(),
@@ -328,9 +326,6 @@ internal fun DriverProfile.toDriver(): Driver = Driver(
         )
     },
 )
-
-private fun Throwable.toAppError(): AppError =
-    apiFailure?.toAppError() ?: AppError(message ?: "Something went wrong.")
 
 /** The one refusal deleting has its own words for; everything else is the usual mapping. */
 private fun Throwable.toAccountError(): AppError {

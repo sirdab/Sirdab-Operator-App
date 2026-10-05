@@ -14,5 +14,4 @@ object BuildConfig {
     val JAVA_VERSION = JavaVersion.VERSION_17
     const val JVM_TARGET = "17"
     const val BASE_NAMESPACE = "co.sirdab.driver"
-    const val IOS_FRAMEWORK_NAME = "Shared"
 }

@@ -1,27 +1,14 @@
 package co.sirdab.driver.shared.feature.bidding.api
 
-import androidx.navigation3.runtime.NavKey
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverBid
 import co.sirdab.driver.shared.core.model.DriverPosting
 import co.sirdab.driver.shared.core.model.DriverTruck
 import co.sirdab.driver.shared.core.model.Page
-import kotlinx.coroutines.flow.Flow
-import kotlinx.serialization.Serializable
-
-@Serializable
-sealed interface BiddingRoute : NavKey {
-
-    @Serializable data object Postings : BiddingRoute
-    @Serializable data object DriverBids : BiddingRoute
-}
 
 /**
- * Postings this carrier may answer, and the bids it has made.
- *
- * Separate from [BidRepository], the demo board's negotiation model with
- * counters and outbid events. The TMS has neither: a bid is placed once, and
- * the dispatcher awards.
+ * Postings this carrier may answer, and the bids it has made. A bid is placed once and the
+ * dispatcher awards: there are no counters or outbid events.
  */
 interface DriverBiddingRepository {
     suspend fun postings(cursor: String? = null, limit: Int = 50): AppResult<Page<DriverPosting>>

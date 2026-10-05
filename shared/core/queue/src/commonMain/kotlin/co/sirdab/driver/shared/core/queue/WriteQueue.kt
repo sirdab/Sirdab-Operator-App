@@ -69,8 +69,6 @@ class WriteQueue(
 
     fun observeCount(): Flow<Int> = dao.observeCount()
 
-    fun observePending(): Flow<List<PendingWrite>> = dao.observeAll()
-
     /** Everything still queued, in the order it will be sent. */
     suspend fun pending(): List<PendingWrite> = dao.all()
 

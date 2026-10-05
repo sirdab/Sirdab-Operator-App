@@ -26,7 +26,7 @@ import co.sirdab.driver.shared.core.model.DriverTruck
 import co.sirdab.driver.shared.core.platform.locale.AppLocale
 import co.sirdab.driver.shared.core.ui.components.DriverButton
 import co.sirdab.driver.shared.core.ui.components.DriverTextField
-import co.sirdab.driver.shared.core.ui.components.LanguageOptionRow
+import co.sirdab.driver.shared.core.ui.components.OptionRow
 import co.sirdab.driver.shared.core.ui.components.equipmentLabel
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_accept_confirm
@@ -35,7 +35,6 @@ import co.sirdab.driver.shared.core.ui.generated.resources.bid_note
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_send
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_title
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_truck
-import co.sirdab.driver.shared.core.ui.generated.resources.unit_sar
 import co.sirdab.driver.shared.core.ui.theme.Spacing
 import org.jetbrains.compose.resources.stringResource
 
@@ -114,7 +113,7 @@ fun PlaceBidSheet(
                 Spacer(Modifier.height(Spacing.sm))
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
                     trucks.forEach { truck ->
-                        LanguageOptionRow(
+                        OptionRow(
                             label = listOf(
                                 truck.licencePlate,
                                 equipmentLabel(truck.bodyType, truck.sizeClass, truck.temperature),

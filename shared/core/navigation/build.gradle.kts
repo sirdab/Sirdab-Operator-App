@@ -5,12 +5,9 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.shared.core.util)
+            // The module has no code of its own: it hands every feature api module the same
+            // navigation3, so a route is a NavKey everywhere.
             api(libs.navigation3)
-            implementation(libs.compose.runtime)
-            implementation(libs.kotlinx.serialization)
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.bundles.koin.common)
         }
     }
 }

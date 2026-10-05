@@ -12,7 +12,6 @@ kotlin {
             api(projects.shared.core.navigation)
             api(projects.shared.core.preferences)
             api(projects.shared.core.ui)
-            api(projects.shared.core.demo)
             api(projects.shared.core.network)
             api(projects.shared.core.queue)
             api(projects.shared.core.auth)
@@ -25,7 +24,6 @@ kotlin {
             api(projects.shared.feature.notifications.impl)
 
             implementation(libs.bundles.koin.common)
-            implementation(libs.kotlinx.serialization)
             api(libs.ktor.client.logging)
         }
 

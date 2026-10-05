@@ -1,23 +1,19 @@
 package co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,16 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverDocumentStatus
 import co.sirdab.driver.shared.core.platform.browser.UrlOpener
-import co.sirdab.driver.shared.core.ui.components.ChipTone
+import co.sirdab.driver.shared.core.ui.components.DocumentStatusRow
 import co.sirdab.driver.shared.core.ui.components.DriverButton
 import co.sirdab.driver.shared.core.ui.components.DriverSecondaryButton
-import co.sirdab.driver.shared.core.ui.components.TagChip
 import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.blocked_body
@@ -47,10 +41,6 @@ import co.sirdab.driver.shared.core.ui.generated.resources.review_check_again
 import co.sirdab.driver.shared.core.ui.generated.resources.review_fix_rejected
 import co.sirdab.driver.shared.core.ui.generated.resources.review_title
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_checklist_title
-import co.sirdab.driver.shared.core.ui.generated.resources.signup_item_done
-import co.sirdab.driver.shared.core.ui.generated.resources.signup_item_in_review
-import co.sirdab.driver.shared.core.ui.generated.resources.signup_item_rejected
-import co.sirdab.driver.shared.core.ui.theme.Radius
 import co.sirdab.driver.shared.core.ui.theme.Spacing
 import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfileStatus
@@ -151,48 +141,14 @@ fun UnderReviewScreen(
                 Spacer(Modifier.height(Spacing.lg))
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     profile?.documents.orEmpty().forEach { document ->
-                        Surface(
-                            shape = RoundedCornerShape(Radius.md),
-                            color = MaterialTheme.colorScheme.surface,
-                            tonalElevation = 1.dp,
+                        DocumentStatusRow(
+                            title = stringResource(document.kind.labelRes()),
+                            status = document.status,
+                            rejectionReason = document.rejectionReason,
                             // Tappable only when there is something to open: the link is minted with
                             // the profile read and is null until the upload was confirmed.
-                            modifier = Modifier.fillMaxWidth().then(
-                                document.downloadUrl?.let { url ->
-                                    Modifier.clickable { urlOpener.open(url) }
-                                } ?: Modifier,
-                            ),
-                        ) {
-                            Row(
-                                Modifier.padding(Spacing.md).fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        stringResource(document.kind.labelRes()),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                    )
-                                    // Ops' own words, shown verbatim: it is the only thing that tells a
-                                    // driver what to photograph differently.
-                                    document.rejectionReason?.let {
-                                        Text(
-                                            it,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.error,
-                                        )
-                                    }
-                                }
-                                when (document.status) {
-                                    DriverDocumentStatus.APPROVED ->
-                                        TagChip(stringResource(Res.string.signup_item_done), tone = ChipTone.SUCCESS)
-                                    DriverDocumentStatus.REJECTED ->
-                                        TagChip(stringResource(Res.string.signup_item_rejected), tone = ChipTone.DANGER)
-                                    DriverDocumentStatus.UPLOADED ->
-                                        TagChip(stringResource(Res.string.signup_item_in_review), tone = ChipTone.PRIMARY)
-                                }
-                            }
-                        }
+                            onClick = document.downloadUrl?.let { url -> { urlOpener.open(url) } },
+                        )
                     }
                 }
 

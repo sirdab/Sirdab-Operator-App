@@ -52,18 +52,17 @@ import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverDocumentKind
 import co.sirdab.driver.shared.core.model.DriverDocumentStatus
+import co.sirdab.driver.shared.core.ui.components.SectionTitle
+import co.sirdab.driver.shared.core.ui.components.errorText
+import co.sirdab.driver.shared.core.ui.components.ErrorText
 import co.sirdab.driver.shared.core.ui.components.ChipTone
 import co.sirdab.driver.shared.core.ui.components.DriverButton
-import co.sirdab.driver.shared.core.ui.components.LanguageOptionRow
+import co.sirdab.driver.shared.core.ui.components.OptionRow
 import co.sirdab.driver.shared.core.ui.components.StepProgress
 import co.sirdab.driver.shared.core.ui.components.TagChip
 import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
-import co.sirdab.driver.shared.core.ui.generated.resources.doc_driving_licence
 import co.sirdab.driver.shared.core.ui.generated.resources.doc_view
-import co.sirdab.driver.shared.core.ui.generated.resources.doc_iqama
-import co.sirdab.driver.shared.core.ui.generated.resources.doc_national_id_short
-import co.sirdab.driver.shared.core.ui.generated.resources.doc_vehicle_registration
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_checklist_subtitle
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_checklist_title
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_item_done
@@ -295,8 +294,7 @@ fun SignUpChecklistScreen(
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                state.errorReason?.let { stringResource(it.labelRes()) }
-                                    ?: state.errorMessage.orEmpty(),
+                                errorText(state.errorReason, state.errorMessage).orEmpty(),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.error,
                             )
@@ -336,11 +334,9 @@ fun SignUpChecklistScreen(
                         color = MaterialTheme.colorScheme.primary,
                     )
 
-                    val errorReason = state.errorReason
-                    val errorMessage = errorReason?.let { stringResource(it.labelRes()) } ?: state.errorMessage
-                    if (errorMessage != null) {
+                    if (state.errorReason != null || state.errorMessage != null) {
                         Spacer(Modifier.height(Spacing.sm))
-                        Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                        ErrorText(state.errorReason, state.errorMessage)
                     }
 
                     Spacer(Modifier.height(Spacing.lg))
@@ -349,7 +345,7 @@ fun SignUpChecklistScreen(
                     items.filterIsInstance<ChecklistItem.Details>().forEach { item ->
                         ChecklistRow(
                             title = stringResource(Res.string.signup_your_details),
-                            subtitle = profile?.name?.takeIf { it.isNotBlank() },
+                            subtitle = profile.name.takeIf { it.isNotBlank() },
                             status = if (item.done) RowStatus.DONE else RowStatus.TODO,
                             onClick = onOpenDetails,
                         )
@@ -426,7 +422,7 @@ fun SignUpChecklistScreen(
                     Spacer(Modifier.height(Spacing.xs))
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
                         listOf(DriverDocumentKind.NATIONAL_ID, DriverDocumentKind.IQAMA).forEach { kind ->
-                            LanguageOptionRow(
+                            OptionRow(
                                 label = stringResource(kind.labelRes()),
                                 selected = kind == picking.kind,
                                 onClick = { pickingFor = picking.copy(kind = kind) },
@@ -540,11 +536,6 @@ fun DriverProfile.checklist(): List<ChecklistItem> = buildList {
 private fun ChecklistItem.Document.titleRes(): StringResource = kind.labelRes()
 
 private enum class RowStatus { TODO, DONE, IN_REVIEW, REJECTED, BUSY }
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-}
 
 @Composable
 private fun ChecklistRow(

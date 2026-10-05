@@ -1,10 +1,6 @@
 package co.sirdab.driver.shared.core.model
 
-/**
- * Demo-mode result type. Mirrors the reference app's `ApiResult<T>` shape so screens and
- * ViewModels model loading/success/error identically to a real backend — the mock repositories
- * simply produce these locally (with artificial latency) instead of over HTTP.
- */
+/** What every repository call returns: the data, or an [AppError] the screen can render. */
 sealed interface AppResult<out T> {
     data class Success<T>(val data: T) : AppResult<T>
     data class Failure(val error: AppError) : AppResult<Nothing>

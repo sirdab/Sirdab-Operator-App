@@ -15,10 +15,8 @@ data class Money(
 enum class PostingStatus { OPEN, AWARDED, CANCELLED, EXPIRED }
 
 /**
- * How a bid turned out on the TMS.
- *
- * Distinct from the demo board's [BidStatus], which has a COUNTERED state: the
- * TMS has no counter-offer, a bid is placed once and the dispatcher awards.
+ * How a bid turned out on the TMS. There is no counter-offer: a bid is placed once and the
+ * dispatcher awards.
  */
 @Serializable
 enum class DriverBidStatus { PENDING, WON, LOST, WITHDRAWN, EXPIRED }
@@ -43,8 +41,7 @@ data class DriverTruck(
 /**
  * A load offered to this carrier.
  *
- * Deliberately not [Load], which is the demo board's shape: a posting is an
- * offer with a deadline, carrying no distance, no handling flags and no
+ * An offer with a deadline, carrying no distance, no handling flags and no
  * suggested rate of its own.
  *
  * [targetRate] is the whole difference between two products. Set, the posting is

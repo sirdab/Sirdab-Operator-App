@@ -95,7 +95,7 @@ data class DriverVerification(
 
     companion object {
         /**
-         * What demo mode and a driver with no fleet get.
+         * What a driver with no fleet gets.
          *
          * Permissive on purpose: the gate exists to keep a driver off a board the server would
          * refuse, and where there is no server there is nothing to refuse them.

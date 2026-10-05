@@ -53,8 +53,6 @@ compose-material-icons-extended = "1.7.3"
 
 # Testing
 assertk = "0.28.1"
-mokkery = "3.4.1"
-turbine = "1.2.1"
 
 [libraries]
 # Kotlin & Coroutines
@@ -125,7 +123,6 @@ desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref 
 
 # Testing
 assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
-turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -138,7 +135,6 @@ kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
-mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
 nativeCoroutines = { id = "com.rickclephas.kmp.nativecoroutines", version.ref = "native-coroutines" }
 
 [bundles]
@@ -175,5 +171,4 @@ testing-common = [
     "kotlin-test",
     "assertk",
     "kotlinx-coroutines-test",
-    "turbine"
 ]

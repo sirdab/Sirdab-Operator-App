@@ -10,14 +10,6 @@ enum class FilePurpose(val wire: String) {
     TRUCK_PHOTO("truck_photo"),
 }
 
-/** The image formats the contract's UploadContentType accepts. */
-object UploadContentType {
-    const val JPEG = "image/jpeg"
-    const val PNG = "image/png"
-    const val WEBP = "image/webp"
-    const val PDF = "application/pdf"
-}
-
 @Serializable
 data class FileUploadRequest(
     val purpose: String,

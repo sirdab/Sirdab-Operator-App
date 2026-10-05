@@ -20,6 +20,7 @@ import androidx.lifecycle.viewModelScope
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.Nationality
+import co.sirdab.driver.shared.core.ui.components.ErrorText
 import co.sirdab.driver.shared.core.ui.components.DriverButton
 import co.sirdab.driver.shared.core.ui.components.DriverDateField
 import co.sirdab.driver.shared.core.ui.components.DriverDropdownField
@@ -158,11 +159,9 @@ fun SignUpDetailsScreen(
                 placeholder = stringResource(Res.string.signup_date_hint),
             )
 
-            val errorReason = state.errorReason
-            val errorMessage = errorReason?.let { stringResource(it.labelRes()) } ?: state.errorMessage
-            if (errorMessage != null) {
+            if (state.errorReason != null || state.errorMessage != null) {
                 Spacer(Modifier.height(Spacing.sm))
-                Text(errorMessage, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                ErrorText(state.errorReason, state.errorMessage)
             }
 
             Spacer(Modifier.height(Spacing.xl))

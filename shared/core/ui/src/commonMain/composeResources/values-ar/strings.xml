@@ -1,9 +1,7 @@
 <resources>
-    <string name="app_name">سرداب للناقلين</string>
 
     <string name="common_back">رجوع</string>
     <string name="common_continue">متابعة</string>
-    <string name="common_finish">إنهاء</string>
     <string name="common_ok">حسناً</string>
     <string name="common_cancel">إلغاء</string>
 
@@ -19,120 +17,24 @@
 
     <string name="otp_title">تحقق من رقمك</string>
     <string name="otp_subtitle">أدخل الرمز المكوّن من ٦ أرقام.</string>
-    <string name="otp_hint_demo">تجريبي: أي ٦ أرقام تعمل</string>
     <string name="verify">تحقق</string>
     <string name="resend_code">إعادة إرسال الرمز</string>
     <string name="otp_resend_in">إعادة إرسال الرمز بعد %1$s</string>
     <string name="otp_code_sent">تم إرسال رمز جديد.</string>
 
-
-    <string name="docs_title">ارفع مستنداتك</string>
-    <string name="docs_subtitle">التقط صورة أو اخترها من المعرض.</string>
-    <string name="doc_national_id">الهوية الوطنية</string>
-    <string name="doc_license">رخصة القيادة</string>
-    <string name="doc_vehicle_reg">استمارة المركبة</string>
-    <string name="upload">رفع</string>
-    <string name="uploading">جارٍ الرفع…</string>
-    <string name="verified">تم التحقق ✓</string>
-
-    <string name="vehicle_title">مركبتك</string>
     <string name="vehicle_subtitle">أخبرنا بما تقوده.</string>
     <string name="plate_number">رقم اللوحة</string>
     <string name="capacity_tons">الحمولة (طن)</string>
-
-    <string name="vt_flatbed">مسطحة</string>
-    <string name="vt_curtain">ستائرية</string>
-    <string name="vt_reefer">مبردة</string>
-    <string name="vt_container">حاوية ٤٠ قدم</string>
-    <string name="vt_dry_van">صندوق جاف</string>
-    <string name="vt_van_3t">فان ٣ طن</string>
-    <string name="vt_lowbed">لوبد</string>
-    <string name="vt_tanker">صهريج</string>
 
     <string name="tab_loads">الشحنات</string>
     <string name="tab_trip">الرحلة</string>
     <string name="tab_profile">الملف</string>
     <string name="coming_soon">قريبًا</string>
-    <string name="section_in_progress">سيصل هذا القسم في الإصدار القادم.</string>
 
     <!-- Units -->
     <string name="unit_sar">ريال</string>
 
-    <!-- Load board -->
-
-    <!-- Load detail -->
-
-    <!-- Cargo types -->
-    <string name="cargo_general">عام</string>
-    <string name="cargo_reefer">مبرّد</string>
-    <string name="cargo_hazmat">خطرة</string>
-    <string name="cargo_oversized">حمولة كبيرة</string>
-    <string name="cargo_container">حاوية</string>
-    <string name="cargo_livestock">مواشٍ</string>
-
-    <!-- Handling flags -->
-    <string name="flag_fragile">قابل للكسر</string>
-    <string name="flag_reefer_temp">مضبوط الحرارة</string>
-    <string name="flag_hazmat">مواد خطرة</string>
-    <string name="flag_oversized_permit">تصريح حمولة كبيرة</string>
-    <string name="flag_multi_stop">محطات متعددة</string>
-    <string name="flag_tail_lift">رافعة خلفية</string>
-
-    <!-- Bid composer -->
-
-    <!-- My bids -->
-
-    <!-- Notifications -->
-
-    <!-- Demo control panel -->
-
-    <!-- Trip -->
-    <string name="trip_title">الرحلة الحالية</string>
-    <string name="trip_no_active_title">لا توجد رحلة نشطة</string>
-    <string name="trip_no_active_body">افز بشحنة وستظهر رحلتك هنا.</string>
-    <string name="trip_eta">الوصول المتوقع</string>
-    <string name="trip_min">دقيقة</string>
-    <string name="trip_detention">الانتظار</string>
-    <string name="trip_detention_note">يُحتسب تلقائيًا بعد المهلة المجانية</string>
-    <string name="trip_call_shipper">اتصل بالشاحن</string>
-
-    <!-- Trip status -->
-    <string name="st_assigned">مُسندة</string>
-    <string name="st_enroute_pickup">إلى الاستلام</string>
-    <string name="st_at_pickup">عند الاستلام</string>
-    <string name="st_loading">جارٍ التحميل</string>
-    <string name="st_enroute_dropoff">في الطريق</string>
-    <string name="st_at_dropoff">عند التسليم</string>
-    <string name="st_unloading">جارٍ التفريغ</string>
-    <string name="st_pod_pending">إثبات التسليم</string>
-    <string name="st_completed">مكتملة</string>
-
-    <!-- Trip actions -->
-    <string name="act_navigate_pickup">التوجّه للاستلام</string>
-    <string name="act_arrived_pickup">تأكيد الوصول</string>
-    <string name="act_start_loading">بدء التحميل</string>
-    <string name="act_depart">الانطلاق للتسليم</string>
-    <string name="act_arrived_dropoff">تأكيد الوصول</string>
-    <string name="act_start_unloading">بدء التفريغ</string>
-    <string name="act_capture_pod">التقاط إثبات التسليم</string>
-
-    <!-- POD -->
-    <string name="pod_title">إثبات التسليم</string>
-    <string name="pod_photos">الصور</string>
-    <string name="pod_add_photo">إضافة صورة</string>
-    <string name="pod_recipient">اسم المستلم</string>
-    <string name="pod_seal">رقم الختم</string>
-    <string name="pod_signature">توقيع المستلم</string>
-    <string name="pod_clear">مسح</string>
-    <string name="pod_submit">إتمام التسليم</string>
-
-
-    <!-- Backhaul notification -->
-
     <!-- Profile -->
-    <string name="profile_score">تقييم الناقل</string>
-    <string name="profile_trips">الرحلات</string>
-    <string name="profile_ontime">الالتزام بالوقت</string>
     <string name="profile_vehicle">المركبة</string>
     <string name="profile_documents">خزنة المستندات</string>
     <string name="profile_logout">تسجيل الخروج</string>
@@ -146,37 +48,11 @@
     <string name="delete_account_confirm">حذف</string>
     <string name="profile_settings">الإعدادات</string>
     <string name="profile_language">اللغة</string>
-    <string name="profile_persona">شخصية العرض</string>
-    <string name="profile_history">سجل الرحلات والأرباح</string>
 
     <!-- Document types + status -->
-    <string name="doc_insurance">التأمين</string>
-    <string name="doc_operating_card">بطاقة التشغيل</string>
     <string name="docstat_verified">موثّق</string>
     <string name="docstat_verifying">قيد التحقق</string>
-    <string name="docstat_expiring">قارب على الانتهاء</string>
     <string name="docstat_expired">منتهٍ</string>
-    <string name="docstat_missing">مفقود</string>
-    <string name="doc_days_left">يوم متبقٍ</string>
-
-    <!-- Personas -->
-    <string name="persona_flatbed">سائق مسطحة</string>
-    <string name="persona_van">سائق فان ٣ طن</string>
-    <string name="persona_new">سائق جديد</string>
-
-    <!-- Notifications inbox -->
-    <string name="notif_inbox_title">الإشعارات</string>
-    <string name="notif_inbox_empty">لا توجد إشعارات بعد</string>
-
-    <!-- Trip history + earnings -->
-    <string name="history_title">السجل والأرباح</string>
-    <string name="history_earnings">الأرباح (الأسابيع الأخيرة)</string>
-    <string name="history_completed_trips">الرحلات المكتملة</string>
-    <string name="history_empty">لا توجد رحلات مكتملة بعد</string>
-
-    <!-- Auto-bid -->
-
-    <!-- Demo scenarios -->
 
     <!-- Driver trips (TMS) -->
     <string name="trips_title">رحلاتي</string>
@@ -195,7 +71,6 @@
     <string name="trip_stop_planned">مجدولة</string>
     <string name="trip_stop_arrived">وصلت</string>
     <string name="trip_stop_departed">غادرت</string>
-    <string name="trip_stop_now">الحين</string>
     <string name="sst_pending">بالانتظار</string>
     <string name="sst_arrived">وصلت</string>
     <string name="sst_departed">غادرت</string>
@@ -227,19 +102,12 @@
     <string name="signup_licence_number">رقم رخصة القيادة</string>
     <string name="signup_licence_expiry">انتهاء الرخصة</string>
     <string name="signup_date_hint">سنة-شهر-يوم</string>
-    <string name="signup_docs_title">مستنداتك</string>
-    <string name="signup_docs_subtitle">صوّر كل مستند. نراجعها قبل أن تتمكن من استلام الشحنات.</string>
     <string name="doc_national_id_short">الهوية الوطنية</string>
     <string name="doc_driving_licence">رخصة القيادة</string>
-    <string name="doc_uploaded">تم الرفع</string>
-    <string name="doc_tap_to_add">اضغط للتصوير</string>
-    <string name="signup_docs_progress">تم تحميل %1$d من %2$d</string>
     <string name="trip_pending_sync">%1$d ما انرسلت</string>
     <string name="trip_pending_sync_note">محفوظة في جوالك وبترسل أول ما يرجع النت.</string>
     <string name="trip_dropped_sync">%1$d ما انقبلت</string>
     <string name="trip_dropped_sync_note">السيرفر رفضها فما انحفظت. راجع المحطات تحت وبلّغ المرسل.</string>
-
-    <!-- Truck type and size (mirrors the TMS enums) -->
 
     <!-- الجنسيات -->
     <string name="nat_sa">سعودي</string>
@@ -312,7 +180,6 @@
     <string name="postings_closed">مسكّر</string>
     <string name="postings_accept">اقبل %1$s</string>
     <string name="postings_bid">قدّم عرض</string>
-    <string name="postings_my_bids">عروضي</string>
     <string name="postings_open_price">السعر مفتوح</string>
     <string name="bid_title">عرضك</string>
     <string name="bid_amount">المبلغ (ريال)</string>
@@ -321,7 +188,6 @@
     <string name="bid_send">أرسل العرض</string>
     <string name="bid_accept_confirm">اقبل بـ %1$s</string>
     <string name="bid_sent">انرسل عرضك.</string>
-    <string name="bids_empty">ما قدّمت أي عرض لين الحين.</string>
     <string name="bs_pending">بالانتظار</string>
     <string name="bs_won">فزت فيها</string>
     <string name="bs_lost">ما تم اختيارك</string>

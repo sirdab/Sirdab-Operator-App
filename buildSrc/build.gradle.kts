@@ -28,9 +28,6 @@ dependencies {
     // Compose Multiplatform
     implementation("org.jetbrains.compose:compose-gradle-plugin:${libs.versions.compose.multiplatform.get()}")
 
-    // Mokkery
-    implementation("dev.mokkery:mokkery-gradle:${libs.versions.mokkery.get()}")
-
     // Kover
     implementation("org.jetbrains.kotlinx:kover-gradle-plugin:${libs.versions.kover.get()}")
 

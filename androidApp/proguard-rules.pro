@@ -1,2 +1,2 @@
-# Demo build ships without minification; rules kept minimal.
+# Release builds ship without minification (isMinifyEnabled = false); rules kept minimal.
 -keepattributes *Annotation*

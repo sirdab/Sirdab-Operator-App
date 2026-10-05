@@ -1,6 +1,5 @@
 package co.sirdab.driver.shared.feature.onboarding.impl.data
 
-import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.Driver
 import co.sirdab.driver.shared.core.model.DriverVerification
@@ -14,7 +13,6 @@ import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.Vehicle
 import co.sirdab.driver.shared.core.model.VerificationState
 import co.sirdab.driver.shared.core.network.TmsApiClient
-import co.sirdab.driver.shared.core.network.apiFailure
 import co.sirdab.driver.shared.core.network.toAppError
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfileRemote
 import co.sirdab.driver.shared.feature.onboarding.api.domain.FleetDriver
@@ -108,10 +106,7 @@ class DriverProfileRemoteHttp(private val api: TmsApiClient) : DriverProfileRemo
         api.get(PATH, DriverMeDto.serializer()).fold(
             onSuccess = { AppResult.Success(it.value.toFleetDriver()) },
             onFailure = { error ->
-                AppResult.Failure(
-                    error.apiFailure?.toAppError()
-                        ?: AppError(error.message ?: "Could not load your profile."),
-                )
+                AppResult.Failure(error.toAppError("Could not load your profile."))
             },
         )
 
@@ -151,7 +146,7 @@ internal fun DriverMeDto.toFleetDriver(): FleetDriver = FleetDriver(
 )
 
 /**
- * The server has one name, not the two the demo world carries. Putting it in
+ * The server has one name, not the two [Driver] carries. Putting it in
  * both fields keeps the profile screen correct in either language until the
  * contract offers a localised name.
  */

@@ -4,14 +4,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-/**
- * Thin DataStore-Preferences wrapper. Used for the persisted app language and for the DemoWorld
- * JSON snapshot (so state survives force-close, per plan §7).
- */
+/** Thin DataStore-Preferences wrapper, for small values that must survive a restart. */
 class KeyValueStore(private val dataStore: DataStore<Preferences>) {
 
     suspend fun putString(key: String, value: String) {
@@ -20,9 +16,6 @@ class KeyValueStore(private val dataStore: DataStore<Preferences>) {
 
     suspend fun getString(key: String): String? =
         dataStore.data.map { it[stringPreferencesKey(key)] }.first()
-
-    fun observeString(key: String): Flow<String?> =
-        dataStore.data.map { it[stringPreferencesKey(key)] }
 
     suspend fun remove(key: String) {
         dataStore.edit { it.remove(stringPreferencesKey(key)) }

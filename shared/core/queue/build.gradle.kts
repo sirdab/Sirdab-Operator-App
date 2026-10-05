@@ -13,7 +13,6 @@ kotlin {
         commonMain.dependencies {
             api(projects.shared.core.network)
             api(projects.shared.core.platform)
-            implementation(projects.shared.core.model)
             implementation(libs.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
             implementation(libs.kotlinx.coroutines.core)

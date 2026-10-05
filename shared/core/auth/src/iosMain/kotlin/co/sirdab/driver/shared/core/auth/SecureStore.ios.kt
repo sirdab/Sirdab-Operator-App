@@ -1,7 +1,6 @@
 package co.sirdab.driver.shared.core.auth
 
 import kotlinx.cinterop.BetaInteropApi
-import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
@@ -111,9 +110,4 @@ internal class KeychainSecureStore : SecureStore {
     private companion object {
         const val SERVICE = "co.sirdab.driver.session"
     }
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private fun releaseIfPresent(pointer: CPointer<*>?) {
-    if (pointer != null) platform.CoreFoundation.CFRelease(pointer)
 }

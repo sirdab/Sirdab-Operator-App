@@ -2,6 +2,7 @@ package co.sirdab.driver.shared.core.network
 
 import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppErrorReason
+import co.sirdab.driver.shared.core.model.AppResult
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 
@@ -115,6 +116,22 @@ fun ApiFailure.toAppError(): AppError = when (this) {
     is ApiFailure.Transport -> AppError(message, cause)
     is ApiFailure.Malformed -> AppError(message, cause)
 }
+
+/**
+ * Any failure out of [TmsApiClient] as an [AppError]. [fallback] is only for a failure that is not
+ * an [ApiFailure] and carries no message of its own.
+ */
+fun Throwable.toAppError(fallback: String = "Something went wrong."): AppError =
+    apiFailure?.toAppError() ?: AppError(message ?: fallback, cause = this)
+
+/** A [TmsApiClient] answer as the [AppResult] the screens render. */
+inline fun <T, R> Result<ApiSuccess<T>>.toAppResult(
+    fallback: String = "Something went wrong.",
+    transform: (T) -> R,
+): AppResult<R> = fold(
+    onSuccess = { AppResult.Success(transform(it.value)) },
+    onFailure = { AppResult.Failure(it.toAppError(fallback)) },
+)
 
 private fun ApiFailure.Http.reason(): AppErrorReason? = when {
     // A phase that has not landed. The screen says "coming soon", not "something went wrong".

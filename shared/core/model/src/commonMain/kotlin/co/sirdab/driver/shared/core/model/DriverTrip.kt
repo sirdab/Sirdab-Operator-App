@@ -12,9 +12,8 @@ data class Page<T>(
 /**
  * A trip's status in the TMS.
  *
- * Deliberately not [TripStatus], which is the demo world's nine-step script. A TMS trip has no
- * status of its own: the server derives this from the trip's legs, so the app reads it and never
- * sets it. What the driver does instead is record events against stops.
+ * A TMS trip has no status of its own: the server derives this from the trip's legs, so the app
+ * reads it and never sets it. What the driver does instead is record events against stops.
  */
 @Serializable
 enum class TripLifecycle { CREATED, ASSIGNED, IN_TRANSIT, COMPLETE, CANCELLED, FAILED }

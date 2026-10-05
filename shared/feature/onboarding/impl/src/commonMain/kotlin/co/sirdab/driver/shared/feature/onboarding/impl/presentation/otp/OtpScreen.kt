@@ -14,18 +14,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.intl.Locale
+import co.sirdab.driver.shared.core.platform.locale.AppLocale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
-import co.sirdab.driver.shared.core.network.BackendMode
+import co.sirdab.driver.shared.core.ui.components.ErrorText
 import co.sirdab.driver.shared.core.ui.components.DriverButton
-import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.components.DriverOtpField
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.otp_code_sent
-import co.sirdab.driver.shared.core.ui.generated.resources.otp_hint_demo
 import co.sirdab.driver.shared.core.ui.generated.resources.otp_resend_in
 import co.sirdab.driver.shared.core.ui.generated.resources.otp_subtitle
 import co.sirdab.driver.shared.core.ui.generated.resources.otp_title
@@ -43,7 +41,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -170,10 +167,9 @@ fun OtpScreen(
     onVerified: (DriverDestination) -> Unit,
     onChangeNumber: () -> Unit,
     viewModel: OtpViewModel = koinViewModel { parametersOf(phone) },
-    backendMode: BackendMode = koinInject(),
 ) {
     val state by viewModel.state.collectAsState()
-    val lang = Locale.current.language
+    val lang = AppLocale.current()
 
     Scaffold { padding ->
         Column(
@@ -189,26 +185,12 @@ fun OtpScreen(
             Spacer(Modifier.height(Spacing.lg))
             DriverOtpField(value = state.code, onValueChange = viewModel::onCodeChange)
             Spacer(Modifier.height(Spacing.sm))
-            val errorReason = state.errorReason
-            val errorMessage = errorReason?.let { stringResource(it.labelRes()) } ?: state.errorMessage
-            if (errorMessage != null) {
-                Text(
-                    errorMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
+            if (state.errorReason != null || state.errorMessage != null) {
+                ErrorText(state.errorReason, state.errorMessage)
             } else if (state.codeResent) {
                 Text(
                     stringResource(Res.string.otp_code_sent),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else if (backendMode == BackendMode.DEMO) {
-                // Only true of the demo world. Against a real Supabase the code
-                // is checked, and promising otherwise sends the driver in circles.
-                Text(
-                    stringResource(Res.string.otp_hint_demo),
-                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }

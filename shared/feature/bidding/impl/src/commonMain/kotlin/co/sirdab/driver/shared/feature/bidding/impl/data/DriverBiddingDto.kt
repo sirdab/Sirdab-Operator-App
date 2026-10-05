@@ -11,7 +11,7 @@ import co.sirdab.driver.shared.core.model.Money
 import co.sirdab.driver.shared.core.model.PostingPlace
 import co.sirdab.driver.shared.core.model.PostingStatus
 import kotlinx.serialization.Serializable
-import kotlin.time.Instant
+import co.sirdab.driver.shared.core.network.toEpochMillisOrNull
 
 @Serializable
 internal data class MoneyDto(val amountCents: Int, val currency: String = "SAR")
@@ -66,11 +66,6 @@ internal data class BidDto(
     val createdAt: String? = null,
 )
 
-internal fun String?.toMillisOrNull(): Long? {
-    if (this.isNullOrBlank()) return null
-    return runCatching { Instant.parse(this).toEpochMilliseconds() }.getOrNull()
-}
-
 /** Unknown values degrade rather than throw: a new status must not empty the board. */
 internal fun String.toPostingStatus(): PostingStatus = when (this) {
     "awarded" -> PostingStatus.AWARDED
@@ -97,9 +92,9 @@ internal fun DriverPostingDto.toDomain(): DriverPosting = DriverPosting(
     sizeClass = EquipmentSize.fromWire(equipment.sizeClass),
     temperature = EquipmentTemperature.fromWire(equipment.temperature),
     targetRate = targetRate?.let { Money(it.amountCents, it.currency) },
-    pickupWindowStartMillis = pickupWindowStart.toMillisOrNull(),
-    pickupWindowEndMillis = pickupWindowEnd.toMillisOrNull(),
-    biddingClosesAtMillis = biddingClosesAt.toMillisOrNull(),
+    pickupWindowStartMillis = pickupWindowStart.toEpochMillisOrNull(),
+    pickupWindowEndMillis = pickupWindowEnd.toEpochMillisOrNull(),
+    biddingClosesAtMillis = biddingClosesAt.toEpochMillisOrNull(),
 )
 
 internal fun BidDto.toDomain(): DriverBid = DriverBid(
@@ -109,7 +104,7 @@ internal fun BidDto.toDomain(): DriverBid = DriverBid(
     amount = Money(amountCents, currency),
     status = status.toDriverBidStatus(),
     note = note,
-    createdAtMillis = createdAt.toMillisOrNull(),
+    createdAtMillis = createdAt.toEpochMillisOrNull(),
 )
 
 /** Only the fleet is read here; `trucks` stayed top level on the driver profile. */

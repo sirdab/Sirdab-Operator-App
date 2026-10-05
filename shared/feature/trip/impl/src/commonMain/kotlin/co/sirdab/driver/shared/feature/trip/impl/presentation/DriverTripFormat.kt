@@ -36,6 +36,7 @@ import co.sirdab.driver.shared.core.ui.generated.resources.trip_stop_dropoff
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_stop_pickup
 import co.sirdab.driver.shared.core.util.localizeDigits
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.StringResource
 import kotlin.time.ExperimentalTime
@@ -85,7 +86,7 @@ internal fun formatStopTime(millis: Long, lang: String): String {
     val at = Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.currentSystemDefault())
     val hh = at.hour.toString().padStart(2, '0')
     val mm = at.minute.toString().padStart(2, '0')
-    return "${at.dayOfMonth}/${at.monthNumber}  $hh:$mm".localizeDigits(lang)
+    return "${at.day}/${at.month.number}  $hh:$mm".localizeDigits(lang)
 }
 
 internal fun StopAction.label(): StringResource = when (this) {
@@ -109,10 +110,4 @@ internal fun ExceptionSeverity.label(): StringResource = when (this) {
     ExceptionSeverity.LOW -> Res.string.es_low
     ExceptionSeverity.MEDIUM -> Res.string.es_medium
     ExceptionSeverity.HIGH -> Res.string.es_high
-}
-
-internal fun ExceptionSeverity.tone(): ChipTone = when (this) {
-    ExceptionSeverity.LOW -> ChipTone.NEUTRAL
-    ExceptionSeverity.MEDIUM -> ChipTone.WARNING
-    ExceptionSeverity.HIGH -> ChipTone.DANGER
 }

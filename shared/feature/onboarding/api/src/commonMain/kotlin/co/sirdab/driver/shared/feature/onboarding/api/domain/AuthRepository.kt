@@ -6,13 +6,6 @@ import co.sirdab.driver.shared.core.model.DriverVerification
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Who is signed in, and how they got there.
- *
- * Sign-up itself lives in [DriverOnboardingRepository]: this one owns the phone, the code, the
- * token and the way out. The two meet at [resolveDestination], because where a verified phone
- * belongs is a question only the driver's profile can answer.
- */
-/**
  * Who the signed-in driver is, from the server.
  *
  * A JWT carries ids, not people, so without this the profile screen has no name
@@ -26,6 +19,13 @@ interface DriverProfileRemote {
 /** The driver as one fleet sees them: who they are, and whether they may work there. */
 data class FleetDriver(val driver: Driver, val verification: DriverVerification)
 
+/**
+ * Who is signed in, and how they got there.
+ *
+ * Sign-up itself lives in [DriverOnboardingRepository]: this one owns the phone, the code, the
+ * token and the way out. The two meet at [resolveDestination], because where a verified phone
+ * belongs is a question only the driver's profile can answer.
+ */
 interface AuthRepository {
     fun observeDriver(): Flow<Driver>
 
@@ -35,15 +35,6 @@ interface AuthRepository {
      * False for a driver no fleet has taken on yet: the account works, the profile is theirs, and
      * there is no board to show them. Every workspace-scoped call would answer `403`, so the app
      * does not make them.
-     */
-    fun observeHasWorkspace(): Flow<Boolean>
-
-    /**
-     * The same fact, now, for a caller that cannot wait a frame for it.
-     *
-     * The shell decides which tabs exist as it first composes, and a flow's first value arrives
-     * after that, so reading it asynchronously would build the board for a driver who has none and
-     * then take it away again.
      */
     fun hasWorkspace(): Boolean
 

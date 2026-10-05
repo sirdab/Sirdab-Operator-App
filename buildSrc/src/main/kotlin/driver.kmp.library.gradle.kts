@@ -8,7 +8,6 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.kotlin.multiplatform.library")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("dev.mokkery")
     id("org.jetbrains.kotlin.plugin.allopen")
     id("org.jetbrains.kotlinx.kover")
 }

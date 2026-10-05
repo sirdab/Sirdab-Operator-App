@@ -31,9 +31,10 @@ import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.EquipmentBody
 import co.sirdab.driver.shared.core.model.EquipmentSize
 import co.sirdab.driver.shared.core.model.EquipmentTemperature
+import co.sirdab.driver.shared.core.ui.components.ErrorText
 import co.sirdab.driver.shared.core.ui.components.DriverButton
 import co.sirdab.driver.shared.core.ui.components.DriverTextField
-import co.sirdab.driver.shared.core.ui.components.LanguageOptionRow
+import co.sirdab.driver.shared.core.ui.components.OptionRow
 import co.sirdab.driver.shared.core.ui.components.equipmentLabel
 import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
@@ -178,7 +179,7 @@ fun SignUpTruckScreen(
             // never be matched to a posting.
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
                 EquipmentBody.entries.forEach { body ->
-                    LanguageOptionRow(
+                    OptionRow(
                         label = stringResource(body.labelRes()),
                         selected = body == draft.bodyType,
                         onClick = { viewModel.edit { it.copy(bodyType = body) } },
@@ -195,7 +196,7 @@ fun SignUpTruckScreen(
             Spacer(Modifier.height(Spacing.sm))
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
                 EquipmentSize.entries.forEach { size ->
-                    LanguageOptionRow(
+                    OptionRow(
                         label = stringResource(size.labelRes()),
                         selected = size == draft.sizeClass,
                         onClick = { viewModel.edit { it.copy(sizeClass = size) } },
@@ -212,7 +213,7 @@ fun SignUpTruckScreen(
             Spacer(Modifier.height(Spacing.sm))
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
                 EquipmentTemperature.entries.forEach { temperature ->
-                    LanguageOptionRow(
+                    OptionRow(
                         label = stringResource(temperature.labelRes()),
                         selected = temperature == draft.temperature,
                         onClick = { viewModel.edit { it.copy(temperature = temperature) } },
@@ -230,11 +231,9 @@ fun SignUpTruckScreen(
                 keyboardType = KeyboardType.Decimal,
             )
 
-            val errorReason = state.errorReason
-            val errorMessage = errorReason?.let { stringResource(it.labelRes()) } ?: state.errorMessage
-            if (errorMessage != null) {
+            if (state.errorReason != null || state.errorMessage != null) {
                 Spacer(Modifier.height(Spacing.sm))
-                Text(errorMessage, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                ErrorText(state.errorReason, state.errorMessage)
             }
 
             Spacer(Modifier.height(Spacing.xl))

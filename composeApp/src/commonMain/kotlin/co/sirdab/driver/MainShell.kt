@@ -1,13 +1,10 @@
 package co.sirdab.driver
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalShipping
@@ -26,17 +23,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import co.sirdab.driver.shared.core.model.Driver
-import co.sirdab.driver.shared.core.network.BackendMode
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
-import co.sirdab.driver.shared.core.ui.generated.resources.coming_soon
-import co.sirdab.driver.shared.core.ui.generated.resources.section_in_progress
 import co.sirdab.driver.shared.core.ui.generated.resources.board_locked
 import co.sirdab.driver.shared.core.ui.generated.resources.paperwork_outstanding
 import co.sirdab.driver.shared.core.ui.generated.resources.review_banner
@@ -64,27 +55,20 @@ private class SelectedTab(initial: MainTab) : ViewModel() {
 @Composable
 fun MainShell(
     initialTab: MainTab = MainTab.LOADS,
-    onOpenInbox: () -> Unit,
-    onOpenHistory: () -> Unit,
     onOpenTrip: (String) -> Unit,
     onLoggedOut: () -> Unit,
     onFixPaperwork: () -> Unit,
     onOpenReview: () -> Unit,
     authRepository: AuthRepository = koinInject(),
     onboardingRepository: DriverOnboardingRepository = koinInject(),
-    backendMode: BackendMode = koinInject(),
 ) {
-    // Postings and trips both come from the TMS now that the demo world's own
-    // board and trip simulation are gone, so demo mode is the profile alone.
-    val tmsOnly = backendMode == BackendMode.TMS
-
     // Carrying no fleet is an ordinary, permanent state, not a queue: a driver signs themselves up,
     // ops approves them, and they work independently. Only a fleet that has taken a driver on gets
     // a say in whether they may work, through `canAcceptLoads` — it accounts for an expired licence
     // and for a deactivated driver or truck, none of which the document list shows. No answer means
     // nobody with standing to give one, so nothing is withheld on the strength of it.
     val verification by authRepository.observeVerification().collectAsState(initial = null)
-    val canWork = tmsOnly && verification?.canAcceptLoads != false
+    val canWork = verification?.canAcceptLoads != false
 
     // A driver who finished sign-up can still owe something later: ops rejects a document, a
     // licence lapses, a truck is added to their profile. The server reopens `missing` for it and
@@ -104,8 +88,8 @@ fun MainShell(
         // Only an independent carrier's driver bids; a company's driver is refused the board, so
         // they get no tab for it. No answer yet keeps it, and the board explains itself if refused.
         TabSpec(MainTab.LOADS, Icons.Default.LocalShipping, Res.string.tab_loads)
-            .takeIf { tmsOnly && verification?.canBid != false },
-        TabSpec(MainTab.TRIP, Icons.Default.Map, Res.string.tab_trip).takeIf { tmsOnly },
+            .takeIf { verification?.canBid != false },
+        TabSpec(MainTab.TRIP, Icons.Default.Map, Res.string.tab_trip),
         TabSpec(MainTab.PROFILE, Icons.Default.Person, Res.string.tab_profile),
     )
 
@@ -117,7 +101,7 @@ fun MainShell(
     // Derived rather than assigned: a tab can disappear under the driver when the session changes,
     // and rewriting their choice would forget it once it comes back.
     // The first tab left is the nearest thing to what they asked for: trips for a company driver
-    // who opened on the board, the profile in demo mode.
+    // who opened on the board.
     val shown = if (tabs.none { it.tab == selected }) tabs.first().tab else selected
 
     Scaffold(
@@ -138,7 +122,7 @@ fun MainShell(
             when {
                 // Why there is no board comes first: it is the thing a driver is looking at the
                 // empty screen wondering about.
-                tmsOnly && !canWork -> BoardLockedBanner(
+                !canWork -> BoardLockedBanner(
                     message = when {
                         verification?.hasRejection == true -> Res.string.review_fix_rejected
                         else -> Res.string.board_locked
@@ -146,14 +130,14 @@ fun MainShell(
                 )
                 // Working, but something is owed. Tappable, because unlike the banner above there
                 // is something the driver can do about it right now.
-                tmsOnly && outstanding > 0 -> BoardLockedBanner(
+                outstanding > 0 -> BoardLockedBanner(
                     message = Res.string.paperwork_outstanding,
                     count = outstanding,
                     onClick = onFixPaperwork,
                 )
                 // Working, and waiting on ops. Nothing is owed and nothing is blocked; the driver
                 // can open it to see which document is where.
-                tmsOnly && profile?.isUnderReview == true -> BoardLockedBanner(
+                profile?.isUnderReview == true -> BoardLockedBanner(
                     message = Res.string.review_banner,
                     onClick = onOpenReview,
                 )
@@ -162,10 +146,7 @@ fun MainShell(
                 when (shown) {
                     MainTab.LOADS -> DriverPostingsScreen()
                     MainTab.TRIP -> DriverTripsScreen(onOpenTrip = onOpenTrip)
-                    MainTab.PROFILE -> ProfileScreen(
-                        onOpenHistory = onOpenHistory,
-                        onLoggedOut = onLoggedOut,
-                    )
+                    MainTab.PROFILE -> ProfileScreen(onLoggedOut = onLoggedOut)
                 }
             }
         }
@@ -196,29 +177,5 @@ private fun BoardLockedBanner(
             color = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
         )
-    }
-}
-
-@Composable
-private fun ComingSoon(titleRes: StringResource, authRepository: AuthRepository) {
-    val driver by authRepository.observeDriver().collectAsState(initial = Driver("", "", "", ""))
-    Box(Modifier.fillMaxSize().padding(Spacing.lg), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            val name = driver.fullNameEn.ifBlank { driver.fullNameAr }
-            if (name.isNotBlank()) {
-                Text("👋 $name", style = MaterialTheme.typography.headlineSmall)
-                Spacer(Modifier.height(Spacing.sm))
-            }
-            Text(stringResource(titleRes), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(Spacing.xs))
-            Text(stringResource(Res.string.coming_soon), style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(Spacing.xxs))
-            Text(
-                stringResource(Res.string.section_in_progress),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-        }
     }
 }

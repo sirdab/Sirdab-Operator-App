@@ -44,7 +44,6 @@ include(":shared:core:queue")
 include(":shared:core:auth")
 include(":shared:core:media")
 include(":shared:core:ui")
-include(":shared:core:demo")
 
 // Onboarding
 include(":shared:feature:onboarding:api")
@@ -60,7 +59,6 @@ include(":shared:feature:trip:impl")
 
 
 // Profile
-include(":shared:feature:profile:api")
 include(":shared:feature:profile:impl")
 
 // Notifications

@@ -1,9 +1,7 @@
 package co.sirdab.driver.shared.feature.notifications.impl.data
 
-import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.network.TmsApiClient
-import co.sirdab.driver.shared.core.network.apiFailure
 import co.sirdab.driver.shared.core.network.toAppError
 import co.sirdab.driver.shared.feature.notifications.api.DevicePlatform
 import co.sirdab.driver.shared.feature.notifications.api.DeviceRegistry
@@ -58,7 +56,7 @@ class DeviceRegistryHttp(private val api: TmsApiClient) : DeviceRegistry {
             idempotencyKey = Uuid.random().toString(),
         ).fold(
             onSuccess = { AppResult.Success(Unit) },
-            onFailure = { AppResult.Failure(it.apiFailure?.toAppError() ?: AppError(it.message ?: "Device registration failed.")) },
+            onFailure = { AppResult.Failure(it.toAppError("Device registration failed.")) },
         )
     }
 

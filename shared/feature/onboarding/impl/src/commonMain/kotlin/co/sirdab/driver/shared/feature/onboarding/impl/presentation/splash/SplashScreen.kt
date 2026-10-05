@@ -16,12 +16,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import co.sirdab.driver.shared.core.preferences.locale.AppLanguage
 import co.sirdab.driver.shared.core.preferences.locale.LanguageStore
 import co.sirdab.driver.shared.core.ui.components.DriverButton
-import co.sirdab.driver.shared.core.ui.components.LanguageOptionRow
+import co.sirdab.driver.shared.core.ui.components.OptionRow
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.choose_language
 import co.sirdab.driver.shared.core.ui.generated.resources.get_started
@@ -71,7 +70,7 @@ fun SplashScreen(
             Spacer(Modifier.height(Spacing.sm))
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 AppLanguage.entries.forEach { lang ->
-                    LanguageOptionRow(
+                    OptionRow(
                         label = lang.displayName,
                         selected = lang == current,
                         onClick = { viewModel.select(lang) },

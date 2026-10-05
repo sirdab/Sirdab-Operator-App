@@ -2,20 +2,16 @@ package co.sirdab.driver.shared.feature.profile.impl.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import co.sirdab.driver.shared.core.demo.DemoWorld
 import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppResult
-import co.sirdab.driver.shared.core.model.Document
 import co.sirdab.driver.shared.core.model.Driver
 import co.sirdab.driver.shared.core.model.DriverVerification
 import co.sirdab.driver.shared.core.preferences.locale.AppLanguage
-import co.sirdab.driver.shared.core.network.BackendMode
 import co.sirdab.driver.shared.core.preferences.locale.LanguageStore
 import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileDocument
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileWorkspace
-import co.sirdab.driver.shared.feature.profile.api.domain.DocumentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,9 +22,7 @@ import kotlinx.coroutines.launch
 
 data class ProfileUiState(
     val driver: Driver = Driver("", "", "", ""),
-    val documents: List<Document> = emptyList(),
     val language: AppLanguage = AppLanguage.ENGLISH,
-    val personas: List<Driver> = emptyList(),
     /** Recorded work still in the outbox, which signing out would throw away. */
     val unsentWrites: Int = 0,
     /**
@@ -55,12 +49,9 @@ data class ProfileUiState(
 }
 
 class ProfileViewModel(
-    private val demoWorld: DemoWorld,
     private val languageStore: LanguageStore,
-    private val backendMode: BackendMode,
     private val authRepository: AuthRepository,
     private val onboardingRepository: DriverOnboardingRepository,
-    documentRepository: DocumentRepository,
 ) : ViewModel() {
 
     private val _isSigningOut = MutableStateFlow(false)
@@ -93,14 +84,9 @@ class ProfileViewModel(
     val deleteAccountError: StateFlow<AppError?> = _deleteAccountError.asStateFlow()
 
     val state = combine(
-        // The signed-in driver, not the demo world's: against a real TMS these
-        // are two different people, and the world's one is nobody.
         authRepository.observeDriver(),
-        demoWorld.state,
-        documentRepository.observeDocuments(),
         languageStore.language,
-        // Four flows folded into one because the typed `combine` stops at five, and these four
-        // are all answers about the session rather than about the driver.
+        // Folded into one: these are all answers about the session rather than about the driver.
         combine(
             authRepository.observeUnsentWrites(),
             authRepository.observeVerification(),
@@ -116,16 +102,10 @@ class ProfileViewModel(
                 isUnderReview = profile?.isUnderReview == true,
             )
         },
-    ) { driver, world, docs, lang, session ->
+    ) { driver, lang, session ->
         ProfileUiState(
             driver = driver,
-            // The demo world's paperwork, which in TMS mode belongs to nobody: shown there, it
-            // stood in for a real driver's documents whenever theirs had not loaded yet.
-            documents = if (backendMode == BackendMode.DEMO) docs else emptyList(),
             language = lang,
-            // Switching persona rewrites the demo world, which a real session
-            // does not read, so the control would do nothing but confuse.
-            personas = if (backendMode == BackendMode.DEMO) world.personas else emptyList(),
             unsentWrites = session.unsentWrites,
             verification = session.verification,
             workspaces = session.workspaces,
@@ -185,7 +165,6 @@ class ProfileViewModel(
     }
 
     fun setLanguage(language: AppLanguage) = languageStore.setLanguage(language)
-    fun switchPersona(personaKey: String) = demoWorld.switchPersona(personaKey)
 
     /**
      * [onSignedOut] runs once the session is gone, so the caller can leave a shell that no longer

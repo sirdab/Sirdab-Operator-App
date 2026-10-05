@@ -10,7 +10,7 @@ import co.sirdab.driver.shared.core.model.TripLifecycle
 import co.sirdab.driver.shared.core.model.TripStop
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlin.time.Instant
+import co.sirdab.driver.shared.core.network.toEpochMillisOrNull
 
 /**
  * The wire shapes, mirroring `packages/tms-contracts/src/driver/trips.ts` field for field.
@@ -82,16 +82,6 @@ internal data class StopContactDto(
     @SerialName("name") val name: String,
     @SerialName("phone") val phone: String,
 )
-
-/**
- * Timestamps arrive as ISO-8601 with an explicit offset. An unparseable one becomes null rather
- * than throwing: a trip with one bad date is still a trip the driver has to run, and losing the
- * whole screen over it would be worse than losing the time.
- */
-internal fun String?.toEpochMillisOrNull(): Long? {
-    if (this.isNullOrBlank()) return null
-    return runCatching { Instant.parse(this).toEpochMilliseconds() }.getOrNull()
-}
 
 /**
  * An unknown enum value maps to the safest reading rather than throwing, so a server that adds a

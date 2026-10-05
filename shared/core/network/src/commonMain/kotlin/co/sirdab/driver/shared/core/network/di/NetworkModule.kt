@@ -1,11 +1,9 @@
 package co.sirdab.driver.shared.core.network.di
 
-import co.sirdab.driver.shared.core.network.BackendMode
 import co.sirdab.driver.shared.core.network.FileUploader
 import co.sirdab.driver.shared.core.network.ServerClock
 import co.sirdab.driver.shared.core.network.TmsApiClient
 import co.sirdab.driver.shared.core.network.TmsEnvironment
-import co.sirdab.driver.shared.core.network.TokenProvider
 import co.sirdab.driver.shared.core.network.platformHttpLogger
 import co.sirdab.driver.shared.core.network.tmsHttpClient
 import io.ktor.client.HttpClient
@@ -23,7 +21,6 @@ fun networkModule(
     environment: TmsEnvironment,
     logLevel: LogLevel = LogLevel.NONE,
 ): Module = module {
-    single { BackendMode.TMS }
     single { environment }
     single { ServerClock() }
     single<HttpClient> { tmsHttpClient(environment, logLevel) }
@@ -40,8 +37,3 @@ fun networkModule(
     single { FileUploader(get()) }
 }
 
-/** Demo mode still needs the graph to resolve, but nothing should reach the network. */
-val anonymousTokenModule: Module = module {
-    single { BackendMode.DEMO }
-    single<TokenProvider> { TokenProvider.Anonymous }
-}

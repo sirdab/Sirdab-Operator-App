@@ -99,7 +99,7 @@ class DriverPostingsViewModelTest {
     }
 
     @Test
-    fun `a company driver's refusal is a state of its own, not a fault`() = runTest(dispatcher) {
+    fun `a company driver's refusal is a state of its own rather than a fault`() = runTest(dispatcher) {
         val repo = FakeBidding().apply {
             firstPage = AppResult.Failure(
                 AppError("only independent operators bid from the app", reason = AppErrorReason.NOT_A_BIDDER),

@@ -190,7 +190,7 @@ class DriverBiddingRepositoryHttpTest {
     }
 
     @Test
-    fun `a company driver's refusal is named, not relayed`() = runTest {
+    fun `a company driver's refusal is named rather than relayed`() = runTest {
         val repo = repository {
             respond(
                 """{"error":{"code":"bidder_not_independent","message":"only independent operators bid from the app"}}""",

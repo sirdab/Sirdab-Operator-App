@@ -3,26 +3,18 @@ package co.sirdab.driver.shared.feature.trip.api
 import androidx.navigation3.runtime.NavKey
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
-
 import co.sirdab.driver.shared.core.model.Page
-
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface TripRoute : NavKey {
-
-    @Serializable data object Trips : TripRoute
     @Serializable data class Detail(val tripId: String) : TripRoute
 }
 
 /**
- * The trips the TMS says this driver is running.
- *
- * Separate from [TripRepository], which is the demo world's single-active-trip script. The two
- * model a trip differently enough that one interface would lie about both: a TMS trip is a list of
- * stops with no rate and no load id attached, and its status is derived from its legs rather than
- * advanced by the app.
+ * The trips the TMS says this driver is running. A trip is a list of stops with no rate and no load
+ * id attached, and its status is derived from its legs rather than advanced by the app.
  */
 interface DriverTripRepository {
     /** [cursor] is whatever the previous page returned, or null for the first. */

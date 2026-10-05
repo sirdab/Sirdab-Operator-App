@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -61,6 +62,7 @@ import co.sirdab.driver.shared.core.ui.theme.Radius
 import co.sirdab.driver.shared.core.ui.theme.Spacing
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -71,7 +73,14 @@ fun DriverPostingsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val lang = AppLocale.current()
-    val now = Clock.System.now().toEpochMilliseconds()
+    // Ticks, so the countdowns move. Read once per composition, "closes in 5 min" stayed at 5
+    // until something unrelated recomposed the board.
+    val now by produceState(Clock.System.now().toEpochMilliseconds()) {
+        while (true) {
+            delay(COUNTDOWN_TICK_MS)
+            value = Clock.System.now().toEpochMilliseconds()
+        }
+    }
 
     Column(Modifier.fillMaxSize()) {
         Text(
@@ -172,13 +181,40 @@ fun DriverPostingsScreen(
                     )
                 }
 
-                if (state.canLoadMore) {
+                if (state.canLoadMore && !state.failedLoadMore) {
                     item {
                         OutlinedButton(
                             onClick = viewModel::loadMore,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(stringResource(Res.string.trips_load_more))
+                        }
+                    }
+                }
+
+                if (state.isLoadingMore) {
+                    item {
+                        Box(Modifier.fillMaxWidth().padding(Spacing.md), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+
+                // A failed page keeps the postings already on screen and puts the retry under them.
+                if (state.failedLoadMore) {
+                    item {
+                        Column(Modifier.fillMaxWidth().padding(Spacing.sm)) {
+                            state.errorMessage?.let { message ->
+                                Text(
+                                    message,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                                Spacer(Modifier.height(Spacing.xs))
+                            }
+                            OutlinedButton(onClick = viewModel::loadMore) {
+                                Text(stringResource(Res.string.trips_retry))
+                            }
                         }
                     }
                 }
@@ -305,3 +341,6 @@ private fun Countdown(closesAtMillis: Long?, nowMillis: Long) {
         tone = if (unit == DurationUnit.MINUTES) ChipTone.WARNING else ChipTone.NEUTRAL,
     )
 }
+
+/** The countdowns read in minutes, so a tick much finer than one would only cost recompositions. */
+private const val COUNTDOWN_TICK_MS = 30_000L

@@ -58,12 +58,7 @@ enum class EquipmentTemperature(val wire: String) {
     }
 }
 
-/**
- * The truck this operator drives.
- *
- * Not to be confused with [VehicleType], which is still the demo load board's
- * single-axis taxonomy and is unrelated to what the operator owns.
- */
+/** The truck this operator drives. */
 @Serializable
 data class Vehicle(
     /** Null when the fleet's catalog row never classified that axis. */
@@ -74,24 +69,6 @@ data class Vehicle(
     val capacityTons: Double,
 )
 
-/**
- * The demo load board's requirement taxonomy, one axis instead of two.
- *
- * Kept only because the seeded loads use it. Real loads come from the TMS with
- * `bodyType`, `sizeClass` and `temperature`, so this retires with the demo board.
- */
-@Serializable
-enum class VehicleType {
-    FLATBED,
-    CURTAIN_SIDER,
-    REEFER,
-    CONTAINER_40FT,
-    DRY_VAN,
-    VAN_3T,
-    LOWBED,
-    TANKER,
-}
-
 @Serializable
 data class Driver(
     val id: String,
@@ -99,10 +76,5 @@ data class Driver(
     val fullNameAr: String,
     val phone: String,
     val verification: VerificationState = VerificationState.UNVERIFIED,
-    val carrierScore: Double = 0.0,
-    val tripsCompleted: Int = 0,
-    val onTimePercent: Int = 0,
     val vehicle: Vehicle? = null,
-    /** Feature-flag-like markers used by the demo scenario switcher. */
-    val personaKey: String = "flatbed_verified",
 )

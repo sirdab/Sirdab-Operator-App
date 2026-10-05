@@ -17,8 +17,6 @@ enum class AppLanguage(val code: String, val displayName: String) {
     URDU("ur", "اردو"),
     HINDI("hi", "हिन्दी");
 
-    val isRtl: Boolean get() = this == ARABIC || this == URDU
-
     companion object {
         fun fromCode(code: String?): AppLanguage =
             entries.firstOrNull { it.code == code } ?: ENGLISH

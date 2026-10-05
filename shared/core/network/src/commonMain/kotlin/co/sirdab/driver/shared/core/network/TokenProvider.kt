@@ -21,7 +21,7 @@ interface TokenProvider {
     fun ownerId(): String? = null
 
     companion object {
-        /** For demo mode and for tests that never reach an authenticated endpoint. */
+        /** For tests that never reach an authenticated endpoint. */
         val Anonymous = object : TokenProvider {
             override suspend fun accessToken(): String? = null
             override suspend fun refresh(): Boolean = false

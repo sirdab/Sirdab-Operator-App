@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import co.sirdab.driver.shared.core.ui.components.DriverButton
 import co.sirdab.driver.shared.core.ui.components.DriverTextField
-import co.sirdab.driver.shared.core.ui.components.LanguageOptionRow
+import co.sirdab.driver.shared.core.ui.components.OptionRow
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.exc_note
 import co.sirdab.driver.shared.core.ui.generated.resources.exc_send
@@ -67,7 +67,7 @@ fun ReportExceptionSheet(
             Spacer(Modifier.height(Spacing.sm))
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
                 ExceptionKind.entries.forEach { value ->
-                    LanguageOptionRow(
+                    OptionRow(
                         label = stringResource(value.label()),
                         selected = value == kind,
                         onClick = { kind = value },
@@ -84,7 +84,7 @@ fun ReportExceptionSheet(
             Spacer(Modifier.height(Spacing.sm))
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
                 ExceptionSeverity.entries.forEach { value ->
-                    LanguageOptionRow(
+                    OptionRow(
                         label = stringResource(value.label()),
                         selected = value == severity,
                         onClick = { severity = value },
