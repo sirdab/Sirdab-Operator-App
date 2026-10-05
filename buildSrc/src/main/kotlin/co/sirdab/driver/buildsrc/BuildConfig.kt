@@ -8,9 +8,9 @@ object BuildConfig {
     const val MIN_SDK = 28
     const val MAJOR_VERSION = 1
     const val MINOR_VERSION = 0
-    const val PATCH_VERSION = 0
+    const val PATCH_VERSION = 4
     const val VERSION_NAME = "$MAJOR_VERSION.$MINOR_VERSION.$PATCH_VERSION"
-    const val VERSION_CODE = 1
+    const val VERSION_CODE = 4
     val JAVA_VERSION = JavaVersion.VERSION_17
     const val JVM_TARGET = "17"
     const val BASE_NAMESPACE = "co.sirdab.driver"
