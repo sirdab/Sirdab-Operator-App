@@ -34,6 +34,19 @@ class JwtDecoderTest {
     }
 
     @Test
+    fun `the phone number reads as E164 though Supabase stamps it without the plus`() {
+        val claims = JwtDecoder.decode(token("""{"sub":"p1","phone":"966500000001"}"""))
+
+        assertThat(claims?.phone).isEqualTo("+966500000001")
+    }
+
+    @Test
+    fun `a token with no phone number has none`() {
+        assertThat(JwtDecoder.decode(token("""{"sub":"p1"}"""))?.phone).isNull()
+        assertThat(JwtDecoder.decode(token("""{"sub":"p1","phone":""}"""))?.phone).isNull()
+    }
+
+    @Test
     fun `a token with no workspace is signed in but not linked to a fleet`() {
         // The person authenticated fine; no fleet has them on its roster yet. The hook strips the
         // access claims along with the workspace, so there is nothing else to read.

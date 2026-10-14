@@ -2,12 +2,19 @@ package co.sirdab.driver.shared.feature.trip.impl.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
+import co.sirdab.driver.shared.core.media.PhotoSource
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
+import co.sirdab.driver.shared.core.model.StopStatus
+import co.sirdab.driver.shared.core.model.TripStop
 import co.sirdab.driver.shared.feature.trip.api.DriverTripRepository
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
 import co.sirdab.driver.shared.feature.trip.api.TripEventRecorder
+import co.sirdab.driver.shared.feature.trip.api.TripEventType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,6 +39,7 @@ class DriverTripDetailViewModel(
     private val tripId: String,
     private val repository: DriverTripRepository,
     private val recorder: TripEventRecorder,
+    private val analytics: Analytics,
     private val clock: Clock = Clock.System,
 ) : ViewModel() {
 
@@ -58,7 +66,24 @@ class DriverTripDetailViewModel(
     }
 
     fun acknowledgeDropped() {
+        val count = _state.value.droppedWrites
+        if (count > 0) analytics.track(AnalyticsEvent.rejectedWritesDismissed(tripId, count))
         recorder.acknowledgeDropped()
+    }
+
+    /** The driver opened directions to [stop]; the screen hands them to the maps app. */
+    fun navigationOpened(stop: TripStop) {
+        analytics.track(AnalyticsEvent.stopNavigationOpened(tripId, stop))
+    }
+
+    /** The driver rang [stop]'s contact; the screen does the dialling. */
+    fun contactCalled(stop: TripStop) {
+        analytics.track(AnalyticsEvent.stopContactCalled(tripId, stop))
+    }
+
+    /** The camera or library is opening for a photo of [stopId]; [attachPhoto] is what comes back. */
+    fun photoCaptureStarted(stopId: String, source: PhotoSource) {
+        analytics.track(AnalyticsEvent.photoProofStarted(tripId, stopId, source.name.lowercase()))
     }
 
     /**
@@ -93,9 +118,14 @@ class DriverTripDetailViewModel(
                 capturedAtMillis = capturedAtMillis,
             )
             when (result) {
-                is AppResult.Success -> load()
-                is AppResult.Failure ->
+                is AppResult.Success -> {
+                    analytics.track(AnalyticsEvent.photoProofAdded(tripId, stopId))
+                    load()
+                }
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.tripActionFailed(tripId, PHOTO_PROOF, result.error))
                     _state.value = _state.value.copy(errorMessage = result.error.message)
+                }
             }
         }
     }
@@ -127,20 +157,38 @@ class DriverTripDetailViewModel(
                     isLoading = false,
                     droppedWrites = _state.value.droppedWrites,
                 )
-                is AppResult.Failure -> _state.value.copy(
-                    isLoading = false,
-                    isRefreshing = false,
-                    errorMessage = result.error.message,
-                )
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.tripLoadFailed(tripId, result.error))
+                    _state.value.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        errorMessage = result.error.message,
+                    )
+                }
             }
         }
     }
 
+    /**
+     * The driver pulling to refresh.
+     *
+     * Apart from [load] because the screen also reloads by itself, after a photo and after a
+     * refusal, and only the driver's own pulls say they were unsure what the trip shows.
+     */
+    fun refresh() {
+        analytics.track(AnalyticsEvent.tripRefreshed(tripId, pendingWrites.value))
+        load(pulled = true)
+    }
+
     fun openExceptionReport() {
+        analytics.track(AnalyticsEvent.exceptionReportOpened(tripId, _state.value.trip?.currentStop?.id))
         _state.value = _state.value.copy(isReportingException = true, exceptionReported = false)
     }
 
+    /** The sheet closed without a report; sending one closes it without coming through here. */
     fun dismissExceptionReport() {
+        if (!_state.value.isReportingException) return
+        analytics.track(AnalyticsEvent.exceptionReportDismissed(tripId))
         _state.value = _state.value.copy(isReportingException = false)
     }
 
@@ -163,8 +211,24 @@ class DriverTripDetailViewModel(
                 note = note,
             )
             _state.value = when (result) {
-                is AppResult.Success -> _state.value.copy(exceptionReported = true)
-                is AppResult.Failure -> _state.value.copy(errorMessage = result.error.message)
+                is AppResult.Success -> {
+                    analytics.track(
+                        AnalyticsEvent.exceptionReported(
+                            tripId = trip.id,
+                            stopId = trip.currentStop?.id,
+                            kind = kind.wire,
+                            severity = severity.wire,
+                            hasNote = note.isNotBlank(),
+                        ),
+                    )
+                    _state.value.copy(exceptionReported = true)
+                }
+                is AppResult.Failure -> {
+                    analytics.track(
+                        AnalyticsEvent.tripActionFailed(trip.id, TripEventType.EXCEPTION.wire, result.error),
+                    )
+                    _state.value.copy(errorMessage = result.error.message)
+                }
             }
         }
     }
@@ -188,8 +252,19 @@ class DriverTripDetailViewModel(
                 eventType = action.event,
                 occurredAtMillis = occurredAtMillis,
             )
-            if (result is AppResult.Failure) {
-                _state.value = _state.value.copy(trip = trip, errorMessage = result.error.message)
+            when (result) {
+                is AppResult.Success -> analytics.track(
+                    AnalyticsEvent.tripStarted(
+                        tripId = trip.id,
+                        stopCount = trip.stops.size,
+                        minutesLate = trip.scheduledAtMillis
+                            ?.let { AnalyticsEvent.minutesBetween(it, occurredAtMillis) },
+                    ),
+                )
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.tripActionFailed(trip.id, action.event.wire, result.error))
+                    _state.value = _state.value.copy(trip = trip, errorMessage = result.error.message)
+                }
             }
         }
     }
@@ -214,10 +289,8 @@ class DriverTripDetailViewModel(
         if (action !in actionsFor(trip, stop, requirePhoto = false)) return
         val occurredAtMillis = clock.now().toEpochMilliseconds()
 
-        _state.value = _state.value.copy(
-            trip = trip.applyLocally(stopId, action, occurredAtMillis),
-            errorMessage = null,
-        )
+        val updated = trip.applyLocally(stopId, action, occurredAtMillis)
+        _state.value = _state.value.copy(trip = updated, errorMessage = null)
 
         viewModelScope.launch {
             val result = recorder.record(
@@ -226,14 +299,37 @@ class DriverTripDetailViewModel(
                 stopId = stopId,
                 occurredAtMillis = occurredAtMillis,
             )
-            // Only a failure to persist reaches here, and it is the one the driver
-            // must see: nothing was saved, so the screen must not keep pretending.
-            if (result is AppResult.Failure) {
-                _state.value = _state.value.copy(
-                    trip = trip,
-                    errorMessage = result.error.message,
+            when (result) {
+                is AppResult.Success -> analytics.track(
+                    AnalyticsEvent.stopActionRecorded(
+                        tripId = tripId,
+                        stopId = stopId,
+                        action = action.event.wire,
+                        stopType = stop.stopType,
+                        stopSequence = stop.sequenceNumber,
+                        stopsRemaining = updated.stops.count { it.status in UNFINISHED },
+                        // Only an arrival has a planned time to be late against.
+                        minutesLate = stop.plannedAtMillis
+                            ?.takeIf { action == StopAction.ARRIVE }
+                            ?.let { AnalyticsEvent.minutesBetween(it, occurredAtMillis) },
+                    ),
                 )
+                // Only a failure to persist reaches here, and it is the one the driver
+                // must see: nothing was saved, so the screen must not keep pretending.
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.tripActionFailed(tripId, action.event.wire, result.error))
+                    _state.value = _state.value.copy(
+                        trip = trip,
+                        errorMessage = result.error.message,
+                    )
+                }
             }
         }
     }
 }
+
+/** What a failed photo is called in analytics: it is not a trip event, so it has no wire name. */
+private const val PHOTO_PROOF = "photo_proof"
+
+/** Stops the driver still has work at. */
+private val UNFINISHED = setOf(StopStatus.PENDING, StopStatus.ARRIVED)

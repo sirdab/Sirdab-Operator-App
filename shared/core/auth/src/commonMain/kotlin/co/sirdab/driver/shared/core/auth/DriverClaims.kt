@@ -21,6 +21,8 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  */
 data class DriverClaims(
     val subject: String,
+    /** The number this person signed in with, as E.164 (`+966…`). Supabase stamps it without the `+`. */
+    val phone: String?,
     /** The tenant. Was `account_id` before the server grew organizations above workspaces. */
     val workspaceId: String?,
     /** `admin`, `staff` or `driver`: the highest-precedence access this person has here. */
@@ -69,6 +71,7 @@ object JwtDecoder {
 
         return DriverClaims(
             subject = claims.string("sub").orEmpty(),
+            phone = claims.string("phone")?.filter(Char::isDigit)?.takeIf { it.isNotEmpty() }?.let { "+$it" },
             workspaceId = appMetadata?.string("workspace_id"),
             access = claims.string("tms_access"),
             driverId = claims.string("tms_driver_id"),

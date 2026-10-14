@@ -1,5 +1,6 @@
 package co.sirdab.driver.di
 
+import co.sirdab.driver.shared.core.analytics.Analytics
 import co.sirdab.driver.shared.core.network.TmsEnvironment
 import co.sirdab.driver.shared.di.createTmsModules
 import co.sirdab.driver.shared.feature.notifications.api.DevicePlatform
@@ -12,9 +13,13 @@ import org.koin.mp.KoinPlatform
 import platform.Foundation.NSBundle
 import kotlin.experimental.ExperimentalNativeApi
 
-/** Where the app points comes from gradle.properties, through [IosBackendConfig]. */
+/**
+ * Where the app points comes from gradle.properties, through [IosBackendConfig].
+ *
+ * [analytics] is the Swift side's Mixpanel: the SDK is a Swift package, which Kotlin cannot call.
+ */
 @OptIn(ExperimentalNativeApi::class)
-fun doInitKoin() {
+fun doInitKoin(analytics: Analytics) {
     val platform = module {
         single {
             PushDevice(
@@ -31,6 +36,7 @@ fun doInitKoin() {
                     supabaseUrl = IosBackendConfig.SUPABASE_URL,
                     supabaseAnonKey = IosBackendConfig.SUPABASE_ANON_KEY,
                 ),
+                analytics = analytics,
                 // NSLog, so the same conversation is readable from Xcode and Console.app. Debug
                 // binaries only: bodies carry the driver's national ID, licence and phone, and a
                 // release build's NSLog is readable by anyone who plugs the phone in.
@@ -39,6 +45,9 @@ fun doInitKoin() {
         )
     }
 }
+
+/** The Mixpanel project token from gradle.properties, for Swift to start the SDK with. */
+val mixpanelToken: String get() = IosBackendConfig.MIXPANEL_TOKEN
 
 /** Called from Swift with the FCM token, at launch and whenever Firebase rotates it. */
 fun onPushToken(token: String) {

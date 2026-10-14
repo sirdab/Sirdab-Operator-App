@@ -27,6 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.board_locked
 import co.sirdab.driver.shared.core.ui.generated.resources.paperwork_outstanding
@@ -45,6 +48,14 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
+/** How Mixpanel names each tab, next to the other screens' names in App.kt. */
+private val MainTab.screenName: String
+    get() = when (this) {
+        MainTab.LOADS -> "loads"
+        MainTab.TRIP -> "trips"
+        MainTab.PROFILE -> "profile"
+    }
+
 private data class TabSpec(val tab: MainTab, val icon: ImageVector, val label: StringResource)
 
 /** The shell's chosen tab, scoped to its back stack entry. */
@@ -61,6 +72,7 @@ fun MainShell(
     onOpenReview: () -> Unit,
     authRepository: AuthRepository = koinInject(),
     onboardingRepository: DriverOnboardingRepository = koinInject(),
+    analytics: Analytics = koinInject(),
 ) {
     // Carrying no fleet is an ordinary, permanent state, not a queue: a driver signs themselves up,
     // ops approves them, and they work independently. Only a fleet that has taken a driver on gets
@@ -103,6 +115,10 @@ fun MainShell(
     // The first tab left is the nearest thing to what they asked for: trips for a company driver
     // who opened on the board.
     val shown = if (tabs.none { it.tab == selected }) tabs.first().tab else selected
+
+    // Each time a tab comes into view: picked, or back on top after a trip. A language change
+    // rebuilds the shell and counts the tab once more, which is rare enough not to matter.
+    LaunchedEffect(shown) { analytics.track(AnalyticsEvent.screenViewed(shown.screenName)) }
 
     Scaffold(
         bottomBar = {

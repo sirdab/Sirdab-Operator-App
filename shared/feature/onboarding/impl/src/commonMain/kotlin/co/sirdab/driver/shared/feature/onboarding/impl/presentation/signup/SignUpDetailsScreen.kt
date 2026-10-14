@@ -17,6 +17,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.Nationality
@@ -60,6 +63,7 @@ data class DetailsUiState(
  */
 class SignUpDetailsViewModel(
     private val repository: DriverOnboardingRepository,
+    private val analytics: Analytics,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -92,14 +96,18 @@ class SignUpDetailsViewModel(
         viewModelScope.launch {
             when (val result = repository.saveDetails(draft)) {
                 is AppResult.Success -> {
+                    analytics.track(AnalyticsEvent.detailsSaved(draft.nationality))
                     _state.value = _state.value.copy(isSubmitting = false)
                     onSaved()
                 }
-                is AppResult.Failure -> _state.value = _state.value.copy(
-                    isSubmitting = false,
-                    errorMessage = result.error.message,
-                    errorReason = result.error.reason,
-                )
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.detailsSaveFailed(result.error))
+                    _state.value = _state.value.copy(
+                        isSubmitting = false,
+                        errorMessage = result.error.message,
+                        errorReason = result.error.reason,
+                    )
+                }
             }
         }
     }

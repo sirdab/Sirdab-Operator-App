@@ -25,6 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverDocumentStatus
 import co.sirdab.driver.shared.core.platform.browser.UrlOpener
@@ -213,8 +216,12 @@ fun BlockedScreen(
     }
 }
 
-class BlockedViewModel(private val authRepository: AuthRepository) : ViewModel() {
+class BlockedViewModel(
+    private val authRepository: AuthRepository,
+    private val analytics: Analytics,
+) : ViewModel() {
     fun signOut(onSignedOut: () -> Unit) {
+        analytics.track(AnalyticsEvent.signOutRequested(source = "blocked"))
         viewModelScope.launch {
             authRepository.signOut()
             onSignedOut()

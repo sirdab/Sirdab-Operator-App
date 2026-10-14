@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import co.sirdab.driver.MainActivity
@@ -62,7 +63,10 @@ class DriverMessagingService : FirebaseMessagingService() {
             body: String?,
             data: Map<String, String>,
         ) {
-            if (context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+            // POST_NOTIFICATIONS only exists from Android 13. Below that the platform does not
+            // know it and always answers "denied", which would drop every foreground push.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED
             ) {
                 return

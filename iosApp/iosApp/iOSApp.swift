@@ -17,8 +17,8 @@ struct iOSApp: App {
 }
 
 /**
- * Firebase and push. Koin starts first so the FCM token, which can arrive as soon as Firebase is
- * configured, always has somewhere to go.
+ * Firebase, push and Mixpanel. Koin starts first so the FCM token, which can arrive as soon as
+ * Firebase is configured, always has somewhere to go.
  */
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
 
@@ -26,7 +26,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        KoinHelperKt.doInitKoin()
+        // Blank in gradle.properties means a build that sends nothing.
+        let token = KoinHelperKt.mixpanelToken
+        KoinHelperKt.doInitKoin(analytics: token.isEmpty ? AnalyticsNone.shared : MixpanelAnalytics(token: token))
         FirebaseApp.configure()
 
         Messaging.messaging().delegate = self

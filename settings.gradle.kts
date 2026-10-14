@@ -44,6 +44,7 @@ include(":shared:core:queue")
 include(":shared:core:auth")
 include(":shared:core:media")
 include(":shared:core:ui")
+include(":shared:core:analytics")
 
 // Onboarding
 include(":shared:feature:onboarding:api")

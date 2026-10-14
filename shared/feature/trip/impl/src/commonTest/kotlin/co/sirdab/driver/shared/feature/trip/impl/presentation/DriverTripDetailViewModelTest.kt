@@ -3,6 +3,9 @@ package co.sirdab.driver.shared.feature.trip.impl.presentation
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.testing.RecordingAnalytics
+import co.sirdab.driver.shared.core.media.PhotoSource
 import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
@@ -157,6 +160,7 @@ private class FixedClock(private val millis: Long) : Clock {
 class DriverTripDetailViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val analytics = RecordingAnalytics()
 
     @BeforeTest
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -167,7 +171,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `advances the stop before the write is sent`() = runTest(dispatcher) {
         val recorder = FakeRecorder()
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1_700_000L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1_700_000L))
         testScheduler.advanceUntilIdle()
 
         vm.record("s1", StopAction.ARRIVE)
@@ -180,7 +184,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `queues the event with the time of the tap`() = runTest(dispatcher) {
         val recorder = FakeRecorder()
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1_700_000L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1_700_000L))
         testScheduler.advanceUntilIdle()
 
         vm.record("s1", StopAction.ARRIVE)
@@ -202,7 +206,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `rolls the stop back when the write cannot be saved`() = runTest(dispatcher) {
         val recorder = FakeRecorder(AppResult.Failure(AppError("disk full")))
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1_700_000L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1_700_000L))
         testScheduler.advanceUntilIdle()
 
         vm.record("s1", StopAction.ARRIVE)
@@ -220,6 +224,7 @@ class DriverTripDetailViewModelTest {
             "t1",
             FakeRepo(AppResult.Failure(AppError("offline"))),
             recorder,
+            analytics,
             FixedClock(1L),
         )
         testScheduler.advanceUntilIdle()
@@ -232,7 +237,7 @@ class DriverTripDetailViewModelTest {
 
     @Test
     fun `a successful record leaves no error behind`() = runTest(dispatcher) {
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), FakeRecorder(), FixedClock(1L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), FakeRecorder(), analytics, FixedClock(1L))
         testScheduler.advanceUntilIdle()
 
         vm.record("s1", StopAction.ARRIVE)
@@ -244,7 +249,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `reports a problem against the stop being worked`() = runTest(dispatcher) {
         val recorder = FakeRecorder()
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1_700_000L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1_700_000L))
         testScheduler.advanceUntilIdle()
 
         vm.reportException(ExceptionKind.VEHICLE_BREAKDOWN, ExceptionSeverity.HIGH, "Tyre blew")
@@ -268,7 +273,7 @@ class DriverTripDetailViewModelTest {
 
     @Test
     fun `reporting never advances the stop`() = runTest(dispatcher) {
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), FakeRecorder(), FixedClock(1L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), FakeRecorder(), analytics, FixedClock(1L))
         testScheduler.advanceUntilIdle()
 
         vm.reportException(ExceptionKind.DELAY, ExceptionSeverity.LOW, "")
@@ -281,7 +286,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `surfaces a report that could not be saved`() = runTest(dispatcher) {
         val recorder = FakeRecorder(AppResult.Failure(AppError("disk full")))
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1L))
         testScheduler.advanceUntilIdle()
 
         vm.reportException(ExceptionKind.DAMAGE, ExceptionSeverity.HIGH, "")
@@ -293,7 +298,7 @@ class DriverTripDetailViewModelTest {
 
     @Test
     fun `opening and dismissing the report sheet toggles cleanly`() = runTest(dispatcher) {
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), FakeRecorder(), FixedClock(1L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), FakeRecorder(), analytics, FixedClock(1L))
         testScheduler.advanceUntilIdle()
 
         vm.openExceptionReport()
@@ -307,7 +312,7 @@ class DriverTripDetailViewModelTest {
     fun `loading sends what is queued before it reads`() = runTest(dispatcher) {
         val recorder = FakeRecorder()
 
-        DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1L))
+        DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1L))
         testScheduler.advanceUntilIdle()
 
         // Opening a trip is the app's evidence of a network. A proof stuck in
@@ -318,7 +323,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `a photo is kept with the time it was taken`() = runTest(dispatcher) {
         val recorder = FakeRecorder()
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1_700_000L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1_700_000L))
         testScheduler.advanceUntilIdle()
 
         vm.attachPhoto("s1", byteArrayOf(1, 2, 3), "image/jpeg")
@@ -334,7 +339,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `a photo that could not be kept is surfaced rather than assumed`() = runTest(dispatcher) {
         val recorder = FakeRecorder(AppResult.Failure(AppError("disk full")))
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1L))
         testScheduler.advanceUntilIdle()
 
         vm.attachPhoto("s1", byteArrayOf(1), "image/jpeg")
@@ -346,7 +351,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `a queued photo does not count as proof the server has`() = runTest(dispatcher) {
         val recorder = FakeRecorder()
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1L))
         testScheduler.advanceUntilIdle()
 
         vm.attachPhoto("s1", byteArrayOf(1), "image/jpeg")
@@ -363,7 +368,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `a reload keeps a step the queue has not sent yet`() = runTest(dispatcher) {
         val recorder = FakeRecorder()
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(5L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(5L))
         testScheduler.advanceUntilIdle()
 
         vm.record("s1", StopAction.ARRIVE)
@@ -382,7 +387,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `a refused write is shown until the driver dismisses it`() = runTest(dispatcher) {
         val recorder = FakeRecorder()
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1L))
         testScheduler.advanceUntilIdle()
 
         recorder.dropped.value = 2
@@ -401,7 +406,7 @@ class DriverTripDetailViewModelTest {
     @Test
     fun `a double tap records the step once`() = runTest(dispatcher) {
         val recorder = FakeRecorder()
-        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, FixedClock(1L))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1L))
         testScheduler.advanceUntilIdle()
 
         vm.record("s1", StopAction.ARRIVE)
@@ -410,5 +415,155 @@ class DriverTripDetailViewModelTest {
 
         // The second would be refused as out of order hours later, and dropped.
         assertThat(recorder.calls.size).isEqualTo(1)
+    }
+
+    @Test
+    fun `a recorded stop action is tracked with the stop it belongs to`() = runTest(dispatcher) {
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), FakeRecorder(), analytics, FixedClock(1L))
+        testScheduler.advanceUntilIdle()
+
+        vm.record("s1", StopAction.ARRIVE)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(analytics.events).isEqualTo(
+            listOf(
+                // Arrived is not finished: the stop still has its loading ahead of it.
+                AnalyticsEvent.stopActionRecorded(
+                    tripId = "t1",
+                    stopId = "s1",
+                    action = "arrived_at_stop",
+                    stopType = StopType.PICKUP,
+                    stopSequence = 1,
+                    stopsRemaining = 1,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `an action the phone could not save is tracked as a failure, not as done`() = runTest(dispatcher) {
+        val recorder = FakeRecorder(AppResult.Failure(AppError("disk full")))
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1L))
+        testScheduler.advanceUntilIdle()
+
+        vm.record("s1", StopAction.ARRIVE)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(analytics.eventNames).isEqualTo(listOf("Trip Action Failed"))
+        assertThat(analytics.events.single().properties["action"]).isEqualTo("arrived_at_stop")
+    }
+
+    @Test
+    fun `an arrival says how late it was against the plan`() = runTest(dispatcher) {
+        val planned = TRIP.copy(stops = TRIP.stops.map { it.copy(plannedAtMillis = 600_000L) })
+        val vm = DriverTripDetailViewModel(
+            "t1",
+            FakeRepo(AppResult.Success(planned)),
+            FakeRecorder(),
+            analytics,
+            FixedClock(600_000L + 25 * 60_000L),
+        )
+        testScheduler.advanceUntilIdle()
+
+        vm.record("s1", StopAction.ARRIVE)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(analytics.events.single().properties["minutes_late"]).isEqualTo(25)
+    }
+
+    @Test
+    fun `a start says how late it was against the schedule`() = runTest(dispatcher) {
+        val assigned = TRIP.copy(status = TripLifecycle.ASSIGNED, scheduledAtMillis = 3_600_000L)
+        val vm = DriverTripDetailViewModel(
+            "t1",
+            FakeRepo(AppResult.Success(assigned)),
+            FakeRecorder(),
+            analytics,
+            // Ten minutes early.
+            FixedClock(3_000_000L),
+        )
+        testScheduler.advanceUntilIdle()
+
+        vm.startTrip()
+        testScheduler.advanceUntilIdle()
+
+        assertThat(analytics.events.single()).isEqualTo(
+            AnalyticsEvent.tripStarted(tripId = "t1", stopCount = 1, minutesLate = -10),
+        )
+    }
+
+    @Test
+    fun `a trip that will not load is tracked`() = runTest(dispatcher) {
+        val failure = AppError("no connection")
+        DriverTripDetailViewModel("t1", FakeRepo(AppResult.Failure(failure)), FakeRecorder(), analytics, FixedClock(1L))
+        testScheduler.advanceUntilIdle()
+
+        assertThat(analytics.events).isEqualTo(listOf(AnalyticsEvent.tripLoadFailed("t1", failure)))
+    }
+
+    @Test
+    fun `only the driver's own pull counts as a refresh`() = runTest(dispatcher) {
+        val recorder = FakeRecorder()
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1L))
+        testScheduler.advanceUntilIdle()
+
+        // The screen reloading by itself, as it does after a refusal.
+        recorder.dropped.value = 1
+        testScheduler.advanceUntilIdle()
+        vm.refresh()
+        testScheduler.advanceUntilIdle()
+
+        assertThat(analytics.eventNames).isEqualTo(listOf("Trip Refreshed"))
+        assertThat(recorder.syncs).isEqualTo(3)
+    }
+
+    @Test
+    fun `directions, calls and photos are tracked against their stop`() = runTest(dispatcher) {
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), FakeRecorder(), analytics, FixedClock(1L))
+        testScheduler.advanceUntilIdle()
+        val stop = TRIP.stops.single()
+
+        vm.navigationOpened(stop)
+        vm.contactCalled(stop)
+        vm.photoCaptureStarted("s1", PhotoSource.LIBRARY)
+
+        assertThat(analytics.events).isEqualTo(
+            listOf(
+                AnalyticsEvent.stopNavigationOpened("t1", stop),
+                AnalyticsEvent.stopContactCalled("t1", stop),
+                AnalyticsEvent.photoProofStarted("t1", "s1", "library"),
+            ),
+        )
+        assertThat(analytics.events.first().properties["stop_status"]).isEqualTo("pending")
+    }
+
+    @Test
+    fun `a report sheet closed unsent is tracked once`() = runTest(dispatcher) {
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), FakeRecorder(), analytics, FixedClock(1L))
+        testScheduler.advanceUntilIdle()
+
+        vm.openExceptionReport()
+        vm.dismissExceptionReport()
+        vm.dismissExceptionReport()
+
+        assertThat(analytics.events).isEqualTo(
+            listOf(
+                AnalyticsEvent.exceptionReportOpened("t1", "s1"),
+                AnalyticsEvent.exceptionReportDismissed("t1"),
+            ),
+        )
+    }
+
+    @Test
+    fun `dismissing the refusal banner says how many it held`() = runTest(dispatcher) {
+        val recorder = FakeRecorder()
+        val vm = DriverTripDetailViewModel("t1", FakeRepo(), recorder, analytics, FixedClock(1L))
+        testScheduler.advanceUntilIdle()
+        recorder.dropped.value = 2
+        testScheduler.advanceUntilIdle()
+
+        vm.acknowledgeDropped()
+
+        assertThat(analytics.events.last()).isEqualTo(AnalyticsEvent.rejectedWritesDismissed("t1", 2))
     }
 }

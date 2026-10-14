@@ -1,7 +1,9 @@
 package co.sirdab.driver
 
 import android.app.Application
+import co.sirdab.driver.analytics.MixpanelAnalytics
 import co.sirdab.driver.push.DriverMessagingService
+import co.sirdab.driver.shared.core.analytics.Analytics
 import co.sirdab.driver.shared.core.network.TmsEnvironment
 import co.sirdab.driver.shared.di.createTmsModules
 import co.sirdab.driver.shared.feature.notifications.api.DevicePlatform
@@ -24,6 +26,10 @@ class DriverApp : Application() {
                 supabaseUrl = BuildConfig.SUPABASE_URL,
                 supabaseAnonKey = BuildConfig.SUPABASE_ANON_KEY,
             ),
+            analytics = BuildConfig.MIXPANEL_TOKEN
+                .takeIf { it.isNotBlank() }
+                ?.let { MixpanelAnalytics(this, it) }
+                ?: Analytics.None,
             // Bodies too, not just headers: a 400 from the API says which field it
             // rejected, and that is in the body. Credentials are sanitized out and
             // photo uploads are filtered, so what lands in logcat is readable.

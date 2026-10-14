@@ -26,6 +26,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.EquipmentBody
@@ -74,6 +77,7 @@ data class TruckUiState(
  */
 class SignUpTruckViewModel(
     private val repository: DriverOnboardingRepository,
+    private val analytics: Analytics,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -97,14 +101,25 @@ class SignUpTruckViewModel(
         viewModelScope.launch {
             when (val result = repository.addTruck(draft)) {
                 is AppResult.Success -> {
+                    analytics.track(
+                        AnalyticsEvent.truckAdded(
+                            body = draft.bodyType,
+                            size = draft.sizeClass,
+                            temperature = draft.temperature,
+                            truckCount = result.data.trucks.size,
+                        ),
+                    )
                     _state.value = TruckUiState(trucks = result.data.trucks)
                     onAdded()
                 }
-                is AppResult.Failure -> _state.value = _state.value.copy(
-                    isSubmitting = false,
-                    errorMessage = result.error.message,
-                    errorReason = result.error.reason,
-                )
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.truckAddFailed(result.error))
+                    _state.value = _state.value.copy(
+                        isSubmitting = false,
+                        errorMessage = result.error.message,
+                        errorReason = result.error.reason,
+                    )
+                }
             }
         }
     }
@@ -113,15 +128,21 @@ class SignUpTruckViewModel(
     fun remove(truckId: String) {
         viewModelScope.launch {
             when (val result = repository.removeTruck(truckId)) {
-                is AppResult.Success -> _state.value = _state.value.copy(
-                    trucks = result.data.trucks,
-                    errorMessage = null,
-                    errorReason = null,
-                )
-                is AppResult.Failure -> _state.value = _state.value.copy(
-                    errorMessage = result.error.message,
-                    errorReason = result.error.reason,
-                )
+                is AppResult.Success -> {
+                    analytics.track(AnalyticsEvent.truckRemoved(result.data.trucks.size))
+                    _state.value = _state.value.copy(
+                        trucks = result.data.trucks,
+                        errorMessage = null,
+                        errorReason = null,
+                    )
+                }
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.truckRemoveFailed(result.error))
+                    _state.value = _state.value.copy(
+                        errorMessage = result.error.message,
+                        errorReason = result.error.reason,
+                    )
+                }
             }
         }
     }

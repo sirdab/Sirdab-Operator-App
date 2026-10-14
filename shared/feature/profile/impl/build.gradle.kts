@@ -6,6 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.shared.core.util)
+            implementation(projects.shared.core.analytics)
             implementation(projects.shared.feature.bidding.api)
             implementation(projects.shared.core.model)
             implementation(projects.shared.core.ui)

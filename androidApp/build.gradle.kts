@@ -35,6 +35,7 @@ android {
         buildConfigField("String", "TMS_API_BASE_URL", "\"${property("driver.apiBaseUrl")}\"")
         buildConfigField("String", "SUPABASE_URL", "\"${property("driver.supabaseUrl")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${property("driver.supabaseAnonKey")}\"")
+        buildConfigField("String", "MIXPANEL_TOKEN", "\"${findProperty("driver.mixpanelToken") ?: ""}\"")
     }
 
     signingConfigs {
@@ -106,6 +107,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.crashlytics)
+
+    implementation(libs.mixpanel.android)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

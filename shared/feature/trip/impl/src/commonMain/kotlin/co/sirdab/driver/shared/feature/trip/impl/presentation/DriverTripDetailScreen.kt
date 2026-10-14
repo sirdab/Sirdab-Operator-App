@@ -136,7 +136,7 @@ fun DriverTripDetailScreen(
         // proof still in the queue is sent before the server is asked what it knows.
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
-            onRefresh = { viewModel.load(pulled = true) },
+            onRefresh = viewModel::refresh,
             modifier = Modifier.fillMaxSize(),
         ) {
             when {
@@ -238,11 +238,16 @@ fun DriverTripDetailScreen(
                             awaitingPhoto = awaitingPhotoProof(trip, stop, queuedPhotos = sending),
                             sendingPhotos = sending,
                             onTakePhoto = { source ->
+                                viewModel.photoCaptureStarted(stop.id, source)
                                 photoFor = stop.id
                                 capture.launch(source)
                             },
-                            onCall = dialer::dial,
+                            onCall = { phone ->
+                                viewModel.contactCalled(stop)
+                                dialer.dial(phone)
+                            },
                             onNavigate = { lat, lng ->
+                                viewModel.navigationOpened(stop)
                                 maps.navigateTo(lat, lng, stop.address.label)
                             },
                             onAction = { action -> viewModel.record(stop.id, action) },

@@ -14,6 +14,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -25,6 +26,9 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import co.sirdab.driver.locale.applyPlatformLocale
 import co.sirdab.driver.locale.languageChangeRequiresRestart
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.preferences.locale.LanguageStore
 import co.sirdab.driver.shared.core.ui.theme.AppTheme
 import co.sirdab.driver.shared.feature.trip.api.TripRoute
@@ -33,6 +37,7 @@ import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverDestination
 import co.sirdab.driver.shared.feature.onboarding.api.navigation.OnboardingRoute
 import co.sirdab.driver.shared.feature.onboarding.impl.navigation.onboardingEntries
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.compose.koinInject
 
 @Composable
@@ -43,6 +48,7 @@ fun App() {
     remember(language) { applyPlatformLocale(language.code) }
 
     val authRepository = koinInject<AuthRepository>()
+    val analytics = koinInject<Analytics>()
 
     // One question on launch: restore the session, read the driver's profile, and say which of the
     // app's worlds this person is in. Everything below waits on that rather than guessing.
@@ -53,7 +59,17 @@ fun App() {
     // back to the language picker with a live session, and everyone else lost where they were.
     var backStack by remember { mutableStateOf<NavBackStack<NavKey>?>(null) }
     LaunchedEffect(Unit) {
-        backStack = NavBackStack(authRepository.resolveDestination().toRoute())
+        val destination = authRepository.resolveDestination()
+        analytics.track(AnalyticsEvent.appOpened(destination.name.lowercase()))
+        backStack = NavBackStack(destination.toRoute())
+    }
+    // Out here rather than in the nav host: a language change rebuilds every screen below the key,
+    // and that is not the driver opening one.
+    LaunchedEffect(backStack) {
+        val stack = backStack ?: return@LaunchedEffect
+        snapshotFlow { stack.lastOrNull() }
+            .distinctUntilChanged()
+            .collect { route -> route?.screenView()?.let(analytics::track) }
     }
     val viewModelDecorator = rememberViewModelStoreNavEntryDecorator<NavKey>()
 
@@ -126,6 +142,20 @@ private fun AppNavHost(
             },
         )
     }
+}
+
+/** How Mixpanel names each screen. Null for the shell, which reports the tab it is showing. */
+private fun NavKey.screenView(): AnalyticsEvent? = when (this) {
+    OnboardingRoute.Splash -> AnalyticsEvent.screenViewed("welcome")
+    OnboardingRoute.PhoneEntry -> AnalyticsEvent.screenViewed("phone")
+    is OnboardingRoute.Otp -> AnalyticsEvent.screenViewed("otp")
+    OnboardingRoute.SignUp -> AnalyticsEvent.screenViewed("sign_up_checklist")
+    OnboardingRoute.SignUpDetails -> AnalyticsEvent.screenViewed("sign_up_details")
+    OnboardingRoute.SignUpTruck -> AnalyticsEvent.screenViewed("sign_up_truck")
+    OnboardingRoute.UnderReview -> AnalyticsEvent.screenViewed("under_review")
+    OnboardingRoute.Blocked -> AnalyticsEvent.screenViewed("blocked")
+    is TripRoute.Detail -> AnalyticsEvent.screenViewed("trip_detail", tripId = tripId)
+    else -> null
 }
 
 /**

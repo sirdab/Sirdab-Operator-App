@@ -17,6 +17,9 @@ import androidx.compose.ui.Modifier
 import co.sirdab.driver.shared.core.platform.locale.AppLocale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.ui.components.ErrorText
@@ -73,6 +76,7 @@ data class OtpUiState(
 class OtpViewModel(
     val phone: String,
     private val authRepository: AuthRepository,
+    private val analytics: Analytics,
 ) : ViewModel() {
     private val _state = MutableStateFlow(OtpUiState())
     val state: StateFlow<OtpUiState> = _state.asStateFlow()
@@ -106,14 +110,18 @@ class OtpViewModel(
         viewModelScope.launch {
             when (val result = authRepository.verifyOtp(_state.value.code)) {
                 is AppResult.Success -> {
+                    analytics.track(AnalyticsEvent.signedIn(result.data.name.lowercase()))
                     _state.value = _state.value.copy(isLoading = false)
                     onVerified(result.data)
                 }
-                is AppResult.Failure -> _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = result.error.message,
-                    errorReason = result.error.reason,
-                )
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.signInFailed(result.error))
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        errorMessage = result.error.message,
+                        errorReason = result.error.reason,
+                    )
+                }
             }
         }
     }
@@ -129,6 +137,12 @@ class OtpViewModel(
         )
         viewModelScope.launch {
             val result = authRepository.requestOtp(phone)
+            analytics.track(
+                when (result) {
+                    is AppResult.Success -> AnalyticsEvent.otpRequested(resend = true)
+                    is AppResult.Failure -> AnalyticsEvent.otpRequestFailed(resend = true, result.error)
+                },
+            )
             _state.value = when (result) {
                 is AppResult.Success -> _state.value.copy(
                     isResending = false,

@@ -32,5 +32,5 @@ val onboardingModule: Module = module {
     viewModelOf(::SignUpTruckViewModel)
     viewModelOf(::ReviewViewModel)
     viewModelOf(::BlockedViewModel)
-    viewModel { (phone: String) -> OtpViewModel(phone, get()) }
+    viewModel { (phone: String) -> OtpViewModel(phone, get(), get()) }
 }

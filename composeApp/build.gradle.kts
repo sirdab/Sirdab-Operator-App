@@ -32,6 +32,8 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
             export(projects.shared)
+            // So Swift can implement `Analytics` under that name, rather than a prefixed one.
+            export(projects.shared.core.analytics)
         }
     }
 
@@ -43,6 +45,7 @@ kotlin {
 
         commonMain.dependencies {
             api(projects.shared)
+            api(projects.shared.core.analytics)
 
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -73,9 +76,11 @@ val generateIosBackendConfig by tasks.registering {
     val apiBaseUrl = providers.gradleProperty("driver.apiBaseUrl")
     val supabaseUrl = providers.gradleProperty("driver.supabaseUrl")
     val supabaseAnonKey = providers.gradleProperty("driver.supabaseAnonKey")
+    val mixpanelToken = providers.gradleProperty("driver.mixpanelToken").orElse("")
     inputs.property("apiBaseUrl", apiBaseUrl)
     inputs.property("supabaseUrl", supabaseUrl)
     inputs.property("supabaseAnonKey", supabaseAnonKey)
+    inputs.property("mixpanelToken", mixpanelToken)
     val outputDir = layout.buildDirectory.dir("generated/backendConfig/iosMain/kotlin")
     outputs.dir(outputDir)
     doLast {
@@ -90,6 +95,7 @@ val generateIosBackendConfig by tasks.registering {
             |    const val API_BASE_URL = "${apiBaseUrl.get()}"
             |    const val SUPABASE_URL = "${supabaseUrl.get()}"
             |    const val SUPABASE_ANON_KEY = "${supabaseAnonKey.get()}"
+            |    const val MIXPANEL_TOKEN = "${mixpanelToken.get()}"
             |}
             |""".trimMargin(),
         )

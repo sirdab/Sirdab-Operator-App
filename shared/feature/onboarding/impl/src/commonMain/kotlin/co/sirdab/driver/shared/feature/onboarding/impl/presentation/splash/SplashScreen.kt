@@ -17,6 +17,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.preferences.locale.AppLanguage
 import co.sirdab.driver.shared.core.preferences.locale.LanguageStore
 import co.sirdab.driver.shared.core.ui.components.DriverButton
@@ -31,9 +34,17 @@ import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-class SplashViewModel(private val languageStore: LanguageStore) : ViewModel() {
+class SplashViewModel(
+    private val languageStore: LanguageStore,
+    private val analytics: Analytics,
+) : ViewModel() {
     val language: StateFlow<AppLanguage> = languageStore.language
-    fun select(language: AppLanguage) = languageStore.setLanguage(language)
+
+    fun select(language: AppLanguage) {
+        val changed = language != languageStore.language.value
+        languageStore.setLanguage(language)
+        if (changed) analytics.track(AnalyticsEvent.languageSelected(language.code, source = "welcome"))
+    }
 }
 
 @Composable

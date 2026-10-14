@@ -90,7 +90,13 @@ fun DriverTripsScreen(
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm),
             ) {
                 items(state.trips, key = { it.id }) { trip ->
-                    TripCard(trip = trip, onClick = { onOpenTrip(trip.id) })
+                    TripCard(
+                        trip = trip,
+                        onClick = {
+                            viewModel.tripOpened(trip)
+                            onOpenTrip(trip.id)
+                        },
+                    )
                 }
 
                 if (state.canLoadMore) {

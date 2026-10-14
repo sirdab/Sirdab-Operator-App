@@ -2,6 +2,9 @@ package co.sirdab.driver.shared.feature.bidding.impl.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverBid
@@ -13,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -73,6 +77,8 @@ data class DriverPostingsUiState(
 
 class DriverPostingsViewModel(
     private val repository: DriverBiddingRepository,
+    private val analytics: Analytics,
+    private val clock: Clock = Clock.System,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DriverPostingsUiState())
@@ -116,7 +122,8 @@ class DriverPostingsViewModel(
             errorReason = null,
         )
         viewModelScope.launch {
-            when (val result = repository.postings()) {
+            val result = repository.postings()
+            when (result) {
                 is AppResult.Success -> _state.value = _state.value.copy(
                     postings = result.data.items,
                     nextCursor = result.data.nextCursor,
@@ -138,6 +145,19 @@ class DriverPostingsViewModel(
             (repository.trucks() as? AppResult.Success)?.let {
                 _state.value = _state.value.copy(trucks = it.data)
             }
+            // After both, so the event can say whether this driver could bid on what they saw.
+            analytics.track(
+                when (result) {
+                    is AppResult.Success -> AnalyticsEvent.boardLoaded(
+                        postings = result.data.items,
+                        hasMore = result.data.nextCursor != null,
+                        myBidCount = _state.value.myBids.size,
+                        truckCount = _state.value.trucks.size,
+                        pulled = pulled,
+                    )
+                    is AppResult.Failure -> AnalyticsEvent.boardLoadFailed(pulled, result.error)
+                },
+            )
         }
     }
 
@@ -149,25 +169,47 @@ class DriverPostingsViewModel(
         _state.value = _state.value.copy(isLoadingMore = true, failedLoadMore = false)
         loadingMore = viewModelScope.launch {
             when (val result = repository.postings(cursor = cursor)) {
-                is AppResult.Success -> _state.value = _state.value.copy(
-                    postings = _state.value.postings + result.data.items,
-                    nextCursor = result.data.nextCursor,
-                    isLoadingMore = false,
-                )
-                is AppResult.Failure -> _state.value = _state.value.copy(
-                    errorMessage = result.error.message,
-                    isLoadingMore = false,
-                    failedLoadMore = true,
-                )
+                is AppResult.Success -> {
+                    _state.value = _state.value.copy(
+                        postings = _state.value.postings + result.data.items,
+                        nextCursor = result.data.nextCursor,
+                        isLoadingMore = false,
+                    )
+                    analytics.track(
+                        AnalyticsEvent.morePostingsLoaded(
+                            pageSize = result.data.items.size,
+                            totalCount = _state.value.postings.size,
+                            hasMore = result.data.nextCursor != null,
+                        ),
+                    )
+                }
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.morePostingsLoadFailed(result.error))
+                    _state.value = _state.value.copy(
+                        errorMessage = result.error.message,
+                        isLoadingMore = false,
+                        failedLoadMore = true,
+                    )
+                }
             }
         }
     }
 
     fun openBid(posting: DriverPosting) {
+        analytics.track(
+            AnalyticsEvent.bidSheetOpened(posting, _state.value.trucks.size, clock.now().toEpochMilliseconds()),
+        )
         _state.value = _state.value.copy(bidding = posting, bidSent = false, errorMessage = null)
     }
 
+    /** The sheet closing without an offer; one that went out closes it by itself. */
     fun dismissBid() {
+        _state.value.bidding?.let { posting ->
+            // An offer is still held only after a refusal: one that landed clears it and closes
+            // the sheet by itself.
+            val refused = offer != null && !_state.value.isSubmitting
+            analytics.track(AnalyticsEvent.bidSheetDismissed(posting.id, afterFailure = refused))
+        }
         offer = null
         _state.value = _state.value.copy(bidding = null)
     }
@@ -187,6 +229,10 @@ class DriverPostingsViewModel(
         val draft = Offer(postingId, amountSar, truckId, note)
         val key = offer?.takeIf { it.first == draft }?.second ?: Uuid.random().toString()
         offer = draft to key
+        // Read now, before the answer: by then a refresh may have replaced the board.
+        val posting = _state.value.bidding?.takeIf { it.id == postingId }
+            ?: _state.value.postings.firstOrNull { it.id == postingId }
+        val nowMillis = clock.now().toEpochMilliseconds()
 
         viewModelScope.launch {
             val result = repository.placeBid(
@@ -199,6 +245,16 @@ class DriverPostingsViewModel(
             )
             when (result) {
                 is AppResult.Success -> {
+                    analytics.track(
+                        AnalyticsEvent.bidPlaced(
+                            postingId = postingId,
+                            bidId = result.data.id,
+                            amountSar = amountSar,
+                            hasNote = note.isNotBlank(),
+                            posting = posting,
+                            nowMillis = nowMillis,
+                        ),
+                    )
                     offer = null
                     _state.value = _state.value.copy(
                         isSubmitting = false,
@@ -208,6 +264,9 @@ class DriverPostingsViewModel(
                     )
                 }
                 is AppResult.Failure -> {
+                    analytics.track(
+                        AnalyticsEvent.bidFailed(postingId, amountSar, result.error, posting, nowMillis),
+                    )
                     _state.value = _state.value.copy(
                         isSubmitting = false,
                         errorMessage = result.error.message,

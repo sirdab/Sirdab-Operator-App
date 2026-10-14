@@ -44,6 +44,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.media.CapturedImage
 import co.sirdab.driver.shared.core.media.PhotoSource
 import co.sirdab.driver.shared.core.media.rememberPhotoCapture
@@ -147,7 +150,16 @@ data class ChecklistUiState(
  */
 class SignUpChecklistViewModel(
     private val repository: DriverOnboardingRepository,
+    private val analytics: Analytics,
 ) : ViewModel() {
+
+    /**
+     * Whether this driver had finished sign-up before opening the checklist: they are back to
+     * replace something ops rejected, which is not the same moment as signing up.
+     */
+    private val returning = repository.profile.value?.onboardingComplete == true
+
+    private var completionReported = false
 
     /** Everything that is this screen's rather than the profile's. */
     private data class Local(
@@ -212,8 +224,22 @@ class SignUpChecklistViewModel(
             errorReason = null,
         )
         viewModelScope.launch {
-            finish(repository.uploadDocument(item.kind, item.truckId, bytes, contentType))
+            val result = repository.uploadDocument(item.kind, item.truckId, bytes, contentType)
+            analytics.track(
+                when (result) {
+                    is AppResult.Success -> AnalyticsEvent.documentUploaded(item.kind, item.rejected)
+                    is AppResult.Failure -> AnalyticsEvent.documentUploadFailed(item.kind, result.error)
+                },
+            )
+            finish(result)
         }
+    }
+
+    /** The screen has seen the server say nothing is missing, and is about to leave. */
+    fun reportCompleted(destination: DriverDestination) {
+        if (completionReported) return
+        completionReported = true
+        analytics.track(AnalyticsEvent.signUpCompleted(destination.name.lowercase(), returning))
     }
 
     private fun finish(result: AppResult<DriverProfile>) {
@@ -254,6 +280,7 @@ fun SignUpChecklistScreen(
     // leave them no way to fix the thing they came here for.
     LaunchedEffect(profile?.missing, profile?.status) {
         if (profile != null && profile.missing.isEmpty() && profile.onboardingComplete) {
+            viewModel.reportCompleted(profile.destination())
             onCompleted(profile.destination())
         }
     }

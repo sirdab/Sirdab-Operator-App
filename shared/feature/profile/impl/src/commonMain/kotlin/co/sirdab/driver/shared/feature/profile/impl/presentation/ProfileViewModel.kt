@@ -2,6 +2,9 @@ package co.sirdab.driver.shared.feature.profile.impl.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.Driver
@@ -52,6 +55,7 @@ class ProfileViewModel(
     private val languageStore: LanguageStore,
     private val authRepository: AuthRepository,
     private val onboardingRepository: DriverOnboardingRepository,
+    private val analytics: Analytics,
 ) : ViewModel() {
 
     private val _isSigningOut = MutableStateFlow(false)
@@ -137,8 +141,13 @@ class ProfileViewModel(
         _fleetSwitchError.value = null
         viewModelScope.launch {
             try {
-                val result = authRepository.switchWorkspace(workspaceId)
-                if (result is AppResult.Failure) _fleetSwitchError.value = result.error
+                when (val result = authRepository.switchWorkspace(workspaceId)) {
+                    is AppResult.Success -> analytics.track(AnalyticsEvent.fleetSwitched(workspaceId))
+                    is AppResult.Failure -> {
+                        analytics.track(AnalyticsEvent.fleetSwitchFailed(result.error))
+                        _fleetSwitchError.value = result.error
+                    }
+                }
             } finally {
                 _isSwitchingFleet.value = false
             }
@@ -164,7 +173,11 @@ class ProfileViewModel(
         }
     }
 
-    fun setLanguage(language: AppLanguage) = languageStore.setLanguage(language)
+    fun setLanguage(language: AppLanguage) {
+        val changed = language != languageStore.language.value
+        languageStore.setLanguage(language)
+        if (changed) analytics.track(AnalyticsEvent.languageSelected(language.code, source = "profile"))
+    }
 
     /**
      * [onSignedOut] runs once the session is gone, so the caller can leave a shell that no longer
@@ -173,6 +186,9 @@ class ProfileViewModel(
     fun signOut(onSignedOut: () -> Unit) {
         if (_isSigningOut.value) return
         _isSigningOut.value = true
+        analytics.track(
+            AnalyticsEvent.signOutRequested(source = "profile", unsentWrites = state.value.unsentWrites),
+        )
         viewModelScope.launch {
             try {
                 authRepository.signOut()
@@ -191,6 +207,9 @@ class ProfileViewModel(
         if (_isDeletingAccount.value) return
         _isDeletingAccount.value = true
         _deleteAccountError.value = null
+        // Before the call: a deletion that works ends the session, and after that nothing sent
+        // here is this driver's any more.
+        analytics.track(AnalyticsEvent.accountDeletionRequested())
         viewModelScope.launch {
             val result = try {
                 authRepository.deleteAccount()
@@ -199,7 +218,10 @@ class ProfileViewModel(
             }
             when (result) {
                 is AppResult.Success -> onDeleted()
-                is AppResult.Failure -> _deleteAccountError.value = result.error
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.accountDeletionFailed(result.error))
+                    _deleteAccountError.value = result.error
+                }
             }
         }
     }

@@ -51,6 +51,9 @@ firebase-bom = "34.19.0"
 google-services = "4.5.0"
 firebase-crashlytics-gradle = "3.0.8"
 
+# Mixpanel (androidApp only; iOS takes mixpanel-swift through Swift Package Manager)
+mixpanel-android = "8.11.1"
+
 # Compose Material Icons Extended
 compose-material-icons-extended = "1.7.3"
 
@@ -128,6 +131,9 @@ desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref 
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+
+# Mixpanel (androidApp only; iOS takes mixpanel-swift through Swift Package Manager)
+mixpanel-android = { module = "com.mixpanel.android:mixpanel-android", version.ref = "mixpanel-android" }
 
 # Testing
 assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }

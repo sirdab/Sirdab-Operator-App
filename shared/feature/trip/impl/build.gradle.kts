@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.shared.feature.trip.api)
             implementation(projects.shared.core.util)
+            implementation(projects.shared.core.analytics)
             implementation(projects.shared.core.model)
             implementation(projects.shared.core.ui)
             implementation(projects.shared.core.platform)

@@ -15,6 +15,7 @@ kotlin {
             api(projects.shared.core.network)
             api(projects.shared.core.queue)
             api(projects.shared.core.auth)
+            api(projects.shared.core.analytics)
 
             // Feature impls (transitively expose their api modules)
             api(projects.shared.feature.onboarding.impl)
@@ -24,6 +25,7 @@ kotlin {
             api(projects.shared.feature.notifications.impl)
 
             implementation(libs.bundles.koin.common)
+            implementation(libs.kotlinx.coroutines.core)
             api(libs.ktor.client.logging)
         }
 

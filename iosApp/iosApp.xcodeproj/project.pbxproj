@@ -14,6 +14,8 @@
 		B0000000000000000000B008 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F008 /* GoogleService-Info.plist */; };
 		B0000000000000000000B009 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = D0000000000000000000DMSG /* FirebaseMessaging */; };
 		B0000000000000000000B010 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0000000000000000000DCRA /* FirebaseCrashlytics */; };
+		B0000000000000000000B011 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D0000000000000000000DMXP /* Mixpanel */; };
+		B0000000000000000000B012 /* MixpanelAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F009 /* MixpanelAnalytics.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +27,7 @@
 		F0000000000000000000F006 /* Sirdab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sirdab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0000000000000000000FAR1 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F0000000000000000000F008 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		F0000000000000000000F009 /* MixpanelAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixpanelAnalytics.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,6 +37,7 @@
 			files = (
 				B0000000000000000000B009 /* FirebaseMessaging in Frameworks */,
 				B0000000000000000000B010 /* FirebaseCrashlytics in Frameworks */,
+				B0000000000000000000B011 /* Mixpanel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,6 +57,7 @@
 			children = (
 				F0000000000000000000F001 /* iOSApp.swift */,
 				F0000000000000000000F002 /* ContentView.swift */,
+				F0000000000000000000F009 /* MixpanelAnalytics.swift */,
 				F0000000000000000000F004 /* Assets.xcassets */,
 				F0000000000000000000F007 /* InfoPlist.strings */,
 				F0000000000000000000F003 /* Info.plist */,
@@ -91,6 +96,7 @@
 			packageProductDependencies = (
 				D0000000000000000000DMSG /* FirebaseMessaging */,
 				D0000000000000000000DCRA /* FirebaseCrashlytics */,
+				D0000000000000000000DMXP /* Mixpanel */,
 			);
 			productName = iosApp;
 			productReference = F0000000000000000000F006 /* Sirdab.app */;
@@ -123,6 +129,7 @@
 			mainGroup = G000000000000000000GMAIN;
 			packageReferences = (
 				R0000000000000000000RFIR /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				R0000000000000000000RMXP /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 			);
 			productRefGroup = G000000000000000000GPROD /* Products */;
 			projectDirPath = "";
@@ -198,6 +205,7 @@
 			files = (
 				B0000000000000000000B002 /* ContentView.swift in Sources */,
 				B0000000000000000000B001 /* iOSApp.swift in Sources */,
+				B0000000000000000000B012 /* MixpanelAnalytics.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -373,6 +381,14 @@
 				minimumVersion = 12.0.0;
 			};
 		};
+		R0000000000000000000RMXP /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.7.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -385,6 +401,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = R0000000000000000000RFIR /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
+		};
+		D0000000000000000000DMXP /* Mixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = R0000000000000000000RMXP /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
+			productName = Mixpanel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

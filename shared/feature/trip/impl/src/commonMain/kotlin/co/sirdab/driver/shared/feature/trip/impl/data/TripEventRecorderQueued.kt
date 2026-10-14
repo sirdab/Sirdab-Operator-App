@@ -1,5 +1,8 @@
 package co.sirdab.driver.shared.feature.trip.impl.data
 
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.network.FilePurpose
@@ -68,6 +71,7 @@ internal data class ExceptionInputDto(
 class TripEventRecorderQueued(
     private val queue: WriteQueue,
     private val files: LocalFileStore,
+    private val analytics: Analytics,
     private val json: Json = Json { explicitNulls = false; encodeDefaults = false },
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
     private val clock: Clock = Clock.System,
@@ -220,6 +224,7 @@ class TripEventRecorderQueued(
         when (result) {
             is DrainResult.Dropped -> {
                 dropped.update { it + result.failures.size }
+                result.failures.forEach { analytics.track(AnalyticsEvent.queuedWriteRejected(it)) }
                 handle(result.rest)
             }
             // Nothing else would wake the queue: without this, a row that failed

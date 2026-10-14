@@ -5,7 +5,10 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.testing.RecordingAnalytics
 import co.sirdab.driver.shared.core.model.AppError
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
 import co.sirdab.driver.shared.core.model.Page
@@ -99,6 +102,7 @@ private class CountingRecorder : TripEventRecorder {
 class DriverTripsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val analytics = RecordingAnalytics()
 
     @BeforeTest
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -109,7 +113,7 @@ class DriverTripsViewModelTest {
     @Test
     fun `loads the first page without a cursor`() = runTest(dispatcher) {
         val repo = FakeTrips(listOf(AppResult.Success(Page(listOf(fakeTrip("a")), "cursor-1"))))
-        val vm = DriverTripsViewModel(repo, CountingRecorder())
+        val vm = DriverTripsViewModel(repo, CountingRecorder(), analytics)
         testScheduler.advanceUntilIdle()
 
         assertThat(vm.state.value.trips.map { it.id }).isEqualTo(listOf("a"))
@@ -125,7 +129,7 @@ class DriverTripsViewModelTest {
                 AppResult.Success(Page(listOf(fakeTrip("b")), null)),
             ),
         )
-        val vm = DriverTripsViewModel(repo, CountingRecorder())
+        val vm = DriverTripsViewModel(repo, CountingRecorder(), analytics)
         testScheduler.advanceUntilIdle()
 
         vm.loadMore()
@@ -140,7 +144,7 @@ class DriverTripsViewModelTest {
     @Test
     fun `does nothing when there is no next page`() = runTest(dispatcher) {
         val repo = FakeTrips(listOf(AppResult.Success(Page(listOf(fakeTrip("a")), null))))
-        val vm = DriverTripsViewModel(repo, CountingRecorder())
+        val vm = DriverTripsViewModel(repo, CountingRecorder(), analytics)
         testScheduler.advanceUntilIdle()
 
         vm.loadMore()
@@ -152,7 +156,7 @@ class DriverTripsViewModelTest {
     @Test
     fun `a failed first load leaves an empty list carrying the message`() = runTest(dispatcher) {
         val repo = FakeTrips(listOf(AppResult.Failure(AppError("no connection"))))
-        val vm = DriverTripsViewModel(repo, CountingRecorder())
+        val vm = DriverTripsViewModel(repo, CountingRecorder(), analytics)
         testScheduler.advanceUntilIdle()
 
         assertThat(vm.state.value.isEmpty).isTrue()
@@ -167,7 +171,7 @@ class DriverTripsViewModelTest {
                 AppResult.Failure(AppError("timed out")),
             ),
         )
-        val vm = DriverTripsViewModel(repo, CountingRecorder())
+        val vm = DriverTripsViewModel(repo, CountingRecorder(), analytics)
         testScheduler.advanceUntilIdle()
 
         vm.loadMore()
@@ -188,7 +192,7 @@ class DriverTripsViewModelTest {
                 AppResult.Success(Page(listOf(fakeTrip("a")), null)),
             ),
         )
-        val vm = DriverTripsViewModel(repo, CountingRecorder())
+        val vm = DriverTripsViewModel(repo, CountingRecorder(), analytics)
         testScheduler.advanceUntilIdle()
 
         vm.refresh()
@@ -196,5 +200,64 @@ class DriverTripsViewModelTest {
 
         assertThat(vm.state.value.errorMessage).isNull()
         assertThat(vm.state.value.trips.map { it.id }).isEqualTo(listOf("a"))
+    }
+
+    @Test
+    fun `a load is tracked with how much of the list is waiting to start`() = runTest(dispatcher) {
+        val running = fakeTrip("b").copy(status = TripLifecycle.IN_TRANSIT)
+        val repo = FakeTrips(listOf(AppResult.Success(Page(listOf(fakeTrip("a"), running), "cursor-1"))))
+        DriverTripsViewModel(repo, CountingRecorder(), analytics)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(analytics.events.single().properties).isEqualTo(
+            mapOf(
+                "trip_count" to 2,
+                "not_started_count" to 1,
+                "in_transit_count" to 1,
+                "has_more" to true,
+                "pulled" to false,
+            ),
+        )
+    }
+
+    @Test
+    fun `an independent driver's refusal is tracked with its reason`() = runTest(dispatcher) {
+        val refused = AppError("no carrier", reason = AppErrorReason.NOT_PROVISIONED)
+        val repo = FakeTrips(listOf(AppResult.Failure(refused)))
+        DriverTripsViewModel(repo, CountingRecorder(), analytics)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(analytics.events).isEqualTo(listOf(AnalyticsEvent.tripsLoadFailed(pulled = false, refused)))
+    }
+
+    @Test
+    fun `the next page is tracked with the list's new length`() = runTest(dispatcher) {
+        val repo = FakeTrips(
+            listOf(
+                AppResult.Success(Page(listOf(fakeTrip("a")), "cursor-1")),
+                AppResult.Success(Page(listOf(fakeTrip("b"), fakeTrip("c")), null)),
+            ),
+        )
+        val vm = DriverTripsViewModel(repo, CountingRecorder(), analytics)
+        testScheduler.advanceUntilIdle()
+
+        vm.loadMore()
+        testScheduler.advanceUntilIdle()
+
+        assertThat(analytics.events.last()).isEqualTo(
+            AnalyticsEvent.moreTripsLoaded(pageSize = 2, totalCount = 3, hasMore = false),
+        )
+    }
+
+    @Test
+    fun `opening a trip says where in the list it was`() = runTest(dispatcher) {
+        val repo = FakeTrips(listOf(AppResult.Success(Page(listOf(fakeTrip("a"), fakeTrip("b")), null))))
+        val vm = DriverTripsViewModel(repo, CountingRecorder(), analytics)
+        testScheduler.advanceUntilIdle()
+
+        vm.tripOpened(vm.state.value.trips[1])
+
+        assertThat(analytics.events.last()).isEqualTo(AnalyticsEvent.tripOpened(fakeTrip("b"), position = 1))
+        assertThat(analytics.events.last().properties["trip_status"]).isEqualTo("assigned")
     }
 }

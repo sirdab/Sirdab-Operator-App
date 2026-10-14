@@ -16,6 +16,7 @@ kotlin {
             implementation(projects.shared.core.queue)
             implementation(projects.shared.core.navigation)
             implementation(projects.shared.core.util)
+            implementation(projects.shared.core.analytics)
             implementation(libs.kotlinx.datetime)
         }
 

@@ -2,6 +2,9 @@ package co.sirdab.driver.shared.feature.trip.impl.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
@@ -37,6 +40,7 @@ data class DriverTripsUiState(
 class DriverTripsViewModel(
     private val repository: DriverTripRepository,
     private val recorder: TripEventRecorder,
+    private val analytics: Analytics,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DriverTripsUiState())
@@ -70,16 +74,24 @@ class DriverTripsViewModel(
             // and what is behind is as often their own unsent work as the list.
             recorder.sync()
             when (val result = repository.trips()) {
-                is AppResult.Success -> _state.value = DriverTripsUiState(
-                    trips = result.data.items,
-                    nextCursor = result.data.nextCursor,
-                )
-                is AppResult.Failure -> _state.value = _state.value.copy(
-                    isLoading = false,
-                    isRefreshing = false,
-                    errorMessage = result.error.message,
-                    errorReason = result.error.reason,
-                )
+                is AppResult.Success -> {
+                    _state.value = DriverTripsUiState(
+                        trips = result.data.items,
+                        nextCursor = result.data.nextCursor,
+                    )
+                    analytics.track(
+                        AnalyticsEvent.tripsLoaded(result.data.items, result.data.nextCursor != null, pulled),
+                    )
+                }
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.tripsLoadFailed(pulled, result.error))
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        errorMessage = result.error.message,
+                        errorReason = result.error.reason,
+                    )
+                }
             }
         }
     }
@@ -91,20 +103,38 @@ class DriverTripsViewModel(
         _state.value = _state.value.copy(isLoadingMore = true, errorMessage = null, failedLoadMore = false)
         loadingMore = viewModelScope.launch {
             when (val result = repository.trips(cursor = cursor)) {
-                is AppResult.Success -> _state.value = _state.value.copy(
-                    // Appended, never merged by id: the cursor guarantees the next page does not
-                    // overlap this one, so a de-duplication pass would only hide a server bug.
-                    trips = _state.value.trips + result.data.items,
-                    nextCursor = result.data.nextCursor,
-                    isLoadingMore = false,
-                )
-                is AppResult.Failure -> _state.value = _state.value.copy(
-                    isLoadingMore = false,
-                    errorMessage = result.error.message,
-                    failedLoadMore = true,
-                )
+                is AppResult.Success -> {
+                    _state.value = _state.value.copy(
+                        // Appended, never merged by id: the cursor guarantees the next page does
+                        // not overlap this one, so a de-duplication pass would only hide a server bug.
+                        trips = _state.value.trips + result.data.items,
+                        nextCursor = result.data.nextCursor,
+                        isLoadingMore = false,
+                    )
+                    analytics.track(
+                        AnalyticsEvent.moreTripsLoaded(
+                            pageSize = result.data.items.size,
+                            totalCount = _state.value.trips.size,
+                            hasMore = result.data.nextCursor != null,
+                        ),
+                    )
+                }
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.moreTripsLoadFailed(result.error))
+                    _state.value = _state.value.copy(
+                        isLoadingMore = false,
+                        errorMessage = result.error.message,
+                        failedLoadMore = true,
+                    )
+                }
             }
         }
+    }
+
+    /** The driver tapped [trip]; the screen does the navigating. */
+    fun tripOpened(trip: DriverTrip) {
+        val position = _state.value.trips.indexOfFirst { it.id == trip.id }
+        analytics.track(AnalyticsEvent.tripOpened(trip, position))
     }
 
     /** The footer's retry: the page that failed, or the refresh that did. */

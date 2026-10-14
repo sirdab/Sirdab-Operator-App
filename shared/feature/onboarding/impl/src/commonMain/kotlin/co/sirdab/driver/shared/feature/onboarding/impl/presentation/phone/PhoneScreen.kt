@@ -16,6 +16,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.sirdab.driver.shared.core.analytics.Analytics
+import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
+import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.ui.components.DriverButton
@@ -46,7 +49,10 @@ data class PhoneUiState(
     val errorReason: AppErrorReason? = null,
 )
 
-class PhoneViewModel(private val authRepository: AuthRepository) : ViewModel() {
+class PhoneViewModel(
+    private val authRepository: AuthRepository,
+    private val analytics: Analytics,
+) : ViewModel() {
     private val _state = MutableStateFlow(PhoneUiState())
     val state: StateFlow<PhoneUiState> = _state.asStateFlow()
 
@@ -64,15 +70,19 @@ class PhoneViewModel(private val authRepository: AuthRepository) : ViewModel() {
         viewModelScope.launch {
             when (val result = authRepository.requestOtp("+966${current.phone}")) {
                 is AppResult.Success -> {
+                    analytics.track(AnalyticsEvent.otpRequested(resend = false))
                     _state.value = _state.value.copy(isLoading = false)
                     onSent()
                 }
-                is AppResult.Failure -> _state.value = _state.value.copy(
-                    isLoading = false,
-                    showError = true,
-                    errorMessage = result.error.message,
-                    errorReason = result.error.reason,
-                )
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.otpRequestFailed(resend = false, result.error))
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        showError = true,
+                        errorMessage = result.error.message,
+                        errorReason = result.error.reason,
+                    )
+                }
             }
         }
     }

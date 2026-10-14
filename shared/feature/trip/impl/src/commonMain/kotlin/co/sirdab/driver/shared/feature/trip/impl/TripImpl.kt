@@ -14,7 +14,7 @@ import org.koin.dsl.module
 /** Trips as the TMS models them: a list of stops the driver works through. */
 val tripModule: Module = module {
     single { DriverTripRepositoryHttp(get()) } bind DriverTripRepository::class
-    single { TripEventRecorderQueued(queue = get(), files = get()) } bind TripEventRecorder::class
-    viewModel { DriverTripsViewModel(get(), get()) }
-    viewModel { (tripId: String) -> DriverTripDetailViewModel(tripId, get(), get()) }
+    single { TripEventRecorderQueued(queue = get(), files = get(), analytics = get()) } bind TripEventRecorder::class
+    viewModel { DriverTripsViewModel(get(), get(), get()) }
+    viewModel { (tripId: String) -> DriverTripDetailViewModel(tripId, get(), get(), get()) }
 }
