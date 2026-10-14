@@ -1,9 +1,14 @@
 package co.sirdab.driver.shared.feature.bidding.impl.presentation
 
+import androidx.compose.runtime.Composable
+import co.sirdab.driver.shared.core.model.BidRange
 import co.sirdab.driver.shared.core.model.DriverBidStatus
 import co.sirdab.driver.shared.core.model.Money
 import co.sirdab.driver.shared.core.ui.components.ChipTone
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
+import co.sirdab.driver.shared.core.ui.generated.resources.bid_range_between
+import co.sirdab.driver.shared.core.ui.generated.resources.bid_range_from
+import co.sirdab.driver.shared.core.ui.generated.resources.bid_range_up_to
 import co.sirdab.driver.shared.core.ui.generated.resources.bs_expired
 import co.sirdab.driver.shared.core.ui.generated.resources.bs_lost
 import co.sirdab.driver.shared.core.ui.generated.resources.bs_pending
@@ -12,6 +17,7 @@ import co.sirdab.driver.shared.core.ui.generated.resources.bs_won
 import co.sirdab.driver.shared.core.ui.generated.resources.unit_sar
 import co.sirdab.driver.shared.core.util.toGroupedString
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 internal fun DriverBidStatus.label(): StringResource = when (this) {
     DriverBidStatus.PENDING -> Res.string.bs_pending
@@ -32,6 +38,20 @@ internal fun DriverBidStatus.tone(): ChipTone = when (this) {
 internal fun Money.display(lang: String): String = amountSar.toGroupedString(lang)
 
 internal val unitSar = Res.string.unit_sar
+
+/** What a bid may ask, in the whole riyals a driver can type. Null when neither bound is set. */
+@Composable
+internal fun BidRange.label(lang: String): String? {
+    val unit = stringResource(unitSar)
+    val min = minSar?.toGroupedString(lang)
+    val max = maxSar?.toGroupedString(lang)
+    return when {
+        min != null && max != null -> stringResource(Res.string.bid_range_between, min, max, unit)
+        min != null -> stringResource(Res.string.bid_range_from, min, unit)
+        max != null -> stringResource(Res.string.bid_range_up_to, max, unit)
+        else -> null
+    }
+}
 
 /**
  * How long is left, to the coarsest useful unit.

@@ -35,6 +35,7 @@ import co.sirdab.driver.shared.core.ui.generated.resources.bid_note
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_send
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_title
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_truck
+import co.sirdab.driver.shared.core.ui.generated.resources.err_bid_out_of_range
 import co.sirdab.driver.shared.core.ui.theme.Spacing
 import org.jetbrains.compose.resources.stringResource
 
@@ -43,8 +44,11 @@ import org.jetbrains.compose.resources.stringResource
  *
  * A fixed-rate posting shows the price and one button: accepting is the whole
  * interaction, which is what a short fulfilment window needs. An open posting
- * asks for a number instead. Same endpoint underneath; the difference is whether
- * the dispatcher already named a price.
+ * asks for a number instead, inside the posting's range when it has one. Same
+ * endpoint underneath; the difference is whether the dispatcher already named a price.
+ *
+ * The range is checked here the way the server checks it, in halalas, so an
+ * amount it would refuse never goes out.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +63,8 @@ fun PlaceBidSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val lang = AppLocale.current()
     val fixed = posting.targetRate
+    // A fixed rate sits inside the range by the server's own rule, so only a typed price is held to it.
+    val range = posting.bidRange.takeIf { fixed == null }
 
     var amount by remember { mutableStateOf(fixed?.amountSar?.toString().orEmpty()) }
     var truckId by remember { mutableStateOf(trucks.firstOrNull()?.id.orEmpty()) }
@@ -101,6 +107,23 @@ fun PlaceBidSheet(
                     label = stringResource(Res.string.bid_amount),
                     keyboardType = KeyboardType.Number,
                 )
+                range?.label(lang)?.let { hint ->
+                    Spacer(Modifier.height(Spacing.xs))
+                    Text(
+                        hint,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                val typed = amount.toIntOrNull()
+                if (range != null && typed != null && typed * 100L !in range) {
+                    Spacer(Modifier.height(Spacing.xxs))
+                    Text(
+                        stringResource(Res.string.err_bid_out_of_range),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
 
             if (trucks.isNotEmpty()) {
@@ -143,6 +166,7 @@ fun PlaceBidSheet(
 
             Spacer(Modifier.height(Spacing.lg))
             val amountSar = fixed?.amountSar ?: amount.toIntOrNull() ?: 0
+            val inRange = range == null || amountSar * 100L in range
             DriverButton(
                 text = if (fixed != null) {
                     stringResource(
@@ -153,7 +177,7 @@ fun PlaceBidSheet(
                     stringResource(Res.string.bid_send)
                 },
                 onClick = { onSubmit(amountSar, truckId, note) },
-                enabled = amountSar > 0 && truckId.isNotBlank(),
+                enabled = amountSar > 0 && inRange && truckId.isNotBlank(),
                 isLoading = isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
             )

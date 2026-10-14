@@ -3,11 +3,13 @@ package co.sirdab.driver.shared.feature.bidding.impl.presentation
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotEqualTo
+import assertk.assertions.isNull
 import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
 import co.sirdab.driver.shared.core.analytics.testing.RecordingAnalytics
 import co.sirdab.driver.shared.core.model.AppError
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
+import co.sirdab.driver.shared.core.model.BidRange
 import co.sirdab.driver.shared.core.model.EquipmentBody
 import co.sirdab.driver.shared.core.model.EquipmentSize
 import co.sirdab.driver.shared.core.model.EquipmentTemperature
@@ -19,6 +21,7 @@ import co.sirdab.driver.shared.core.model.Money
 import co.sirdab.driver.shared.core.model.Page
 import co.sirdab.driver.shared.core.model.PostingPlace
 import co.sirdab.driver.shared.core.model.PostingStatus
+import co.sirdab.driver.shared.feature.bidding.api.BidOutOfRange
 import co.sirdab.driver.shared.feature.bidding.api.DriverBiddingRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -156,6 +159,34 @@ class DriverPostingsViewModelTest {
 
         // The server refuses a key reused for a different body.
         assertThat(repo.bidKeys[0]).isNotEqualTo(repo.bidKeys[1])
+    }
+
+    @Test
+    fun `a bid refused for its price shows the range as the server has it now`() = runTest(dispatcher) {
+        val moved = BidRange(minCents = 150_000, maxCents = 250_000)
+        val repo = FakeBidding().apply {
+            firstPage = AppResult.Success(Page(listOf(posting("a").copy(bidRange = BidRange(100_000, 200_000))), null))
+            bidResult = AppResult.Failure(
+                AppError(
+                    "this bid is outside the posting's range",
+                    cause = BidOutOfRange(moved),
+                    reason = AppErrorReason.BID_OUT_OF_RANGE,
+                ),
+            )
+        }
+        val vm = DriverPostingsViewModel(repo, analytics)
+        testScheduler.advanceUntilIdle()
+        vm.openBid(vm.state.value.postings.single())
+
+        vm.submitBid("a", 1200, "t1", "")
+        testScheduler.advanceUntilIdle()
+
+        // The sheet checks the amount against this range and says what is wrong in the driver's
+        // language, so the server's English sentence is not shown on top of it.
+        assertThat(vm.state.value.bidding?.bidRange).isEqualTo(moved)
+        assertThat(vm.state.value.postings.single().bidRange).isEqualTo(moved)
+        assertThat(vm.state.value.errorMessage).isNull()
+        assertThat(vm.state.value.isSubmitting).isEqualTo(false)
     }
 
     @Test

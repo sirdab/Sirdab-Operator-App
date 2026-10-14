@@ -395,6 +395,8 @@ data class AnalyticsEvent(val name: String, val properties: Map<String, Any> = e
         private fun DriverPosting.properties(nowMillis: Long): Array<Pair<String, Any?>> = arrayOf(
             "pricing" to if (isFixedRate) "fixed" else "open",
             "target_rate_sar" to targetRate?.amountSar,
+            "bid_min_sar" to bidRange?.minSar,
+            "bid_max_sar" to bidRange?.maxSar,
             "minutes_to_close" to biddingClosesAtMillis?.let { minutesBetween(nowMillis, it) },
             "origin_city" to origin.city,
             "destination_city" to destination.city,

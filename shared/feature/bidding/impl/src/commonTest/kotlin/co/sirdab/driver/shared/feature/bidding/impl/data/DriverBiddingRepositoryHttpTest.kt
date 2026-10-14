@@ -2,11 +2,14 @@ package co.sirdab.driver.shared.feature.bidding.impl.data
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
+import co.sirdab.driver.shared.core.model.BidRange
 import co.sirdab.driver.shared.core.model.EquipmentBody
 import co.sirdab.driver.shared.core.model.EquipmentSize
 import co.sirdab.driver.shared.core.model.EquipmentTemperature
@@ -17,6 +20,7 @@ import co.sirdab.driver.shared.core.network.ServerClock
 import co.sirdab.driver.shared.core.network.TmsApiClient
 import co.sirdab.driver.shared.core.network.TmsJson
 import co.sirdab.driver.shared.core.network.TokenProvider
+import co.sirdab.driver.shared.feature.bidding.api.BidOutOfRange
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -85,6 +89,55 @@ class DriverBiddingRepositoryHttpTest {
         assertThat(posting.bodyType).isEqualTo(EquipmentBody.FLATBED)
         assertThat(posting.sizeClass).isNull()
         assertThat(posting.temperature).isNull()
+    }
+
+    @Test
+    fun `reads an open posting's bid range`() = runTest {
+        val repo = repository {
+            respond(
+                """{"items":[${openPosting("p1", """{"minCents":100000,"maxCents":200000}""")},
+                   ${openPosting("p2", """{"minCents":null,"maxCents":200000}""")},
+                   ${openPosting("p3", "null")}],"nextCursor":null}""",
+                HttpStatusCode.OK,
+                jsonHeaders(),
+            )
+        }
+
+        val postings = (repo.postings() as AppResult.Success).data.items
+
+        assertThat(postings[0].bidRange).isEqualTo(BidRange(100000, 200000))
+        // Either bound may stand alone.
+        assertThat(postings[1].bidRange).isEqualTo(BidRange(null, 200000))
+        assertThat(postings[2].bidRange).isNull()
+    }
+
+    @Test
+    fun `a bound set to the halala reads as the whole riyals that fit inside it`() {
+        val range = BidRange(minCents = 100050, maxCents = 199950)
+
+        // 1,000 SAR is below 1,000.50 and 2,000 above 1,999.50; the driver can only type riyals.
+        assertThat(range.minSar).isEqualTo(1001)
+        assertThat(range.maxSar).isEqualTo(1999)
+        assertThat(100000L in range).isFalse()
+        assertThat(100100L in range).isTrue()
+    }
+
+    @Test
+    fun `a bid outside the range is named and carries the range the server holds`() = runTest {
+        val repo = repository {
+            respond(
+                """{"error":{"code":"bid_out_of_range","message":"this bid is outside the posting's range",
+                   "details":{"minCents":120000,"maxCents":null}}}""",
+                HttpStatusCode.Conflict,
+                jsonHeaders(),
+            )
+        }
+
+        val error = (repo.placeBid("p1", 100000, "t1", idempotencyKey = "k1") as AppResult.Failure).error
+
+        assertThat(error.reason).isEqualTo(AppErrorReason.BID_OUT_OF_RANGE)
+        assertThat(error.cause).isNotNull().isInstanceOf(BidOutOfRange::class)
+        assertThat((error.cause as BidOutOfRange).range).isEqualTo(BidRange(120000, null))
     }
 
     @Test
@@ -218,6 +271,11 @@ class DriverBiddingRepositoryHttpTest {
             TmsApiClient(http, TokenProvider.Anonymous, ServerClock()),
         )
     }
+
+    private fun openPosting(id: String, bidRange: String) =
+        """{"id":"$id","loadId":"l1","status":"open","targetRate":null,"bidRange":$bidRange,
+           "origin":{"label":"Depot"},"destination":{"label":"Store"},
+           "equipment":{"name":"Flatbed","bodyType":"flatbed","sizeClass":null,"temperature":null}}"""
 
     private companion object {
         const val BID_JSON = """

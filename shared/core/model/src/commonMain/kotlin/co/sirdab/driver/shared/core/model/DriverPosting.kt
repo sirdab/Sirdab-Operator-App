@@ -15,6 +15,26 @@ data class Money(
 enum class PostingStatus { OPEN, AWARDED, CANCELLED, EXPIRED }
 
 /**
+ * The least and the most a bid on an open-price posting may ask, in halalas. Either bound may
+ * stand alone. The server refuses a bid outside it with `bid_out_of_range`.
+ *
+ * The dispatcher may set a bound to the halala, and the driver types whole riyals, so [minSar]
+ * rounds up and [maxSar] rounds down: they are the whole-riyal amounts that actually fit.
+ */
+@Serializable
+data class BidRange(
+    val minCents: Int? = null,
+    val maxCents: Int? = null,
+) {
+    val minSar: Int? get() = minCents?.let { (it + 99) / 100 }
+    val maxSar: Int? get() = maxCents?.let { it / 100 }
+
+    /** Long, so a driver typing a very long number cannot overflow their way inside it. */
+    operator fun contains(amountCents: Long): Boolean =
+        (minCents == null || amountCents >= minCents) && (maxCents == null || amountCents <= maxCents)
+}
+
+/**
  * How a bid turned out on the TMS. There is no counter-offer: a bid is placed once and the
  * dispatcher awards.
  */
@@ -46,7 +66,8 @@ data class DriverTruck(
  *
  * [targetRate] is the whole difference between two products. Set, the posting is
  * take-it-or-leave-it and the driver just accepts, which is what a short
- * fulfilment window needs. Null, and the price is open to bid.
+ * fulfilment window needs. Null, and the price is open to bid, inside [bidRange]
+ * when the dispatcher set one.
  */
 @Serializable
 data class DriverPosting(
@@ -60,6 +81,8 @@ data class DriverPosting(
     val sizeClass: EquipmentSize?,
     val temperature: EquipmentTemperature?,
     val targetRate: Money? = null,
+    /** Null when the price is open without bounds. A fixed rate always sits inside it. */
+    val bidRange: BidRange? = null,
     val pickupWindowStartMillis: Long? = null,
     val pickupWindowEndMillis: Long? = null,
     val biddingClosesAtMillis: Long? = null,

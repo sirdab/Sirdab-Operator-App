@@ -190,6 +190,9 @@
     <string name="postings_accept">%1$s پر قبول کریں</string>
     <string name="postings_bid">بولی لگائیں</string>
     <string name="postings_open_price">قیمت کھلی ہے</string>
+    <string name="bid_range_between">بولی %1$s سے %2$s %3$s تک</string>
+    <string name="bid_range_from">کم از کم بولی %1$s %2$s</string>
+    <string name="bid_range_up_to">زیادہ سے زیادہ بولی %1$s %2$s</string>
     <string name="bid_title">آپ کی پیشکش</string>
     <string name="bid_amount">رقم (ریال)</string>
     <string name="bid_truck">کون سا ٹرک؟</string>
@@ -242,6 +245,7 @@
     <string name="paperwork_outstanding">آپ کی دستاویزات مکمل نہیں (%1$d باقی)۔ مکمل کرنے کے لیے دبائیں۔</string>
     <string name="err_unsent_work">آپ کا کچھ کام ابھی نہیں بھیجا گیا۔ سگنل آنے پر دوبارہ کوشش کریں۔</string>
     <string name="err_not_a_bidder">آپ کی کمپنی آپ کی طرف سے لوڈ پر بولی لگاتی ہے۔ آپ کے ٹرپ سفر ٹیب میں نظر آئیں گے۔</string>
+    <string name="err_bid_out_of_range">یہ قیمت اس لوڈ کی حد سے باہر ہے۔</string>
     <string name="err_manages_organization">آپ سرداب میں ایک کمپنی کا انتظام کرتے ہیں۔ پہلے کسی دوسرے ایڈمن سے کہیں کہ آپ کو اس سے ہٹا دے۔</string>
     <string name="doc_view">جو بھیجا وہ دیکھیں</string>
     <string name="otp_wrong_number">نمبر غلط ہے؟</string>

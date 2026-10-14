@@ -284,8 +284,9 @@ private fun PostingCard(
                     color = MaterialTheme.colorScheme.primary,
                 )
             } else {
+                // An open price with bounds says what it takes, before the driver opens the sheet.
                 Text(
-                    stringResource(Res.string.postings_open_price),
+                    posting.bidRange?.label(lang) ?: stringResource(Res.string.postings_open_price),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

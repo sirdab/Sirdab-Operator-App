@@ -181,6 +181,9 @@
     <string name="postings_accept">اقبل %1$s</string>
     <string name="postings_bid">قدّم عرض</string>
     <string name="postings_open_price">السعر مفتوح</string>
+    <string name="bid_range_between">العروض من %1$s إلى %2$s %3$s</string>
+    <string name="bid_range_from">العروض من %1$s %2$s وفوق</string>
+    <string name="bid_range_up_to">العروض لين %1$s %2$s</string>
     <string name="bid_title">عرضك</string>
     <string name="bid_amount">المبلغ (ريال)</string>
     <string name="bid_truck">أي شاحنة؟</string>
@@ -233,6 +236,7 @@
     <string name="paperwork_outstanding">مستنداتك غير مكتملة (%1$d متبقٍ). اضغط لإكمالها.</string>
     <string name="err_unsent_work">بعض أعمالك لم تُرسل بعد. أعد المحاولة عند توفر الشبكة.</string>
     <string name="err_not_a_bidder">شركتك تقدّم العروض على الشحنات نيابةً عنك. تظهر رحلاتك في تبويب الرحلة.</string>
+    <string name="err_bid_out_of_range">هالسعر برّا حدود العروض لهالحمولة.</string>
     <string name="err_manages_organization">أنت تدير شركة في سرداب. اطلب من مسؤول آخر إزالتك منها أولًا.</string>
     <string name="doc_view">عرض ما أرسلته</string>
     <string name="otp_wrong_number">الرقم غير صحيح؟</string>

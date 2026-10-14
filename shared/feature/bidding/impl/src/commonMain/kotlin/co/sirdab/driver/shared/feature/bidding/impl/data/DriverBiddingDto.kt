@@ -1,5 +1,6 @@
 package co.sirdab.driver.shared.feature.bidding.impl.data
 
+import co.sirdab.driver.shared.core.model.BidRange
 import co.sirdab.driver.shared.core.model.DriverBid
 import co.sirdab.driver.shared.core.model.DriverBidStatus
 import co.sirdab.driver.shared.core.model.DriverPosting
@@ -15,6 +16,10 @@ import co.sirdab.driver.shared.core.network.toEpochMillisOrNull
 
 @Serializable
 internal data class MoneyDto(val amountCents: Int, val currency: String = "SAR")
+
+/** A posting's `bidRange`, and also the `details` of a `bid_out_of_range` refusal. */
+@Serializable
+internal data class BidRangeDto(val minCents: Int? = null, val maxCents: Int? = null)
 
 @Serializable
 internal data class PlaceDto(val label: String, val city: String? = null)
@@ -41,6 +46,7 @@ internal data class DriverPostingDto(
     val pickupWindowStart: String? = null,
     val pickupWindowEnd: String? = null,
     val targetRate: MoneyDto? = null,
+    val bidRange: BidRangeDto? = null,
     val biddingClosesAt: String? = null,
     val origin: PlaceDto,
     val destination: PlaceDto,
@@ -92,10 +98,15 @@ internal fun DriverPostingDto.toDomain(): DriverPosting = DriverPosting(
     sizeClass = EquipmentSize.fromWire(equipment.sizeClass),
     temperature = EquipmentTemperature.fromWire(equipment.temperature),
     targetRate = targetRate?.let { Money(it.amountCents, it.currency) },
+    bidRange = bidRange?.toDomain(),
     pickupWindowStartMillis = pickupWindowStart.toEpochMillisOrNull(),
     pickupWindowEndMillis = pickupWindowEnd.toEpochMillisOrNull(),
     biddingClosesAtMillis = biddingClosesAt.toEpochMillisOrNull(),
 )
+
+/** Null when neither bound is set, the same as the server leaving the range out. */
+internal fun BidRangeDto.toDomain(): BidRange? =
+    if (minCents == null && maxCents == null) null else BidRange(minCents, maxCents)
 
 internal fun BidDto.toDomain(): DriverBid = DriverBid(
     id = id,

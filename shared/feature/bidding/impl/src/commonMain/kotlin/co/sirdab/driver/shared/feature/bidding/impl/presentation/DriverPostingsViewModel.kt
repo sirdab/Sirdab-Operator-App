@@ -7,9 +7,11 @@ import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
 import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
+import co.sirdab.driver.shared.core.model.BidRange
 import co.sirdab.driver.shared.core.model.DriverBid
 import co.sirdab.driver.shared.core.model.DriverPosting
 import co.sirdab.driver.shared.core.model.DriverTruck
+import co.sirdab.driver.shared.feature.bidding.api.BidOutOfRange
 import co.sirdab.driver.shared.feature.bidding.api.DriverBiddingRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,6 +75,11 @@ data class DriverPostingsUiState(
     /** A carrier may bid once per posting, so an existing bid replaces the action. */
     fun bidFor(postingId: String): DriverBid? =
         myBids.firstOrNull { it.loadPostingId == postingId }
+
+    internal fun withBidRange(postingId: String, range: BidRange?): DriverPostingsUiState = copy(
+        bidding = bidding?.let { if (it.id == postingId) it.copy(bidRange = range) else it },
+        postings = postings.map { if (it.id == postingId) it.copy(bidRange = range) else it },
+    )
 }
 
 class DriverPostingsViewModel(
@@ -267,10 +274,15 @@ class DriverPostingsViewModel(
                     analytics.track(
                         AnalyticsEvent.bidFailed(postingId, amountSar, result.error, posting, nowMillis),
                     )
-                    _state.value = _state.value.copy(
-                        isSubmitting = false,
-                        errorMessage = result.error.message,
-                    )
+                    val outOfRange = result.error.cause as? BidOutOfRange
+                    _state.value = if (outOfRange != null) {
+                        // The dispatcher moved the range after the board loaded. With the range
+                        // as it is now, the sheet's own check says what is wrong, in the driver's
+                        // language and with the real numbers, so the server's sentence is not shown.
+                        _state.value.withBidRange(postingId, outOfRange.range).copy(isSubmitting = false)
+                    } else {
+                        _state.value.copy(isSubmitting = false, errorMessage = result.error.message)
+                    }
                     // The failure may be a bid that did land (a lost answer, or "already bid"),
                     // and the board keys its action on myBids. Re-read it so the screen stops
                     // offering an offer that exists.

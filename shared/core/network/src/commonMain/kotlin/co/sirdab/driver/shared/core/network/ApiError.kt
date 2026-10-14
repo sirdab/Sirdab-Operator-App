@@ -24,6 +24,7 @@ enum class ApiErrorCode(val wire: String) {
     NoActiveAccount("no_active_account"),
     Forbidden("forbidden"),
     BidderNotIndependent("bidder_not_independent"),
+    BidOutOfRange("bid_out_of_range"),
     NotFound("not_found"),
     IdempotencyKeyReused("idempotency_key_reused"),
     UnknownReference("unknown_reference"),
@@ -139,5 +140,6 @@ private fun ApiFailure.Http.reason(): AppErrorReason? = when {
     code == ApiErrorCode.NoActiveWorkspace || code == ApiErrorCode.NoActiveAccount ->
         AppErrorReason.NOT_PROVISIONED
     code == ApiErrorCode.BidderNotIndependent -> AppErrorReason.NOT_A_BIDDER
+    code == ApiErrorCode.BidOutOfRange -> AppErrorReason.BID_OUT_OF_RANGE
     else -> null
 }

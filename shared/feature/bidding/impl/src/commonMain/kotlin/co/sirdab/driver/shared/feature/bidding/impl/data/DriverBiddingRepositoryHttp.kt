@@ -1,13 +1,20 @@
 package co.sirdab.driver.shared.feature.bidding.impl.data
 
+import co.sirdab.driver.shared.core.model.AppError
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverBid
 import co.sirdab.driver.shared.core.model.DriverPosting
 import co.sirdab.driver.shared.core.model.DriverTruck
 import co.sirdab.driver.shared.core.model.Page
+import co.sirdab.driver.shared.core.network.ApiFailure
 import co.sirdab.driver.shared.core.network.Paginated
 import co.sirdab.driver.shared.core.network.TmsApiClient
+import co.sirdab.driver.shared.core.network.TmsJson
+import co.sirdab.driver.shared.core.network.apiFailure
+import co.sirdab.driver.shared.core.network.toAppError
 import co.sirdab.driver.shared.core.network.toAppResult
+import co.sirdab.driver.shared.feature.bidding.api.BidOutOfRange
 import co.sirdab.driver.shared.feature.bidding.api.DriverBiddingRepository
 
 /**
@@ -61,7 +68,19 @@ class DriverBiddingRepositoryHttp(
             // A retry on bad signal must not become a second offer; the server
             // also holds one-bid-per-carrier, so this is belt and braces.
             idempotencyKey = idempotencyKey,
-        ).toAppResult { it.toDomain() }
+        ).fold(
+            onSuccess = { AppResult.Success(it.value.toDomain()) },
+            onFailure = { AppResult.Failure(it.toAppError().withBidRange(it.apiFailure)) },
+        )
+    }
+
+    /** A bid outside the range carries the range in `details`, so the sheet can show the real one. */
+    private fun AppError.withBidRange(failure: ApiFailure?): AppError {
+        if (reason != AppErrorReason.BID_OUT_OF_RANGE) return this
+        val details = (failure as? ApiFailure.Http)?.details ?: return this
+        val range = runCatching { TmsJson.decodeFromJsonElement(BidRangeDto.serializer(), details) }
+            .getOrNull() ?: return this
+        return copy(cause = BidOutOfRange(range.toDomain()))
     }
 
     override suspend fun myBids(cursor: String?, limit: Int): AppResult<Page<DriverBid>> {

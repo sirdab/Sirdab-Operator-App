@@ -188,6 +188,9 @@
     <string name="postings_accept">Accept %1$s</string>
     <string name="postings_bid">Place a bid</string>
     <string name="postings_open_price">Open price</string>
+    <string name="bid_range_between">Bids from %1$s to %2$s %3$s</string>
+    <string name="bid_range_from">Bids from %1$s %2$s</string>
+    <string name="bid_range_up_to">Bids up to %1$s %2$s</string>
     <string name="bid_title">Your offer</string>
     <string name="bid_amount">Amount (SAR)</string>
     <string name="bid_truck">Which truck?</string>
@@ -240,6 +243,7 @@
     <string name="paperwork_outstanding">Your paperwork is not complete (%1$d outstanding). Tap to finish.</string>
     <string name="err_unsent_work">Some of your work has not been sent yet. Try again when you have signal.</string>
     <string name="err_not_a_bidder">Your company bids on loads for you. Your trips show up in the Trip tab.</string>
+    <string name="err_bid_out_of_range">That price is outside this load\'s range.</string>
     <string name="err_manages_organization">You manage a company in Sirdab. Ask another admin to remove you from it first.</string>
     <string name="doc_view">View what you sent</string>
     <string name="otp_wrong_number">Wrong number?</string>
