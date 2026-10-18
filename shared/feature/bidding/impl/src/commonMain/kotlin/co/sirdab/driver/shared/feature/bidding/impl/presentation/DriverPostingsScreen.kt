@@ -6,7 +6,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,13 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,38 +25,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import co.sirdab.driver.shared.core.model.AppErrorReason
-import co.sirdab.driver.shared.core.model.DriverBid
-import co.sirdab.driver.shared.core.model.DriverPosting
 import co.sirdab.driver.shared.core.platform.locale.AppLocale
-import co.sirdab.driver.shared.core.ui.components.ChipTone
-import co.sirdab.driver.shared.core.ui.components.DriverButton
-import co.sirdab.driver.shared.core.ui.components.TagChip
 import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.bid_sent
-import co.sirdab.driver.shared.core.ui.generated.resources.dur_days
-import co.sirdab.driver.shared.core.ui.generated.resources.dur_hours
-import co.sirdab.driver.shared.core.ui.generated.resources.dur_minutes
-import co.sirdab.driver.shared.core.ui.generated.resources.postings_accept
-import co.sirdab.driver.shared.core.ui.generated.resources.postings_bid
-import co.sirdab.driver.shared.core.ui.generated.resources.postings_closed
-import co.sirdab.driver.shared.core.ui.generated.resources.postings_closes_in
+import co.sirdab.driver.shared.core.ui.generated.resources.bid_updated
 import co.sirdab.driver.shared.core.ui.generated.resources.coming_soon
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_coming_soon_body
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_empty_body
+import co.sirdab.driver.shared.core.ui.generated.resources.postings_count
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_empty_title
-import co.sirdab.driver.shared.core.ui.generated.resources.postings_open_price
 import co.sirdab.driver.shared.core.ui.generated.resources.postings_title
 import co.sirdab.driver.shared.core.ui.generated.resources.trips_load_more
 import co.sirdab.driver.shared.core.ui.generated.resources.trips_retry
-import co.sirdab.driver.shared.core.ui.generated.resources.unit_sar
 import co.sirdab.driver.shared.core.ui.theme.AppColors
-import co.sirdab.driver.shared.core.ui.theme.Radius
 import co.sirdab.driver.shared.core.ui.theme.Spacing
+import co.sirdab.driver.shared.core.util.toLocalizedString
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import kotlinx.coroutines.delay
@@ -83,12 +67,34 @@ fun DriverPostingsScreen(
     }
 
     Column(Modifier.fillMaxSize()) {
-        Text(
-            stringResource(Res.string.postings_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(Spacing.md),
-        )
+        Column(Modifier.padding(start = Spacing.md, end = Spacing.md, top = Spacing.md, bottom = Spacing.xs)) {
+            if (state.postings.isNotEmpty()) {
+                // "50+" while more pages wait: the board only knows what it has read so far.
+                val count = state.postings.size
+                val shown = count.toLocalizedString(lang) + if (state.nextCursor != null) "+" else ""
+                Text(
+                    pluralStringResource(Res.plurals.postings_count, count, shown),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                stringResource(Res.string.postings_title),
+                style = MaterialTheme.typography.headlineLarge,
+            )
+            // Up here rather than as the list's first row: the list keeps its place when a row is
+            // added above it, so a notice there would land off screen.
+            state.notice?.let { notice ->
+                val (text, colour) = when (notice) {
+                    BidNotice.SENT -> Res.string.bid_sent to AppColors.Green.c600
+                    BidNotice.UPDATED -> Res.string.bid_updated to AppColors.Green.c600
+                    BidNotice.DECIDED -> AppErrorReason.BID_DECIDED.labelRes() to AppColors.Amber.c800
+                    BidNotice.CLOSED -> AppErrorReason.BIDDING_CLOSED.labelRes() to AppColors.Amber.c800
+                }
+                Spacer(Modifier.height(Spacing.xxs))
+                Text(stringResource(text), style = MaterialTheme.typography.bodyMedium, color = colour)
+            }
+        }
 
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
@@ -161,20 +167,10 @@ fun DriverPostingsScreen(
                 contentPadding = PaddingValues(horizontal = Spacing.md, vertical = Spacing.xs),
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm),
             ) {
-                if (state.bidSent) {
-                    item {
-                        Text(
-                            stringResource(Res.string.bid_sent),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = AppColors.Green.c600,
-                        )
-                    }
-                }
-
                 items(state.postings, key = { it.id }) { posting ->
                     PostingCard(
                         posting = posting,
-                        existingBid = state.bidFor(posting.id),
+                        bid = state.bidFor(posting.id),
                         lang = lang,
                         nowMillis = now,
                         onBid = { viewModel.openBid(posting) },
@@ -224,123 +220,21 @@ fun DriverPostingsScreen(
     }
 
     state.bidding?.let { posting ->
+        val editing = state.editing
         PlaceBidSheet(
             posting = posting,
             trucks = state.trucks,
+            editing = editing,
             isSubmitting = state.isSubmitting,
-            errorMessage = state.errorMessage,
+            // The driver's language for a refusal the app has words for; the server's otherwise.
+            errorMessage = state.bidErrorReason?.let { stringResource(it.labelRes()) } ?: state.errorMessage,
             onDismiss = viewModel::dismissBid,
             onSubmit = { amountSar, truckId, note ->
                 viewModel.submitBid(posting.id, amountSar, truckId, note)
             },
+            onUpdate = { amountCents -> editing?.let { viewModel.updateBid(it.id, amountCents) } },
         )
     }
-}
-
-@Composable
-private fun PostingCard(
-    posting: DriverPosting,
-    existingBid: DriverBid?,
-    lang: String,
-    nowMillis: Long,
-    onBid: () -> Unit,
-) {
-    Surface(
-        shape = RoundedCornerShape(Radius.lg),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.padding(Spacing.md)) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    "${posting.origin.city ?: posting.origin.label} → " +
-                        "${posting.destination.city ?: posting.destination.label}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Countdown(posting.biddingClosesAtMillis, nowMillis)
-            }
-
-            Spacer(Modifier.height(Spacing.xs))
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                // An axis the posting never classified is left out rather than guessed.
-                posting.sizeClass?.let { TagChip(stringResource(it.labelRes())) }
-                posting.bodyType?.let { TagChip(stringResource(it.labelRes())) }
-                posting.temperature?.let { TagChip(stringResource(it.labelRes()), tone = ChipTone.PRIMARY) }
-            }
-
-            Spacer(Modifier.height(Spacing.sm))
-            val rate = posting.targetRate
-            if (rate != null) {
-                Text(
-                    "${rate.display(lang)} ${stringResource(Res.string.unit_sar)}",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                // An open price with bounds says what it takes, before the driver opens the sheet.
-                Text(
-                    posting.bidRange?.label(lang) ?: stringResource(Res.string.postings_open_price),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            Spacer(Modifier.height(Spacing.sm))
-            if (existingBid != null) {
-                // One bid per carrier, so the outcome replaces the action.
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                    TagChip(
-                        stringResource(existingBid.status.label()),
-                        tone = existingBid.status.tone(),
-                    )
-                    TagChip("${existingBid.amount.display(lang)} ${stringResource(Res.string.unit_sar)}")
-                }
-            } else {
-                DriverButton(
-                    text = if (rate != null) {
-                        stringResource(
-                            Res.string.postings_accept,
-                            "${rate.display(lang)} ${stringResource(Res.string.unit_sar)}",
-                        )
-                    } else {
-                        stringResource(Res.string.postings_bid)
-                    },
-                    onClick = onBid,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun Countdown(closesAtMillis: Long?, nowMillis: Long) {
-    if (closesAtMillis == null) return
-    val parts = remainingParts(closesAtMillis, nowMillis)
-
-    if (parts == null) {
-        TagChip(stringResource(Res.string.postings_closed), tone = ChipTone.DANGER)
-        return
-    }
-
-    val (value, unit) = parts
-    val text = when (unit) {
-        DurationUnit.DAYS -> stringResource(Res.string.dur_days, value)
-        DurationUnit.HOURS -> stringResource(Res.string.dur_hours, value)
-        DurationUnit.MINUTES -> stringResource(Res.string.dur_minutes, value)
-    }
-    // Anything under an hour is the one a driver should answer now.
-    TagChip(
-        stringResource(Res.string.postings_closes_in, text),
-        tone = if (unit == DurationUnit.MINUTES) ChipTone.WARNING else ChipTone.NEUTRAL,
-    )
 }
 
 /** The countdowns read in minutes, so a tick much finer than one would only cost recompositions. */

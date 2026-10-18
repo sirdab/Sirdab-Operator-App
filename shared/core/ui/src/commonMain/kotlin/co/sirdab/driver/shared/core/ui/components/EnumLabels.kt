@@ -37,6 +37,10 @@ import co.sirdab.driver.shared.core.ui.generated.resources.err_last_truck
 import co.sirdab.driver.shared.core.ui.generated.resources.err_unavailable
 import co.sirdab.driver.shared.core.ui.generated.resources.err_manages_organization
 import co.sirdab.driver.shared.core.ui.generated.resources.err_bid_out_of_range
+import co.sirdab.driver.shared.core.ui.generated.resources.err_bid_decided
+import co.sirdab.driver.shared.core.ui.generated.resources.err_bidding_closed
+import co.sirdab.driver.shared.core.ui.generated.resources.err_driver_not_verified
+import co.sirdab.driver.shared.core.ui.generated.resources.err_rate_is_fixed
 import co.sirdab.driver.shared.core.ui.generated.resources.err_not_a_bidder
 import co.sirdab.driver.shared.core.ui.generated.resources.err_unsent_work
 import co.sirdab.driver.shared.core.ui.generated.resources.err_workspace_suspended
@@ -118,6 +122,10 @@ fun AppErrorReason.labelRes(): StringResource = when (this) {
     AppErrorReason.UNSENT_WORK -> Res.string.err_unsent_work
     AppErrorReason.NOT_A_BIDDER -> Res.string.err_not_a_bidder
     AppErrorReason.BID_OUT_OF_RANGE -> Res.string.err_bid_out_of_range
+    AppErrorReason.BID_DECIDED -> Res.string.err_bid_decided
+    AppErrorReason.BIDDING_CLOSED -> Res.string.err_bidding_closed
+    AppErrorReason.DRIVER_NOT_VERIFIED -> Res.string.err_driver_not_verified
+    AppErrorReason.RATE_IS_FIXED -> Res.string.err_rate_is_fixed
     AppErrorReason.MANAGES_ORGANIZATION -> Res.string.err_manages_organization
 }
 

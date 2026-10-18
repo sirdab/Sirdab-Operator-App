@@ -49,7 +49,10 @@ private fun posting(id: String) = DriverPosting(
 private class FakeBidding : DriverBiddingRepository {
     val postingCursors = mutableListOf<String?>()
     val bidKeys = mutableListOf<String>()
+    val edits = mutableListOf<Triple<String, Int, String>>()
     var myBidsReads = 0
+    var bids: List<DriverBid> = emptyList()
+    var updateResult: AppResult<DriverBid> = AppResult.Failure(AppError("timeout"))
 
     /** Holds the second page open, so a test can tap again while it is in flight. */
     val secondPage = CompletableDeferred<AppResult<Page<DriverPosting>>>()
@@ -76,9 +79,14 @@ private class FakeBidding : DriverBiddingRepository {
         return bidResult
     }
 
+    override suspend fun updateBid(bidId: String, amountCents: Int, idempotencyKey: String): AppResult<DriverBid> {
+        edits += Triple(bidId, amountCents, idempotencyKey)
+        return updateResult
+    }
+
     override suspend fun myBids(cursor: String?, limit: Int): AppResult<Page<DriverBid>> {
         myBidsReads++
-        return AppResult.Success(Page(emptyList(), null))
+        return AppResult.Success(Page(bids, null))
     }
 }
 
@@ -302,6 +310,7 @@ class DriverPostingsViewModelTest {
                 "size_class" to EquipmentSize.PICKUP.wire,
                 "temperature" to EquipmentTemperature.AMBIENT.wire,
                 "truck_count" to 1,
+                "editing" to false,
             ),
         )
     }
@@ -335,5 +344,162 @@ class DriverPostingsViewModelTest {
         testScheduler.advanceUntilIdle()
 
         assertThat(analytics.events.last().properties["pricing"]).isEqualTo("open")
+    }
+
+    @Test
+    fun `the sheet on a pending bid reprices it in place`() = runTest(dispatcher) {
+        val pending = DriverBid("b1", "a", "t1", Money(170_000), DriverBidStatus.PENDING)
+        val repo = FakeBidding().apply {
+            bids = listOf(pending)
+            updateResult = AppResult.Success(
+                pending.copy(amount = Money(150_000), lowestCompetingBid = Money(140_000)),
+            )
+        }
+        val vm = DriverPostingsViewModel(repo, analytics)
+        testScheduler.advanceUntilIdle()
+
+        vm.openBid(vm.state.value.postings.single())
+        assertThat(vm.state.value.editing).isEqualTo(pending)
+        vm.updateBid("b1", 150_000)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(repo.edits.single().second).isEqualTo(150_000)
+        // The server's copy replaces the held one rather than joining it.
+        assertThat(vm.state.value.myBids.map { it.amount }).isEqualTo(listOf(Money(150_000)))
+        assertThat(vm.state.value.bidding).isNull()
+        assertThat(vm.state.value.notice).isEqualTo(BidNotice.UPDATED)
+        assertThat(analytics.events.last().properties["still_undercut"]).isEqualTo(true)
+    }
+
+    @Test
+    fun `retrying the same edit reuses its key`() = runTest(dispatcher) {
+        val repo = FakeBidding().apply {
+            bids = listOf(DriverBid("b1", "a", "t1", Money(170_000), DriverBidStatus.PENDING))
+        }
+        val vm = DriverPostingsViewModel(repo, analytics)
+        testScheduler.advanceUntilIdle()
+
+        vm.updateBid("b1", 150_000)
+        testScheduler.advanceUntilIdle()
+        vm.updateBid("b1", 150_000)
+        testScheduler.advanceUntilIdle()
+        vm.updateBid("b1", 140_000)
+        testScheduler.advanceUntilIdle()
+
+        val keys = repo.edits.map { it.third }
+        assertThat(keys[0]).isEqualTo(keys[1])
+        assertThat(keys[1]).isNotEqualTo(keys[2])
+    }
+
+    @Test
+    fun `a bid on a fixed rate is never edited`() = runTest(dispatcher) {
+        val repo = FakeBidding().apply {
+            firstPage = AppResult.Success(Page(listOf(posting("a").copy(targetRate = Money(150_000))), null))
+            bids = listOf(DriverBid("b1", "a", "t1", Money(150_000), DriverBidStatus.PENDING))
+        }
+        val vm = DriverPostingsViewModel(repo, analytics)
+        testScheduler.advanceUntilIdle()
+
+        vm.openBid(vm.state.value.postings.single())
+
+        // The server refuses it with rate_is_fixed: there is no price to change.
+        assertThat(vm.state.value.editing).isNull()
+    }
+
+    @Test
+    fun `a withdrawn bid gives the action back, and bidding again revives its row`() = runTest(dispatcher) {
+        val withdrawn = DriverBid("b1", "a", "t1", Money(170_000), DriverBidStatus.WITHDRAWN)
+        val repo = FakeBidding().apply {
+            bids = listOf(withdrawn)
+            bidResult = AppResult.Success(withdrawn.copy(status = DriverBidStatus.PENDING))
+        }
+        val vm = DriverPostingsViewModel(repo, analytics)
+        testScheduler.advanceUntilIdle()
+        assertThat(vm.state.value.bidFor("a")).isNull()
+
+        vm.submitBid("a", 1700, "t1", "")
+        testScheduler.advanceUntilIdle()
+
+        // Same id, back at pending: one row, not the withdrawn one with the new one behind it.
+        assertThat(vm.state.value.myBids.map { it.status }).isEqualTo(listOf(DriverBidStatus.PENDING))
+        assertThat(vm.state.value.bidFor("a")?.status).isEqualTo(DriverBidStatus.PENDING)
+    }
+
+    @Test
+    fun `a refused edit re-reads the driver's bids`() = runTest(dispatcher) {
+        val repo = FakeBidding().apply {
+            bids = listOf(DriverBid("b1", "a", "t1", Money(170_000), DriverBidStatus.PENDING))
+        }
+        val vm = DriverPostingsViewModel(repo, analytics)
+        testScheduler.advanceUntilIdle()
+        val before = repo.myBidsReads
+
+        vm.updateBid("b1", 150_000)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(repo.myBidsReads).isEqualTo(before + 1)
+        assertThat(vm.state.value.errorMessage).isEqualTo("timeout")
+        assertThat(analytics.events.last().name).isEqualTo("Bid Update Failed")
+    }
+
+    @Test
+    fun `a bid someone undercut offers to match them to the halala, or to go under them`() {
+        val bid = DriverBid("b1", "a", "t1", Money(90_000), DriverBidStatus.PENDING, lowestCompetingBid = Money(85_050))
+
+        assertThat(bid.undercut(range = null)).isEqualTo(Undercut(Money(85_050), matchCents = 85_050, goLowerSar = 850))
+        // Asking the same or more is not undercut, and a decided bid has nothing left to answer.
+        assertThat(bid.copy(lowestCompetingBid = Money(90_000)).undercut(null)).isNull()
+        assertThat(bid.copy(status = DriverBidStatus.WON).undercut(null)).isNull()
+        assertThat(bid.copy(lowestCompetingBid = null).undercut(null)).isNull()
+    }
+
+    @Test
+    fun `an answer the range would refuse is not offered`() {
+        val bid = DriverBid("b1", "a", "t1", Money(90_000), DriverBidStatus.PENDING, lowestCompetingBid = Money(85_050))
+
+        // 850 riyals is under the floor; matching still fits.
+        assertThat(bid.undercut(BidRange(minCents = 85_010))?.goLowerSar).isNull()
+        assertThat(bid.undercut(BidRange(minCents = 85_010))?.matchCents).isEqualTo(85_050)
+        // The range moved above the competing bid: neither answer can land.
+        assertThat(bid.undercut(BidRange(minCents = 86_000))).isEqualTo(Undercut(Money(85_050), null, null))
+    }
+
+    @Test
+    fun `an edit refused because the bid was decided closes the sheet and reloads the board`() = runTest(dispatcher) {
+        val repo = FakeBidding().apply {
+            bids = listOf(DriverBid("b1", "a", "t1", Money(170_000), DriverBidStatus.PENDING))
+            updateResult = AppResult.Failure(AppError("bid is not pending", reason = AppErrorReason.BID_DECIDED))
+        }
+        val vm = DriverPostingsViewModel(repo, analytics)
+        testScheduler.advanceUntilIdle()
+        vm.openBid(vm.state.value.postings.single())
+
+        vm.updateBid("b1", 150_000)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(vm.state.value.bidding).isNull()
+        assertThat(vm.state.value.editing).isNull()
+        assertThat(vm.state.value.notice).isEqualTo(BidNotice.DECIDED)
+        assertThat(repo.postingCursors).isEqualTo(listOf(null, null))
+    }
+
+    @Test
+    fun `a refused edit keeps the sheet on the bid it opened on`() = runTest(dispatcher) {
+        val pending = DriverBid("b1", "a", "t1", Money(170_000), DriverBidStatus.PENDING)
+        val repo = FakeBidding().apply {
+            bids = listOf(pending)
+            updateResult = AppResult.Failure(AppError("not active", reason = AppErrorReason.DRIVER_NOT_VERIFIED))
+        }
+        val vm = DriverPostingsViewModel(repo, analytics)
+        testScheduler.advanceUntilIdle()
+        vm.openBid(vm.state.value.postings.single())
+        // Whatever the re-read finds, the open sheet is still this edit, not a new bid.
+        repo.bids = listOf(pending.copy(status = DriverBidStatus.WON))
+
+        vm.updateBid("b1", 150_000)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(vm.state.value.editing?.id).isEqualTo("b1")
+        assertThat(vm.state.value.bidErrorReason).isEqualTo(AppErrorReason.DRIVER_NOT_VERIFIED)
     }
 }

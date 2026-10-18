@@ -62,14 +62,16 @@ class TmsApiClient(
     ): ApiResult<T> = execute(HttpMethod.Post, path, deserializer, body = body, idempotencyKey = idempotencyKey)
 
     /**
-     * A partial update. Not idempotent-keyed: the contract does not offer it on `PATCH`, and a
-     * partial update of the same fields to the same values is its own replay.
+     * A partial update. A partial update of the same fields to the same values is its own replay,
+     * so most need no key; [idempotencyKey] is for the few the contract still keys, such as a bid
+     * edit, whose side effects (a dispatcher notice) would otherwise repeat.
      */
     suspend fun <T> patch(
         path: String,
         body: String,
         deserializer: KSerializer<T>,
-    ): ApiResult<T> = execute(HttpMethod.Patch, path, deserializer, body = body)
+        idempotencyKey: String? = null,
+    ): ApiResult<T> = execute(HttpMethod.Patch, path, deserializer, body = body, idempotencyKey = idempotencyKey)
 
     suspend fun <T> delete(
         path: String,

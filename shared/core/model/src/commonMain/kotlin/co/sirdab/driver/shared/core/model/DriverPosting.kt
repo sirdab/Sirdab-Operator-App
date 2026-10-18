@@ -35,8 +35,8 @@ data class BidRange(
 }
 
 /**
- * How a bid turned out on the TMS. There is no counter-offer: a bid is placed once and the
- * dispatcher awards.
+ * How a bid turned out on the TMS. There is no counter-offer: the carrier may reprice a pending
+ * bid, and the dispatcher awards.
  */
 @Serializable
 enum class DriverBidStatus { PENDING, WON, LOST, WITHDRAWN, EXPIRED }
@@ -59,10 +59,18 @@ data class DriverTruck(
 )
 
 /**
+ * How a posting is priced, which decides the answer a driver is offered.
+ *
+ * [FIXED] is accepted at the posting's rate and never countered, [RANGE] takes an amount inside
+ * its bounds, and [OPEN] takes any amount.
+ */
+@Serializable
+enum class BidType { FIXED, RANGE, OPEN }
+
+/**
  * A load offered to this carrier.
  *
- * An offer with a deadline, carrying no distance, no handling flags and no
- * suggested rate of its own.
+ * An offer with a deadline, carrying no handling flags and no suggested rate of its own.
  *
  * [targetRate] is the whole difference between two products. Set, the posting is
  * take-it-or-leave-it and the driver just accepts, which is what a short
@@ -86,9 +94,27 @@ data class DriverPosting(
     val pickupWindowStartMillis: Long? = null,
     val pickupWindowEndMillis: Long? = null,
     val biddingClosesAtMillis: Long? = null,
+    /** The order's own scheduled pickup, which the dispatcher may set apart from the window. */
+    val pickupAtMillis: Long? = null,
+    /**
+     * Origin to destination as the crow flies, not by road: there is no routing provider yet.
+     * Null when either end has no position.
+     */
+    val distanceKm: Int? = null,
 ) {
     /** A fixed-rate posting is accepted, not negotiated. */
     val isFixedRate: Boolean get() = targetRate != null
+
+    /**
+     * Derived the way the server derives the `bidType` it sends, so a range the server moved
+     * after a refusal ([bidRange] replaced in place) cannot leave a stale type behind.
+     */
+    val bidType: BidType
+        get() = when {
+            targetRate != null -> BidType.FIXED
+            bidRange != null -> BidType.RANGE
+            else -> BidType.OPEN
+        }
 }
 
 /** This carrier's offer on a posting, and how it turned out. */
@@ -101,4 +127,9 @@ data class DriverBid(
     val status: DriverBidStatus,
     val note: String? = null,
     val createdAtMillis: Long? = null,
+    /**
+     * The lowest pending bid another carrier holds on the same posting, amount only. Null when
+     * nobody else is bidding, and always on a fixed rate, where every bid is the same price.
+     */
+    val lowestCompetingBid: Money? = null,
 )

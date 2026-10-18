@@ -56,6 +56,18 @@ enum class AppErrorReason {
     /** A bid asking less than the posting's minimum or more than its maximum. */
     BID_OUT_OF_RANGE,
 
+    /** A bid already won, lost, withdrawn or expired: there is nothing left to change on it. */
+    BID_DECIDED,
+
+    /** The posting is awarded, withdrawn, past its deadline or no longer offered to this carrier. */
+    BIDDING_CLOSED,
+
+    /** A driver whose roster entry is not active yet, who may look at the board but not bid. */
+    DRIVER_NOT_VERIFIED,
+
+    /** A different amount on a fixed-rate posting, which is accepted at its rate or not at all. */
+    RATE_IS_FIXED,
+
     /** An organization owner or admin, who has a company to hand over before they can leave. */
     MANAGES_ORGANIZATION,
 }

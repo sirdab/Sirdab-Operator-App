@@ -161,11 +161,13 @@ data class AnalyticsEvent(val name: String, val properties: Map<String, Any> = e
         fun morePostingsLoadFailed(error: AppError) =
             event("More Postings Load Failed", *error.properties())
 
-        fun bidSheetOpened(posting: DriverPosting, truckCount: Int, nowMillis: Long) = event(
+        /** [editing] is the sheet opened on the driver's own pending bid, to reprice it. */
+        fun bidSheetOpened(posting: DriverPosting, truckCount: Int, nowMillis: Long, editing: Boolean = false) = event(
             "Bid Sheet Opened",
             "posting_id" to posting.id,
             *posting.properties(nowMillis),
             "truck_count" to truckCount,
+            "editing" to editing,
         )
 
         /**
@@ -205,6 +207,48 @@ data class AnalyticsEvent(val name: String, val properties: Map<String, Any> = e
             "Bid Failed",
             "posting_id" to postingId,
             *posting?.properties(nowMillis).orEmpty(),
+            "amount_sar" to amountSar,
+            *error.properties(),
+        )
+
+        /**
+         * A pending bid repriced. [matched] is the driver taking "match" on a competing bid.
+         * [lowestCompetingSar] is what the server answered with, so `still_undercut` says whether
+         * the new price beat everyone else's.
+         */
+        fun bidUpdated(
+            postingId: String,
+            bidId: String,
+            amountSar: Int,
+            previousAmountSar: Int,
+            matched: Boolean,
+            lowestCompetingSar: Int?,
+            posting: DriverPosting?,
+            nowMillis: Long,
+        ) = event(
+            "Bid Updated",
+            "posting_id" to postingId,
+            *posting?.properties(nowMillis).orEmpty(),
+            "bid_id" to bidId,
+            "amount_sar" to amountSar,
+            "previous_amount_sar" to previousAmountSar,
+            "matched" to matched,
+            "lowest_competing_sar" to lowestCompetingSar,
+            "still_undercut" to (lowestCompetingSar != null && lowestCompetingSar < amountSar),
+        )
+
+        fun bidUpdateFailed(
+            postingId: String,
+            bidId: String,
+            amountSar: Int,
+            error: AppError,
+            posting: DriverPosting?,
+            nowMillis: Long,
+        ) = event(
+            "Bid Update Failed",
+            "posting_id" to postingId,
+            *posting?.properties(nowMillis).orEmpty(),
+            "bid_id" to bidId,
             "amount_sar" to amountSar,
             *error.properties(),
         )
@@ -398,6 +442,7 @@ data class AnalyticsEvent(val name: String, val properties: Map<String, Any> = e
             "bid_min_sar" to bidRange?.minSar,
             "bid_max_sar" to bidRange?.maxSar,
             "minutes_to_close" to biddingClosesAtMillis?.let { minutesBetween(nowMillis, it) },
+            "distance_km" to distanceKm,
             "origin_city" to origin.city,
             "destination_city" to destination.city,
             "body_type" to bodyType?.wire,

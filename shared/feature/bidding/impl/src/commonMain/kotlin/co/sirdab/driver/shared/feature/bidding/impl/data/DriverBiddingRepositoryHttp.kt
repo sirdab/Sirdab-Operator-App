@@ -18,7 +18,8 @@ import co.sirdab.driver.shared.feature.bidding.api.BidOutOfRange
 import co.sirdab.driver.shared.feature.bidding.api.DriverBiddingRepository
 
 /**
- * `GET /driver/postings`, `POST /driver/postings/:id/bids` and `GET /driver/bids`.
+ * `GET /driver/postings`, `POST /driver/postings/:id/bids`, `PATCH /driver/bids/:id` and
+ * `GET /driver/bids`.
  *
  * A bid is sent directly rather than queued. Unlike a trip event, it is only
  * worth anything before the posting closes, so a bid that syncs tomorrow is a
@@ -70,17 +71,50 @@ class DriverBiddingRepositoryHttp(
             idempotencyKey = idempotencyKey,
         ).fold(
             onSuccess = { AppResult.Success(it.value.toDomain()) },
-            onFailure = { AppResult.Failure(it.toAppError().withBidRange(it.apiFailure)) },
+            onFailure = { AppResult.Failure(it.toBiddingError()) },
         )
     }
 
-    /** A bid outside the range carries the range in `details`, so the sheet can show the real one. */
-    private fun AppError.withBidRange(failure: ApiFailure?): AppError {
-        if (reason != AppErrorReason.BID_OUT_OF_RANGE) return this
-        val details = (failure as? ApiFailure.Http)?.details ?: return this
+    override suspend fun updateBid(
+        bidId: String,
+        amountCents: Int,
+        idempotencyKey: String,
+    ): AppResult<DriverBid> {
+        val body = api.encode(UpdateBidInputDto.serializer(), UpdateBidInputDto(amountCents))
+        return api.patch(
+            path = "$BIDS/$bidId",
+            body = body,
+            deserializer = BidDto.serializer(),
+            // The server tells the dispatcher about every edit; a replayed one must not tell twice.
+            idempotencyKey = idempotencyKey,
+        ).fold(
+            onSuccess = { AppResult.Success(it.value.toDomain()) },
+            onFailure = { AppResult.Failure(it.toBiddingError()) },
+        )
+    }
+
+    /**
+     * The refusals a bid or an edit can meet, named so the sheet can say them in the driver's
+     * language; anything else keeps the server's message. A bid outside the range carries the range
+     * in `details`, so the sheet can show the real one.
+     */
+    private fun Throwable.toBiddingError(): AppError {
+        val error = toAppError()
+        val failure = apiFailure as? ApiFailure.Http ?: return error
+        val reason = when (failure.rawCode) {
+            "bid_not_pending" -> AppErrorReason.BID_DECIDED
+            // Gone from this carrier's board, one way or another: awarded or withdrawn, past its
+            // deadline, no longer offered to it, or (a 404 on a posting or bid) never its to see.
+            "posting_not_open", "bidding_closed", "posting_not_visible", "not_found" -> AppErrorReason.BIDDING_CLOSED
+            "driver_not_verified" -> AppErrorReason.DRIVER_NOT_VERIFIED
+            "rate_is_fixed" -> AppErrorReason.RATE_IS_FIXED
+            else -> error.reason
+        }
+        if (reason != AppErrorReason.BID_OUT_OF_RANGE) return error.copy(reason = reason)
+        val details = failure.details ?: return error
         val range = runCatching { TmsJson.decodeFromJsonElement(BidRangeDto.serializer(), details) }
-            .getOrNull() ?: return this
-        return copy(cause = BidOutOfRange(range.toDomain()))
+            .getOrNull() ?: return error
+        return error.copy(cause = BidOutOfRange(range.toDomain()))
     }
 
     override suspend fun myBids(cursor: String?, limit: Int): AppResult<Page<DriverBid>> {

@@ -48,6 +48,9 @@ internal data class DriverPostingDto(
     val targetRate: MoneyDto? = null,
     val bidRange: BidRangeDto? = null,
     val biddingClosesAt: String? = null,
+    /** Contracts 10.36.0. Absent from an older server, as is [distanceKm]. */
+    val pickupAt: String? = null,
+    val distanceKm: Int? = null,
     val origin: PlaceDto,
     val destination: PlaceDto,
     val equipment: EquipmentDto,
@@ -60,6 +63,10 @@ internal data class BidInputDto(
     val note: String? = null,
 )
 
+/** `PATCH /driver/bids/:id`: the price only; the truck and note stay as placed. */
+@Serializable
+internal data class UpdateBidInputDto(val amountCents: Int)
+
 @Serializable
 internal data class BidDto(
     val id: String,
@@ -70,6 +77,7 @@ internal data class BidDto(
     val status: String,
     val note: String? = null,
     val createdAt: String? = null,
+    val lowestCompetingBid: MoneyDto? = null,
 )
 
 /** Unknown values degrade rather than throw: a new status must not empty the board. */
@@ -102,6 +110,8 @@ internal fun DriverPostingDto.toDomain(): DriverPosting = DriverPosting(
     pickupWindowStartMillis = pickupWindowStart.toEpochMillisOrNull(),
     pickupWindowEndMillis = pickupWindowEnd.toEpochMillisOrNull(),
     biddingClosesAtMillis = biddingClosesAt.toEpochMillisOrNull(),
+    pickupAtMillis = pickupAt.toEpochMillisOrNull(),
+    distanceKm = distanceKm,
 )
 
 /** Null when neither bound is set, the same as the server leaving the range out. */
@@ -116,6 +126,7 @@ internal fun BidDto.toDomain(): DriverBid = DriverBid(
     status = status.toDriverBidStatus(),
     note = note,
     createdAtMillis = createdAt.toEpochMillisOrNull(),
+    lowestCompetingBid = lowestCompetingBid?.let { Money(it.amountCents, it.currency) },
 )
 
 /** Only the fleet is read here; `trucks` stayed top level on the driver profile. */

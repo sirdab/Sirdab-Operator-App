@@ -10,6 +10,7 @@ import assertk.assertions.isTrue
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.BidRange
+import co.sirdab.driver.shared.core.model.BidType
 import co.sirdab.driver.shared.core.model.EquipmentBody
 import co.sirdab.driver.shared.core.model.EquipmentSize
 import co.sirdab.driver.shared.core.model.EquipmentTemperature
@@ -30,11 +31,13 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.time.Instant
 
 class DriverBiddingRepositoryHttpTest {
 
@@ -69,6 +72,29 @@ class DriverBiddingRepositoryHttpTest {
     }
 
     @Test
+    fun `reads the lane's distance and the order's pickup time`() = runTest {
+        val repo = repository {
+            respond(
+                """{"items":[{"id":"p1","loadId":"l1","status":"open","targetRate":null,
+                   "bidRange":{"minCents":90000,"maxCents":null},"bidType":"range",
+                   "pickupAt":"2026-10-19T08:00:00+03:00","distanceKm":150,
+                   "postedAt":"2026-10-18T09:30:00.000Z",
+                   "origin":{"label":"Depot","city":"Dammam"},"destination":{"label":"Store","city":"Al-Ahsa"},
+                   "equipment":{"name":"Box","bodyType":"box","sizeClass":"light","temperature":"ambient"}}],
+                   "nextCursor":null}""",
+                HttpStatusCode.OK,
+                jsonHeaders(),
+            )
+        }
+
+        val posting = (repo.postings() as AppResult.Success).data.items.single()
+
+        assertThat(posting.distanceKm).isEqualTo(150)
+        assertThat(posting.pickupAtMillis).isEqualTo(Instant.parse("2026-10-19T05:00:00Z").toEpochMilliseconds())
+        assertThat(posting.bidType).isEqualTo(BidType.RANGE)
+    }
+
+    @Test
     fun `an open-price posting has no target rate`() = runTest {
         val repo = repository {
             respond(
@@ -85,6 +111,10 @@ class DriverBiddingRepositoryHttpTest {
 
         assertThat(posting.targetRate).isNull()
         assertThat(posting.isFixedRate).isEqualTo(false)
+        assertThat(posting.bidType).isEqualTo(BidType.OPEN)
+        // A server before 10.36.0 sends neither; the card leaves them out.
+        assertThat(posting.distanceKm).isNull()
+        assertThat(posting.pickupAtMillis).isNull()
         // An axis the posting never classified stays null rather than a guessed default.
         assertThat(posting.bodyType).isEqualTo(EquipmentBody.FLATBED)
         assertThat(posting.sizeClass).isNull()
@@ -183,6 +213,78 @@ class DriverBiddingRepositoryHttpTest {
         assertThat(result is AppResult.Failure).isTrue()
         assertThat((result as AppResult.Failure).error.message)
             .isEqualTo("you have already bid on this")
+    }
+
+    @Test
+    fun `an edit patches the bid's price under the caller's key`() = runTest {
+        lateinit var seen: HttpRequestData
+        var sent: String? = null
+        val repo = repository { request ->
+            seen = request
+            sent = (request.body as io.ktor.http.content.TextContent).text
+            respond(
+                """{"id":"b1","loadPostingId":"p1","truckId":"t1","amountCents":150000,"currency":"SAR",
+                   "status":"pending","lowestCompetingBid":{"amountCents":140000,"currency":"SAR"}}""",
+                HttpStatusCode.OK,
+                jsonHeaders(),
+            )
+        }
+
+        val bid = (repo.updateBid("b1", amountCents = 150000, idempotencyKey = "edit-1") as AppResult.Success).data
+
+        assertThat(seen.method).isEqualTo(HttpMethod.Patch)
+        assertThat(seen.url.encodedPath).isEqualTo("/api/driver/bids/b1")
+        assertThat(seen.headers[TmsApiClient.IDEMPOTENCY_KEY_HEADER]).isEqualTo("edit-1")
+        assertThat(sent).isEqualTo("""{"amountCents":150000}""")
+        assertThat(bid.amount).isEqualTo(Money(150000))
+        assertThat(bid.lowestCompetingBid).isEqualTo(Money(140000))
+    }
+
+    @Test
+    fun `an edit outside the range carries the range the server holds`() = runTest {
+        val repo = repository {
+            respond(
+                """{"error":{"code":"bid_out_of_range","message":"outside the range",
+                   "details":{"minCents":null,"maxCents":120000}}}""",
+                HttpStatusCode.Conflict,
+                jsonHeaders(),
+            )
+        }
+
+        val error = (repo.updateBid("b1", 200000, idempotencyKey = "k1") as AppResult.Failure).error
+
+        assertThat((error.cause as BidOutOfRange).range).isEqualTo(BidRange(null, 120000))
+    }
+
+    @Test
+    fun `names the refusals a bid or an edit can meet`() = runTest {
+        val named = mapOf(
+            "bid_not_pending" to AppErrorReason.BID_DECIDED,
+            "posting_not_open" to AppErrorReason.BIDDING_CLOSED,
+            "bidding_closed" to AppErrorReason.BIDDING_CLOSED,
+            "posting_not_visible" to AppErrorReason.BIDDING_CLOSED,
+            "not_found" to AppErrorReason.BIDDING_CLOSED,
+            "driver_not_verified" to AppErrorReason.DRIVER_NOT_VERIFIED,
+            "rate_is_fixed" to AppErrorReason.RATE_IS_FIXED,
+            "bidder_not_independent" to AppErrorReason.NOT_A_BIDDER,
+        )
+        named.forEach { (code, reason) ->
+            val repo = repository {
+                respond(
+                    """{"error":{"code":"$code","message":"refused"}}""",
+                    if (code == "not_found") HttpStatusCode.NotFound else HttpStatusCode.Conflict,
+                    jsonHeaders(),
+                )
+            }
+
+            val edit = (repo.updateBid("b1", 150000, idempotencyKey = "k1") as AppResult.Failure).error
+            val bid = (repo.placeBid("p1", 150000, "t1", idempotencyKey = "k2") as AppResult.Failure).error
+
+            assertThat(edit.reason).isEqualTo(reason)
+            assertThat(bid.reason).isEqualTo(reason)
+            // The server's sentence stays behind as the fallback.
+            assertThat(edit.message).isEqualTo("refused")
+        }
     }
 
     @Test

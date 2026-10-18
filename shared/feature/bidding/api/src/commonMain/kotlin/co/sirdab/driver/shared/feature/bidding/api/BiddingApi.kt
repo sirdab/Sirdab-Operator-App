@@ -9,8 +9,8 @@ import co.sirdab.driver.shared.core.model.DriverTruck
 import co.sirdab.driver.shared.core.model.Page
 
 /**
- * Postings this carrier may answer, and the bids it has made. A bid is placed once and the
- * dispatcher awards: there are no counters or outbid events.
+ * Postings this carrier may answer, and the bids it has made. A bid is placed once per posting,
+ * repriced while it is pending, and the dispatcher awards: there are no counters or outbid events.
  */
 interface DriverBiddingRepository {
     suspend fun postings(cursor: String? = null, limit: Int = 50): AppResult<Page<DriverPosting>>
@@ -24,7 +24,9 @@ interface DriverBiddingRepository {
      * lost to bad signal would be retried as a second offer and refused as a duplicate.
      *
      * An amount outside the posting's range fails with [AppErrorReason.BID_OUT_OF_RANGE], and with
-     * [BidOutOfRange] as the cause when the server said what the range is now.
+     * [BidOutOfRange] as the cause when the server said what the range is now. A posting gone from
+     * the board fails with [AppErrorReason.BIDDING_CLOSED], and a driver not yet active with
+     * [AppErrorReason.DRIVER_NOT_VERIFIED].
      */
     suspend fun placeBid(
         postingId: String,
@@ -33,6 +35,16 @@ interface DriverBiddingRepository {
         note: String? = null,
         idempotencyKey: String,
     ): AppResult<DriverBid>
+
+    /**
+     * Reprice a pending bid, under the same rules as placing it; the truck and note stay. A
+     * fixed-rate posting has no price to change and is refused.
+     *
+     * [idempotencyKey] is per edit, as for [placeBid]. Out of range fails as [placeBid] does; a bid
+     * no longer pending fails with [AppErrorReason.BID_DECIDED], and a posting gone from the board
+     * (awarded, withdrawn, closed or no longer offered) with [AppErrorReason.BIDDING_CLOSED].
+     */
+    suspend fun updateBid(bidId: String, amountCents: Int, idempotencyKey: String): AppResult<DriverBid>
 
     suspend fun myBids(cursor: String? = null, limit: Int = 50): AppResult<Page<DriverBid>>
 }

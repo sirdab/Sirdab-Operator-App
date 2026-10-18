@@ -40,6 +40,11 @@ object AppColors {
         "#FDECEC", "#FAD1D1", "#F5A9A9", "#EE7C7C", "#E65252",
         "#D93636", "#B82C2C", "#932424", "#6E1B1B", "#4A1212",
     )
+    /** Cold chain: chilled and frozen loads, kept apart from the brand teal. */
+    val Blue = scale(
+        "#EFF6FF", "#DBEAFE", "#BFDBFE", "#93C5FD", "#60A5FA",
+        "#3B82F6", "#2563EB", "#1D4ED8", "#1E40AF", "#1E3A8A",
+    )
     val Amber = scale(
         "#FEF6E7", "#FCE7BD", "#F9D690", "#F5C25E", "#F1B037",
         "#E89C1A", "#C6820F", "#9E680C", "#775009", "#4F3506",
