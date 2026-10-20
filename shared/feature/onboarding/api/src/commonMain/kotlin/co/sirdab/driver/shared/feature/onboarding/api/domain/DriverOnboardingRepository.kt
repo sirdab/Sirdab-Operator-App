@@ -28,16 +28,38 @@ data class DetailsDraft(
             isIsoDate(licenceExpiresAt)
 }
 
+/**
+ * A truck type the driver may give a truck: one the workspaces they drive for run, or Sirdab B2B's
+ * for a driver in none yet.
+ *
+ * The server refuses any other combination of the three axes, so the truck form offers these and
+ * nothing else. There is no id: a truck is written in its axes, and those go back as they came.
+ */
+data class TruckType(
+    /** The workspace's own name for it. */
+    val name: String,
+    val nameAr: String?,
+    val bodyType: EquipmentBody,
+    val sizeClass: EquipmentSize,
+    val temperature: EquipmentTemperature,
+) {
+    /** The Arabic name in Arabic when the workspace gave one, and [name] everywhere else. */
+    fun displayName(language: String): String =
+        nameAr?.takeIf { language == "ar" && it.isNotBlank() } ?: name
+}
+
 /** What the driver says about the truck they drive. */
 data class TruckDraft(
     val licencePlate: String = "",
-    val bodyType: EquipmentBody = EquipmentBody.BOX,
-    val sizeClass: EquipmentSize = EquipmentSize.MEDIUM,
-    val temperature: EquipmentTemperature = EquipmentTemperature.AMBIENT,
+    /** One of [DriverOnboardingRepository.truckTypes], and none until the driver picks. */
+    val type: TruckType? = null,
     val capacityTons: String = "",
 ) {
-    /** The contract wants a plate; everything else it will take a default for. */
-    val canSubmit: Boolean get() = licencePlate.isNotBlank()
+    /**
+     * A plate and a type. No type is preselected: the list is the workspace's, and a default the
+     * driver scrolled past is a truck registered as something it is not.
+     */
+    val canSubmit: Boolean get() = licencePlate.isNotBlank() && type != null
 
     /** The app has always talked in tonnes; the contract carries kilograms. */
     val capacityKg: Int? get() = capacityTons.trim().toDoubleOrNull()?.let { (it * 1000).toInt() }
@@ -73,7 +95,16 @@ interface DriverOnboardingRepository {
     /** `PATCH /api/driver/profile`. Partial by design: send only what the driver just filled in. */
     suspend fun saveDetails(draft: DetailsDraft): AppResult<DriverProfile>
 
-    /** `POST /api/driver/profile/trucks`. Re-adding a plate updates that truck rather than doubling it. */
+    /**
+     * `GET /api/driver/equipment-types`: the truck types this driver may pick. Empty when none of
+     * their workspaces runs a type a truck can be written as.
+     */
+    suspend fun truckTypes(): AppResult<List<TruckType>>
+
+    /**
+     * `POST /api/driver/profile/trucks`. Re-adding a plate updates that truck rather than doubling it.
+     * A type outside [truckTypes] fails with [co.sirdab.driver.shared.core.model.AppErrorReason.EQUIPMENT_NOT_OFFERED].
+     */
     suspend fun addTruck(draft: TruckDraft): AppResult<DriverProfile>
 
     /** `DELETE /api/driver/profile/trucks/:id`. The server refuses the last one. */

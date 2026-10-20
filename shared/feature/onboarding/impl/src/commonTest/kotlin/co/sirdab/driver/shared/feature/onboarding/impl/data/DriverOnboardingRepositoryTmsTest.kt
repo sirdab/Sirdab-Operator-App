@@ -20,6 +20,7 @@ import co.sirdab.driver.shared.feature.onboarding.api.domain.DetailsDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
 import co.sirdab.driver.shared.feature.onboarding.api.domain.OnboardingGap
 import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckDraft
+import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckType
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -130,9 +131,13 @@ class DriverOnboardingRepositoryTmsTest {
         val profile = harness.onboarding.addTruck(
             TruckDraft(
                 licencePlate = "RUH 9002",
-                bodyType = EquipmentBody.BOX,
-                sizeClass = EquipmentSize.LIGHT,
-                temperature = EquipmentTemperature.CHILLED,
+                type = TruckType(
+                    name = "Chilled 4 t box",
+                    nameAr = null,
+                    bodyType = EquipmentBody.BOX,
+                    sizeClass = EquipmentSize.LIGHT,
+                    temperature = EquipmentTemperature.CHILLED,
+                ),
                 capacityTons = "4",
             ),
         )
@@ -143,10 +148,60 @@ class DriverOnboardingRepositoryTmsTest {
         assertThat(profileReads).isEqualTo(1)
         // The app talks in tonnes and the contract in kilograms.
         assertThat(harness.bodyOf(Api.TRUCKS).orEmpty()).contains(""""capacityKg":4000""")
-        // All three axes go on the wire; a truck missing one can never be matched.
+        // The picked type goes back as its three axes; the type's name is the app's alone.
         assertThat(harness.bodyOf(Api.TRUCKS).orEmpty())
             .contains(""""bodyType":"box","sizeClass":"light","temperature":"chilled"""")
+        assertThat(harness.bodyOf(Api.TRUCKS).orEmpty()).doesNotContain("Chilled 4 t box")
         assertThat(added.trucks.single().temperature).isEqualTo(EquipmentTemperature.CHILLED)
+    }
+
+    @Test
+    fun `the truck types are the workspace's own, named in both languages`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                Api.TRUCK_TYPES -> respondJson(
+                    """{"items":[
+                       {"name":"Reefer trailer","nameAr":"تريلا مبردة","bodyType":"box",
+                        "sizeClass":"trailer","temperature":"chilled"},
+                       {"name":"Dyna","nameAr":null,"bodyType":"open",
+                        "sizeClass":"light","temperature":"ambient"},
+                       {"name":"Hover truck","nameAr":null,"bodyType":"hover",
+                        "sizeClass":"light","temperature":"ambient"}]}""",
+                )
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+
+        val types = (harness.onboarding.truckTypes() as AppResult.Success).data
+
+        // A body this build has no enum for could not be sent back, so it is not offered.
+        assertThat(types.map { it.name }).containsExactly("Reefer trailer", "Dyna")
+        assertThat(types.first().sizeClass).isEqualTo(EquipmentSize.TRAILER)
+        assertThat(types.first().displayName("ar")).isEqualTo("تريلا مبردة")
+        assertThat(types.first().displayName("en")).isEqualTo("Reefer trailer")
+        // No Arabic name: the workspace's own name, in every language.
+        assertThat(types.last().displayName("ar")).isEqualTo("Dyna")
+    }
+
+    @Test
+    fun `a truck type the workspace no longer runs is named as such`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                Api.TRUCKS -> respondError("equipment_not_offered", HttpStatusCode.Conflict)
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+
+        val result = harness.onboarding.addTruck(
+            TruckDraft(
+                licencePlate = "RUH 9002",
+                type = TruckType("Dyna", null, EquipmentBody.OPEN, EquipmentSize.LIGHT, EquipmentTemperature.AMBIENT),
+            ),
+        )
+
+        assertThat((result as AppResult.Failure).error.reason).isEqualTo(AppErrorReason.EQUIPMENT_NOT_OFFERED)
+        // The refusal is the answer; nothing is re-read on the way out.
+        assertThat(harness.paths()).containsExactly(Api.TRUCKS)
     }
 
     @Test

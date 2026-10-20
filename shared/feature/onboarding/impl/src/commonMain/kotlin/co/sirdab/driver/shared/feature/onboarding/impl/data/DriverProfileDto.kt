@@ -12,6 +12,7 @@ import co.sirdab.driver.shared.feature.onboarding.api.domain.OnboardingGap
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileDocument
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileTruck
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileWorkspace
+import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckType
 import kotlinx.serialization.Serializable
 
 /** `GET`, `PATCH`, document confirm and truck delete all answer with this. */
@@ -83,6 +84,20 @@ internal data class AddTruckDto(
     val capacityKg: Int? = null,
 )
 
+/** `GET /api/driver/equipment-types` (contracts 10.38.0). */
+@Serializable
+internal data class TruckTypesDto(val items: List<TruckTypeDto> = emptyList())
+
+/** One combination of the three axes, named the way a posting's equipment is. */
+@Serializable
+internal data class TruckTypeDto(
+    val name: String,
+    val nameAr: String? = null,
+    val bodyType: String,
+    val sizeClass: String,
+    val temperature: String,
+)
+
 /** `POST /api/driver/profile/documents`: declare the file, get somewhere to put it. */
 @Serializable
 internal data class CreateDocumentDto(
@@ -122,6 +137,19 @@ internal data class SwitchWorkspaceDto(val workspaceId: String)
  */
 @Serializable
 internal data class SwitchWorkspaceResultDto(val activeWorkspaceId: String? = null)
+
+/**
+ * A type with an axis this build cannot name is left out rather than offered: it could not be sent
+ * back as the enum the request is built from, and the server's vocabulary only widens with a
+ * contract release the app would follow.
+ */
+internal fun TruckTypeDto.toDomain(): TruckType? = TruckType(
+    name = name,
+    nameAr = nameAr,
+    bodyType = EquipmentBody.fromWire(bodyType) ?: return null,
+    sizeClass = EquipmentSize.fromWire(sizeClass) ?: return null,
+    temperature = EquipmentTemperature.fromWire(temperature) ?: return null,
+)
 
 internal fun DriverProfileDto.toDomain(): DriverProfile = DriverProfile(
     userId = userId,

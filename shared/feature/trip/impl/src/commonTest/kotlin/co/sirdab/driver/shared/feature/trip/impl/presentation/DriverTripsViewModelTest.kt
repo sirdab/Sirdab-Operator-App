@@ -16,6 +16,7 @@ import co.sirdab.driver.shared.core.model.TripLifecycle
 import co.sirdab.driver.shared.feature.trip.api.DriverTripRepository
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
+import co.sirdab.driver.shared.feature.trip.api.ProofType
 import co.sirdab.driver.shared.feature.trip.api.QueuedTripEvent
 import co.sirdab.driver.shared.feature.trip.api.TripEventRecorder
 import co.sirdab.driver.shared.feature.trip.api.TripEventType
@@ -81,6 +82,7 @@ private class CountingRecorder : TripEventRecorder {
         capturedAtMillis: Long,
         lat: Double?,
         lng: Double?,
+        type: ProofType,
     ): AppResult<Unit> = AppResult.Success(Unit)
 
     override fun pendingProofs(stopId: String): Flow<Int> = flowOf(0)

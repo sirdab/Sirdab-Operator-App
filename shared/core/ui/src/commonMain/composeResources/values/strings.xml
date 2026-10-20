@@ -101,6 +101,8 @@
     <string name="stop_choose_photo">Choose photo</string>
     <string name="stop_photo_sending">Sending photo…</string>
     <string name="stop_photo_count">%1$s photo(s) attached</string>
+    <string name="pod_title">Proof of delivery</string>
+    <string name="pod_body">Take a photo of the signed delivery note. It is sent with the delivery.</string>
     <string name="signup_details_title">About you</string>
     <string name="signup_details_subtitle">We need this to set up your account.</string>
     <string name="signup_name">Full name</string>
@@ -151,9 +153,8 @@
     <string name="equip_temp_chilled">Chilled</string>
     <string name="equip_temp_frozen">Frozen</string>
     <string name="equip_temp_multi">Multi-temperature</string>
-    <string name="truck_body">Body</string>
-    <string name="truck_size">Size</string>
-    <string name="truck_temperature">Temperature</string>
+    <string name="truck_type">Truck type</string>
+    <string name="truck_types_empty">There are no truck types to choose from yet. Ask your dispatcher or Sirdab support to add yours.</string>
 
     <!-- Exceptions -->
     <string name="exc_report">Report a problem</string>
@@ -262,6 +263,7 @@
     <string name="err_driver_suspended">Your driver account has been suspended.</string>
     <string name="err_workspace_suspended">This fleet has been suspended.</string>
     <string name="err_last_truck">You need at least one truck.</string>
+    <string name="err_equipment_not_offered">That truck type is no longer offered. Pick one from the list.</string>
     <string name="err_document_too_large">That photo is too large. Take it again.</string>
     <string name="err_document_type">That file type is not accepted.</string>
     <string name="err_document_missing">That document is no longer there. Upload it again.</string>

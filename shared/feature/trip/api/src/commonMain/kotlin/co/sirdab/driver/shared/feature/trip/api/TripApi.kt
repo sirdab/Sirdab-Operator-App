@@ -52,6 +52,20 @@ enum class ExceptionSeverity(val wire: String) {
 }
 
 /**
+ * What a photographed proof stands for: the two of the contract's ProofType a camera produces.
+ *
+ * Both upload as a `proof_photo` file; the type alone is what the dispatcher's trip page sorts them
+ * by. At a dropoff a [PHOTO] is the offloading and a [DOCUMENT] the proof of delivery. Only a
+ * [PHOTO] counts toward the server's rule that a delivery needs a photo.
+ */
+enum class ProofType(val wire: String) {
+    PHOTO("photo"),
+
+    /** The signed delivery note, photographed. */
+    DOCUMENT("document"),
+}
+
+/**
  * Records what the driver did.
  *
  * Returns as soon as the write is durably queued, not when the server has it: a
@@ -91,6 +105,10 @@ interface TripEventRecorder {
      * upload is queued behind whatever the driver did before it and ahead of
      * whatever they do next, which is what keeps a proof in front of the
      * delivery that the server will not accept without it.
+     *
+     * [type] is [ProofType.DOCUMENT] for the delivery note, which goes the
+     * same way and lands in the dispatcher's POD slot rather than as an
+     * offloading photo.
      */
     suspend fun attachPhotoProof(
         stopId: String,
@@ -99,9 +117,15 @@ interface TripEventRecorder {
         capturedAtMillis: Long,
         lat: Double? = null,
         lng: Double? = null,
+        type: ProofType = ProofType.PHOTO,
     ): AppResult<Unit>
 
-    /** How many photos for this stop are still on their way. */
+    /**
+     * How many [ProofType.PHOTO] proofs for this stop are still on their way.
+     *
+     * A queued delivery note is left out: it does not satisfy the server's
+     * photo rule, so counting it would unlock a delivery bound to be refused.
+     */
     fun pendingProofs(stopId: String): Flow<Int>
 
     /** How many of this driver's actions have not reached the server yet. */

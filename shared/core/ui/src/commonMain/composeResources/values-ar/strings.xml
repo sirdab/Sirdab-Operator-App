@@ -95,6 +95,8 @@
     <string name="stop_choose_photo">اختر صورة</string>
     <string name="stop_photo_sending">جارٍ إرسال الصورة…</string>
     <string name="stop_photo_count">%1$s صورة مرفقة</string>
+    <string name="pod_title">إثبات التسليم</string>
+    <string name="pod_body">صوّر سند التسليم بعد توقيعه. ينرسل مع التسليم.</string>
     <string name="signup_details_title">بياناتك</string>
     <string name="signup_details_subtitle">نحتاج هذه البيانات لإنشاء حسابك.</string>
     <string name="signup_name">الاسم الكامل</string>
@@ -144,9 +146,8 @@
     <string name="equip_temp_chilled">مبرد</string>
     <string name="equip_temp_frozen">مجمد</string>
     <string name="equip_temp_multi">متعدد الحرارة</string>
-    <string name="truck_body">نوع الهيكل</string>
-    <string name="truck_size">حجم الشاحنة</string>
-    <string name="truck_temperature">درجة الحرارة</string>
+    <string name="truck_type">نوع الشاحنة</string>
+    <string name="truck_types_empty">ما فيه أنواع شاحنات تختار منها حالياً. اطلب من المرسل أو دعم سرداب يضيفون نوع شاحنتك.</string>
 
     <!-- Exceptions -->
     <string name="exc_report">بلّغ عن مشكلة</string>
@@ -259,6 +260,7 @@
     <string name="err_driver_suspended">تم إيقاف حساب السائق الخاص بك.</string>
     <string name="err_workspace_suspended">تم إيقاف هذا الأسطول.</string>
     <string name="err_last_truck">تحتاج إلى شاحنة واحدة على الأقل.</string>
+    <string name="err_equipment_not_offered">نوع الشاحنة هذا ما عاد متاح. اختر نوع من القائمة.</string>
     <string name="err_document_too_large">هذه الصورة كبيرة جداً. التقطها من جديد.</string>
     <string name="err_document_type">نوع الملف غير مقبول.</string>
     <string name="err_document_missing">لم يعد هذا المستند موجوداً. ارفعه من جديد.</string>

@@ -15,6 +15,7 @@ import co.sirdab.driver.shared.feature.onboarding.api.domain.DetailsDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
 import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckDraft
+import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,6 +58,12 @@ class DriverOnboardingRepositoryTms(
         deserializer = DriverProfileDto.serializer(),
     ).toProfile()
 
+    override suspend fun truckTypes(): AppResult<List<TruckType>> =
+        api.get(TRUCK_TYPES_PATH, TruckTypesDto.serializer()).fold(
+            onSuccess = { success -> AppResult.Success(success.value.items.mapNotNull { it.toDomain() }) },
+            onFailure = { AppResult.Failure(it.toOnboardingError()) },
+        )
+
     /**
      * The contract answers with the truck alone, so the profile is read back.
      *
@@ -64,15 +71,21 @@ class DriverOnboardingRepositoryTms(
      * the checklist the driver is looking at has to show it.
      */
     override suspend fun addTruck(draft: TruckDraft): AppResult<DriverProfile> {
+        // The screen does not offer the button without one; this only keeps a caller that skipped
+        // the check from sending a truck the server would refuse anyway.
+        val type = draft.type ?: return AppResult.Failure(
+            AppError("Pick a truck type.", reason = AppErrorReason.EQUIPMENT_NOT_OFFERED),
+        )
         val created = api.post(
             path = TRUCKS_PATH,
             body = api.encode(
                 AddTruckDto.serializer(),
                 AddTruckDto(
                     licencePlate = draft.licencePlate.trim(),
-                    bodyType = draft.bodyType.wire,
-                    sizeClass = draft.sizeClass.wire,
-                    temperature = draft.temperature.wire,
+                    // As the list sent them: the server checks the combination against it.
+                    bodyType = type.bodyType.wire,
+                    sizeClass = type.sizeClass.wire,
+                    temperature = type.temperature.wire,
                     capacityKg = draft.capacityKg,
                 ),
             ),
@@ -159,6 +172,7 @@ class DriverOnboardingRepositoryTms(
     private companion object {
         const val PATH = "api/driver/profile"
         const val TRUCKS_PATH = "api/driver/profile/trucks"
+        const val TRUCK_TYPES_PATH = "api/driver/equipment-types"
         const val DOCUMENTS_PATH = "api/driver/profile/documents"
     }
 }
@@ -175,6 +189,7 @@ internal fun Throwable.toOnboardingError(): AppError {
         failure !is ApiFailure.Http -> null
         failure.rawCode == "driver_suspended" -> AppErrorReason.DRIVER_SUSPENDED
         failure.rawCode == "last_truck" -> AppErrorReason.LAST_TRUCK
+        failure.rawCode == "equipment_not_offered" -> AppErrorReason.EQUIPMENT_NOT_OFFERED
         failure.rawCode == "document_not_found" -> AppErrorReason.DOCUMENT_MISSING
         failure.rawCode == "workspace_suspended" -> AppErrorReason.WORKSPACE_SUSPENDED
         failure.rawCode == "no_driver_profile" -> AppErrorReason.NOT_PROVISIONED

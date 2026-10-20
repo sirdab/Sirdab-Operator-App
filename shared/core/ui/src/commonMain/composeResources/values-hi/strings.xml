@@ -101,6 +101,8 @@
     <string name="stop_choose_photo">फ़ोटो चुनें</string>
     <string name="stop_photo_sending">फ़ोटो भेजी जा रही है…</string>
     <string name="stop_photo_count">%1$s फ़ोटो जुड़ी हैं</string>
+    <string name="pod_title">डिलीवरी का प्रमाण</string>
+    <string name="pod_body">हस्ताक्षरित डिलीवरी नोट की फ़ोटो लें। यह डिलीवरी के साथ भेजी जाएगी।</string>
 
     <!-- Sign-up -->
     <string name="signup_details_title">आपके बारे में</string>
@@ -153,9 +155,8 @@
     <string name="equip_temp_chilled">ठंडा</string>
     <string name="equip_temp_frozen">जमा हुआ</string>
     <string name="equip_temp_multi">मल्टी-तापमान</string>
-    <string name="truck_body">बॉडी का प्रकार</string>
-    <string name="truck_size">ट्रक का आकार</string>
-    <string name="truck_temperature">तापमान</string>
+    <string name="truck_type">ट्रक का प्रकार</string>
+    <string name="truck_types_empty">अभी चुनने के लिए कोई ट्रक प्रकार नहीं है। अपने डिस्पैचर या सिरदाब सपोर्ट से अपना प्रकार जोड़ने को कहें।</string>
 
     <!-- Exceptions -->
     <string name="exc_report">समस्या बताएँ</string>
@@ -264,6 +265,7 @@
     <string name="err_driver_suspended">आपका ड्राइवर खाता निलंबित कर दिया गया है।</string>
     <string name="err_workspace_suspended">यह फ़्लीट निलंबित कर दिया गया है।</string>
     <string name="err_last_truck">आपके पास कम से कम एक ट्रक होना चाहिए।</string>
+    <string name="err_equipment_not_offered">यह ट्रक प्रकार अब उपलब्ध नहीं है। सूची में से कोई चुनें।</string>
     <string name="err_document_too_large">यह फ़ोटो बहुत बड़ी है। दोबारा लें।</string>
     <string name="err_document_type">यह फ़ाइल प्रकार स्वीकार नहीं है।</string>
     <string name="err_document_missing">यह दस्तावेज़ अब नहीं है। दोबारा अपलोड करें।</string>

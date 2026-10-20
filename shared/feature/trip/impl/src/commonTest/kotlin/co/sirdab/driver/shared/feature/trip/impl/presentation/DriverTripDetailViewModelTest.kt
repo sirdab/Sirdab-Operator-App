@@ -18,9 +18,11 @@ import co.sirdab.driver.shared.core.model.TripStop
 import co.sirdab.driver.shared.feature.trip.api.DriverTripRepository
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
+import co.sirdab.driver.shared.feature.trip.api.ProofType
 import co.sirdab.driver.shared.feature.trip.api.QueuedTripEvent
 import co.sirdab.driver.shared.feature.trip.api.TripEventRecorder
 import co.sirdab.driver.shared.feature.trip.api.TripEventType
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,12 +57,30 @@ private val TRIP = DriverTrip(
     ),
 )
 
-private class FakeRepo(private val result: AppResult<DriverTrip> = AppResult.Success(TRIP)) :
-    DriverTripRepository {
+/** A dropoff the driver is standing at, with the photo the server wants already on it. */
+private val AT_DROPOFF = TRIP.copy(
+    stops = listOf(
+        TRIP.stops.single().copy(
+            id = "s2",
+            stopType = StopType.DROPOFF,
+            status = StopStatus.ARRIVED,
+            photoProofCount = 1,
+        ),
+    ),
+)
+
+private class FakeRepo(
+    private val result: AppResult<DriverTrip> = AppResult.Success(TRIP),
+    /** Held open by a test that needs the read still in flight; already through by default. */
+    private val gate: CompletableDeferred<Unit> = CompletableDeferred(Unit),
+) : DriverTripRepository {
     override suspend fun trips(cursor: String?, limit: Int): AppResult<Page<DriverTrip>> =
         AppResult.Success(Page(emptyList(), null))
 
-    override suspend fun trip(id: String): AppResult<DriverTrip> = result
+    override suspend fun trip(id: String): AppResult<DriverTrip> {
+        gate.await()
+        return result
+    }
 }
 
 private class FakeRecorder(
@@ -87,12 +107,16 @@ private class FakeRecorder(
         val bytes: ByteArray,
         val contentType: String,
         val capturedAtMillis: Long,
+        val type: ProofType = ProofType.PHOTO,
     )
 
     val calls = mutableListOf<Call>()
     val exceptions = mutableListOf<ExceptionCall>()
     val proofs = mutableListOf<ProofCall>()
     var syncs = 0
+
+    /** Proofs and events together, in the order they were queued. */
+    val queuedOrder = mutableListOf<String>()
 
     /** What the queue still holds after a sync; empty means everything went. */
     var queued: List<QueuedTripEvent> = emptyList()
@@ -107,6 +131,7 @@ private class FakeRecorder(
         lng: Double?,
     ): AppResult<Unit> {
         calls += Call(tripId, eventType, stopId, occurredAtMillis)
+        queuedOrder += eventType.wire
         return result
     }
 
@@ -129,13 +154,15 @@ private class FakeRecorder(
         capturedAtMillis: Long,
         lat: Double?,
         lng: Double?,
+        type: ProofType,
     ): AppResult<Unit> {
-        proofs += ProofCall(stopId, bytes, contentType, capturedAtMillis)
+        proofs += ProofCall(stopId, bytes, contentType, capturedAtMillis, type)
+        queuedOrder += "proof:${type.wire}"
         return result
     }
 
     override fun pendingProofs(stopId: String): Flow<Int> =
-        flowOf(proofs.count { it.stopId == stopId })
+        flowOf(proofs.count { it.stopId == stopId && it.type == ProofType.PHOTO })
 
     override fun pendingCount(): Flow<Int> = flowOf(calls.size)
 
@@ -363,6 +390,76 @@ class DriverTripDetailViewModelTest {
         // server's. The screen adds the queued ones on top of it (actionsFor's
         // queuedPhotos); the model never pretends the server has them.
         assertThat(vm.state.value.trip?.stops?.first()?.photoProofCount).isEqualTo(0)
+    }
+
+    @Test
+    fun `a delivery note is queued as a document ahead of the delivery it proves`() = runTest(dispatcher) {
+        val recorder = FakeRecorder()
+        val vm = DriverTripDetailViewModel(
+            "t1",
+            FakeRepo(AppResult.Success(AT_DROPOFF)),
+            recorder,
+            analytics,
+            FixedClock(1_700_000L),
+        )
+        testScheduler.advanceUntilIdle()
+
+        vm.deliverWithNote("s2", byteArrayOf(4, 2), "image/jpeg")
+        testScheduler.advanceUntilIdle()
+
+        // A document, so the trip page files it as the POD and not as an offloading photo; and
+        // first, so the queue sends it before the delivery that closes the stop.
+        assertThat(recorder.queuedOrder).isEqualTo(listOf("proof:document", "delivered"))
+        assertThat(recorder.proofs.single().capturedAtMillis).isEqualTo(1_700_000L)
+        assertThat(vm.state.value.trip?.stops?.single()?.status).isEqualTo(StopStatus.COMPLETED)
+        assertThat(analytics.eventNames).isEqualTo(listOf("Photo Proof Added", "Stop Action Recorded"))
+        assertThat(analytics.events.first().properties["proof_type"]).isEqualTo("document")
+    }
+
+    @Test
+    fun `a delivery note the phone could not keep leaves the stop undelivered`() = runTest(dispatcher) {
+        val recorder = FakeRecorder(AppResult.Failure(AppError("disk full")))
+        val vm = DriverTripDetailViewModel(
+            "t1",
+            FakeRepo(AppResult.Success(AT_DROPOFF)),
+            recorder,
+            analytics,
+            FixedClock(1L),
+        )
+        testScheduler.advanceUntilIdle()
+
+        vm.deliverWithNote("s2", byteArrayOf(1), "image/jpeg")
+        testScheduler.advanceUntilIdle()
+
+        assertThat(recorder.calls).isEqualTo(emptyList())
+        assertThat(vm.state.value.trip?.stops?.single()?.status).isEqualTo(StopStatus.ARRIVED)
+        assertThat(vm.state.value.errorMessage).isEqualTo("disk full")
+    }
+
+    @Test
+    fun `a delivery note that beats the trip read is delivered once the trip is in`() = runTest(dispatcher) {
+        // The phone killed the app while the camera was open: the screen is back, its read is
+        // still in flight, and the note has just come back.
+        val read = CompletableDeferred<Unit>()
+        val recorder = FakeRecorder()
+        val vm = DriverTripDetailViewModel(
+            "t1",
+            FakeRepo(AppResult.Success(AT_DROPOFF), gate = read),
+            recorder,
+            analytics,
+            FixedClock(1L),
+        )
+
+        vm.deliverWithNote("s2", byteArrayOf(1), "image/jpeg")
+        testScheduler.advanceUntilIdle()
+
+        assertThat(recorder.queuedOrder).isEqualTo(listOf("proof:document"))
+
+        read.complete(Unit)
+        testScheduler.advanceUntilIdle()
+
+        assertThat(recorder.queuedOrder).isEqualTo(listOf("proof:document", "delivered"))
+        assertThat(vm.state.value.trip?.stops?.single()?.status).isEqualTo(StopStatus.COMPLETED)
     }
 
     @Test

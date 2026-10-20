@@ -86,6 +86,7 @@ import co.sirdab.driver.shared.core.ui.theme.AppColors
 import co.sirdab.driver.shared.core.ui.theme.Radius
 import co.sirdab.driver.shared.core.ui.theme.Spacing
 import co.sirdab.driver.shared.core.util.localizeDigits
+import co.sirdab.driver.shared.feature.trip.api.ProofType
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -114,6 +115,16 @@ fun DriverTripDetailScreen(
     val capture = rememberPhotoCapture { image: CapturedImage ->
         photoFor?.let { stopId -> viewModel.attachPhoto(stopId, image.bytes, image.contentType) }
         photoFor = null
+    }
+
+    // The delivery note has a launcher of its own, so a note can never be filed as the stop's
+    // photo or the other way round. Saveable for the same reason as the photo: what comes back
+    // from the camera is a delivery, and it must still know which stop it closes.
+    var askingNoteFor by rememberSaveable { mutableStateOf<String?>(null) }
+    var noteFor by rememberSaveable { mutableStateOf<String?>(null) }
+    val noteCapture = rememberPhotoCapture { image: CapturedImage ->
+        noteFor?.let { stopId -> viewModel.deliverWithNote(stopId, image.bytes, image.contentType) }
+        noteFor = null
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -250,12 +261,30 @@ fun DriverTripDetailScreen(
                                 viewModel.navigationOpened(stop)
                                 maps.navigateTo(lat, lng, stop.address.label)
                             },
-                            onAction = { action -> viewModel.record(stop.id, action) },
+                            onAction = { action ->
+                                if (action.requiresDeliveryNote) {
+                                    askingNoteFor = stop.id
+                                } else {
+                                    viewModel.record(stop.id, action)
+                                }
+                            },
                         )
                     }
                 }
             }
         }
+    }
+
+    askingNoteFor?.let { stopId ->
+        DeliveryNoteSheet(
+            onDismiss = { askingNoteFor = null },
+            onCapture = { source ->
+                viewModel.photoCaptureStarted(stopId, source, ProofType.DOCUMENT)
+                noteFor = stopId
+                askingNoteFor = null
+                noteCapture.launch(source)
+            },
+        )
     }
 
     if (state.isReportingException) {

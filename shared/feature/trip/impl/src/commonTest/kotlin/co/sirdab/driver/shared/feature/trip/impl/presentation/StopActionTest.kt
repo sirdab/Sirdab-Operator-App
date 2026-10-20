@@ -91,6 +91,12 @@ class StopActionTest {
     }
 
     @Test
+    fun `only delivering asks for the delivery note`() {
+        // The POD is the app's own step, taken at the tap; nothing else waits on it.
+        assertThat(StopAction.entries.filter { it.requiresDeliveryNote }).isEqualTo(listOf(StopAction.DELIVER))
+    }
+
+    @Test
     fun `closing a stop is withheld until a photo proof exists`() {
         val pickup = stop("s1", 1, StopType.PICKUP, StopStatus.ARRIVED)
         val dropoff = stop("s2", 2, StopType.DROPOFF, StopStatus.ARRIVED)

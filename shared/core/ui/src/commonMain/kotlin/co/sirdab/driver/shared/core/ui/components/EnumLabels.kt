@@ -33,6 +33,7 @@ import co.sirdab.driver.shared.core.ui.generated.resources.err_document_missing
 import co.sirdab.driver.shared.core.ui.generated.resources.err_document_too_large
 import co.sirdab.driver.shared.core.ui.generated.resources.err_document_type
 import co.sirdab.driver.shared.core.ui.generated.resources.err_driver_suspended
+import co.sirdab.driver.shared.core.ui.generated.resources.err_equipment_not_offered
 import co.sirdab.driver.shared.core.ui.generated.resources.err_last_truck
 import co.sirdab.driver.shared.core.ui.generated.resources.err_unavailable
 import co.sirdab.driver.shared.core.ui.generated.resources.err_manages_organization
@@ -116,6 +117,7 @@ fun AppErrorReason.labelRes(): StringResource = when (this) {
     AppErrorReason.DRIVER_SUSPENDED -> Res.string.err_driver_suspended
     AppErrorReason.WORKSPACE_SUSPENDED -> Res.string.err_workspace_suspended
     AppErrorReason.LAST_TRUCK -> Res.string.err_last_truck
+    AppErrorReason.EQUIPMENT_NOT_OFFERED -> Res.string.err_equipment_not_offered
     AppErrorReason.DOCUMENT_TOO_LARGE -> Res.string.err_document_too_large
     AppErrorReason.DOCUMENT_TYPE -> Res.string.err_document_type
     AppErrorReason.DOCUMENT_MISSING -> Res.string.err_document_missing

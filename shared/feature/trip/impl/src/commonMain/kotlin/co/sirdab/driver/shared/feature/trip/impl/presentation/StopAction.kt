@@ -35,11 +35,19 @@ enum class StopAction(
     val primary: Boolean,
     /** The server refuses this one until a photo proof is attached to the stop. */
     val requiresPhoto: Boolean = false,
+    /**
+     * The app asks for the signed delivery note before recording this one, and queues it ahead.
+     *
+     * The app's rule, not the server's: the trip only carries a count of photos, so whether a stop
+     * already has its POD cannot be read back, and asking at the tap is the one moment the answer
+     * is certain. It is also the moment the note is in the driver's hand.
+     */
+    val requiresDeliveryNote: Boolean = false,
 ) {
     ARRIVE(TripEventType.ARRIVED_AT_STOP, primary = true),
     START_LOADING(TripEventType.LOADING_STARTED, primary = false),
     FINISH_LOADING(TripEventType.LOADING_FINISHED, primary = true, requiresPhoto = true),
-    DELIVER(TripEventType.DELIVERED, primary = true, requiresPhoto = true),
+    DELIVER(TripEventType.DELIVERED, primary = true, requiresPhoto = true, requiresDeliveryNote = true),
     DEPART(TripEventType.DEPARTED_STOP, primary = true),
 }
 

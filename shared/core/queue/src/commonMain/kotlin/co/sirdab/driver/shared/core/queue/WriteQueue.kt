@@ -72,6 +72,9 @@ class WriteQueue(
     /** Everything still queued, in the order it will be sent. */
     suspend fun pending(): List<PendingWrite> = dao.all()
 
+    /** [pending], as it changes. */
+    fun observePending(): Flow<List<PendingWrite>> = dao.observeAll()
+
     /**
      * Persist a write before telling the driver it worked.
      *

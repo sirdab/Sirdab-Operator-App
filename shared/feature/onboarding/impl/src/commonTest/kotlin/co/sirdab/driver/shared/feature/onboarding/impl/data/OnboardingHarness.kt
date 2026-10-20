@@ -111,6 +111,7 @@ internal object Api {
     const val REFRESH = "/auth/v1/token"
     const val PROFILE = "/api/driver/profile"
     const val TRUCKS = "/api/driver/profile/trucks"
+    const val TRUCK_TYPES = "/api/driver/equipment-types"
     const val DOCUMENTS = "/api/driver/profile/documents"
     const val ME = "/api/driver/me"
     const val EVENTS = "/api/driver/trips/t1/events"

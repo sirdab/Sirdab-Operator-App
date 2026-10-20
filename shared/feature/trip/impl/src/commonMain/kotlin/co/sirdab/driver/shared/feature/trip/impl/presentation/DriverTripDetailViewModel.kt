@@ -13,6 +13,7 @@ import co.sirdab.driver.shared.core.model.TripStop
 import co.sirdab.driver.shared.feature.trip.api.DriverTripRepository
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
+import co.sirdab.driver.shared.feature.trip.api.ProofType
 import co.sirdab.driver.shared.feature.trip.api.TripEventRecorder
 import co.sirdab.driver.shared.feature.trip.api.TripEventType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,9 +82,12 @@ class DriverTripDetailViewModel(
         analytics.track(AnalyticsEvent.stopContactCalled(tripId, stop))
     }
 
-    /** The camera or library is opening for a photo of [stopId]; [attachPhoto] is what comes back. */
-    fun photoCaptureStarted(stopId: String, source: PhotoSource) {
-        analytics.track(AnalyticsEvent.photoProofStarted(tripId, stopId, source.name.lowercase()))
+    /**
+     * The camera or library is opening for a photo of [stopId]; [attachPhoto] is what comes back, or
+     * [deliverWithNote] for a [ProofType.DOCUMENT].
+     */
+    fun photoCaptureStarted(stopId: String, source: PhotoSource, type: ProofType = ProofType.PHOTO) {
+        analytics.track(AnalyticsEvent.photoProofStarted(tripId, stopId, source.name.lowercase(), type.wire))
     }
 
     /**
@@ -100,6 +104,16 @@ class DriverTripDetailViewModel(
         }
 
     private val proofFlows = mutableMapOf<String, StateFlow<Int>>()
+
+    /**
+     * A delivery whose note came back before the trip did.
+     *
+     * The camera is another app, and a phone short on memory kills this one while it is open; the
+     * screen comes back with a fresh read still under way, and the note lands on a view model with
+     * no trip to record against. Dropping the delivery there would leave a POD on a stop the driver
+     * believes they closed.
+     */
+    private var deliveryAwaitingTrip: String? = null
 
     /**
      * Keep the photo, then reload.
@@ -124,6 +138,41 @@ class DriverTripDetailViewModel(
                 }
                 is AppResult.Failure -> {
                     analytics.track(AnalyticsEvent.tripActionFailed(tripId, PHOTO_PROOF, result.error))
+                    _state.value = _state.value.copy(errorMessage = result.error.message)
+                }
+            }
+        }
+    }
+
+    /**
+     * Keep the signed delivery note, then record the delivery it proves.
+     *
+     * In that order and only in that order: the queue sends oldest first, so the POD is on the stop
+     * before the delivery lands, and a note the phone could not keep leaves the stop undelivered
+     * rather than delivered without one. The note does not count as the photo the server wants;
+     * that one is taken before Delivered is offered at all.
+     */
+    fun deliverWithNote(stopId: String, bytes: ByteArray, contentType: String) {
+        val capturedAtMillis = clock.now().toEpochMilliseconds()
+        viewModelScope.launch {
+            val result = recorder.attachPhotoProof(
+                stopId = stopId,
+                bytes = bytes,
+                contentType = contentType,
+                capturedAtMillis = capturedAtMillis,
+                type = ProofType.DOCUMENT,
+            )
+            when (result) {
+                is AppResult.Success -> {
+                    analytics.track(AnalyticsEvent.photoProofAdded(tripId, stopId, ProofType.DOCUMENT.wire))
+                    if (_state.value.trip == null) {
+                        deliveryAwaitingTrip = stopId
+                    } else {
+                        record(stopId, StopAction.DELIVER)
+                    }
+                }
+                is AppResult.Failure -> {
+                    analytics.track(AnalyticsEvent.tripActionFailed(tripId, DELIVERY_NOTE, result.error))
                     _state.value = _state.value.copy(errorMessage = result.error.message)
                 }
             }
@@ -165,6 +214,12 @@ class DriverTripDetailViewModel(
                         errorMessage = result.error.message,
                     )
                 }
+            }
+            // Against the trip just read, which is what the delivery's own checks need.
+            val awaiting = deliveryAwaitingTrip
+            if (awaiting != null && _state.value.trip != null) {
+                deliveryAwaitingTrip = null
+                record(awaiting, StopAction.DELIVER)
             }
         }
     }
@@ -330,6 +385,9 @@ class DriverTripDetailViewModel(
 
 /** What a failed photo is called in analytics: it is not a trip event, so it has no wire name. */
 private const val PHOTO_PROOF = "photo_proof"
+
+/** The same, for the delivery note asked for before a delivery. */
+private const val DELIVERY_NOTE = "delivery_note"
 
 /** Stops the driver still has work at. */
 private val UNFINISHED = setOf(StopStatus.PENDING, StopStatus.ARRIVED)

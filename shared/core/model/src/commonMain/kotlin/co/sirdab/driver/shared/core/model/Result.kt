@@ -38,6 +38,9 @@ enum class AppErrorReason {
     /** A driver must keep one truck, so the last one cannot be removed. */
     LAST_TRUCK,
 
+    /** A truck type none of the driver's workspaces runs, which the list has to be re-read for. */
+    EQUIPMENT_NOT_OFFERED,
+
     /** The photograph is bigger than the contract accepts. */
     DOCUMENT_TOO_LARGE,
 

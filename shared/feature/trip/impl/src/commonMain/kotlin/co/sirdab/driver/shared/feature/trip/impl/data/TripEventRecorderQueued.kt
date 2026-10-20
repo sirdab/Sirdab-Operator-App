@@ -8,9 +8,11 @@ import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.network.FilePurpose
 import co.sirdab.driver.shared.core.platform.files.LocalFileStore
 import co.sirdab.driver.shared.core.queue.DrainResult
+import co.sirdab.driver.shared.core.queue.PendingWrite
 import co.sirdab.driver.shared.core.queue.WriteQueue
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
+import co.sirdab.driver.shared.feature.trip.api.ProofType
 import co.sirdab.driver.shared.feature.trip.api.QueuedTripEvent
 import co.sirdab.driver.shared.feature.trip.api.TripEventRecorder
 import co.sirdab.driver.shared.feature.trip.api.TripEventType
@@ -23,6 +25,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -30,6 +34,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -137,13 +143,14 @@ class TripEventRecorderQueued(
         capturedAtMillis: Long,
         lat: Double?,
         lng: Double?,
+        type: ProofType,
     ): AppResult<Unit> {
         // `fileIds` is deliberately absent: the file does not exist until the
         // queue mints it, and the queue writes it into this body then.
         val body = json.encodeToString(
             ProofInputDto.serializer(),
             ProofInputDto(
-                proofType = PHOTO_PROOF,
+                proofType = type.wire,
                 capturedAt = Instant.fromEpochMilliseconds(capturedAtMillis).toString(),
                 lat = lat,
                 lng = lng,
@@ -154,7 +161,7 @@ class TripEventRecorderQueued(
         return runCatching {
             // Bytes first. A queue row pointing at a file that was never
             // written is a proof that can only ever be dropped.
-            val localPath = files.write("$stopId-$capturedAtMillis.jpg", bytes)
+            val localPath = files.write("$stopId-${type.wire}-$capturedAtMillis.jpg", bytes)
             queue.enqueueUpload(
                 path = path,
                 body = body,
@@ -172,8 +179,24 @@ class TripEventRecorderQueued(
         )
     }
 
-    override fun pendingProofs(stopId: String): Flow<Int> =
-        queue.observeUploadsFor(proofPath(stopId))
+    /**
+     * Read off the queued bodies rather than counted by path: a delivery note
+     * goes to the same endpoint, and only a photo unlocks the delivery.
+     */
+    override fun pendingProofs(stopId: String): Flow<Int> {
+        val path = proofPath(stopId)
+        return queue.observePending()
+            .map { writes -> writes.count { it.path == path && it.localPath != null && it.isPhotoProof() } }
+            .distinctUntilChanged()
+    }
+
+    /**
+     * The one field, not the whole DTO: once the file is minted the queue
+     * rewrites the body with `fileIds`, which [ProofInputDto] does not carry.
+     */
+    private fun PendingWrite.isPhotoProof(): Boolean =
+        runCatching { json.parseToJsonElement(body).jsonObject["proofType"]?.jsonPrimitive?.content }
+            .getOrNull() == ProofType.PHOTO.wire
 
     override fun pendingCount(): Flow<Int> = queue.observeCount()
 
@@ -265,9 +288,4 @@ class TripEventRecorderQueued(
             // driver must see: nothing was saved, so nothing will be sent.
             onFailure = { AppResult.Failure(AppError(it.message ?: "Could not save that.")) },
         )
-
-    private companion object {
-        /** The only proof type the server's photo rule counts. */
-        const val PHOTO_PROOF = "photo"
-    }
 }

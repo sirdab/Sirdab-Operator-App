@@ -101,6 +101,8 @@
     <string name="stop_choose_photo">تصویر منتخب کریں</string>
     <string name="stop_photo_sending">تصویر بھیجی جا رہی ہے…</string>
     <string name="stop_photo_count">%1$s تصاویر منسلک</string>
+    <string name="pod_title">ڈیلیوری کا ثبوت</string>
+    <string name="pod_body">دستخط شدہ ڈیلیوری نوٹ کی تصویر لیں۔ یہ ڈیلیوری کے ساتھ بھیجی جائے گی۔</string>
 
     <!-- Sign-up -->
     <string name="signup_details_title">آپ کے بارے میں</string>
@@ -153,9 +155,8 @@
     <string name="equip_temp_chilled">ٹھنڈا</string>
     <string name="equip_temp_frozen">جما ہوا</string>
     <string name="equip_temp_multi">ملٹی ٹمپریچر</string>
-    <string name="truck_body">باڈی کی قسم</string>
-    <string name="truck_size">ٹرک کا سائز</string>
-    <string name="truck_temperature">درجہ حرارت</string>
+    <string name="truck_type">ٹرک کی قسم</string>
+    <string name="truck_types_empty">ابھی منتخب کرنے کے لیے کوئی ٹرک کی قسم موجود نہیں۔ اپنے ڈسپیچر یا سرداب سپورٹ سے اپنی قسم شامل کرنے کو کہیں۔</string>
 
     <!-- Exceptions -->
     <string name="exc_report">مسئلہ رپورٹ کریں</string>
@@ -264,6 +265,7 @@
     <string name="err_driver_suspended">آپ کا ڈرائیور اکاؤنٹ معطل کر دیا گیا ہے۔</string>
     <string name="err_workspace_suspended">یہ فلیٹ معطل کر دیا گیا ہے۔</string>
     <string name="err_last_truck">آپ کے پاس کم از کم ایک ٹرک ہونا چاہیے۔</string>
+    <string name="err_equipment_not_offered">یہ ٹرک کی قسم اب دستیاب نہیں۔ فہرست میں سے کوئی منتخب کریں۔</string>
     <string name="err_document_too_large">یہ تصویر بہت بڑی ہے۔ دوبارہ لیں۔</string>
     <string name="err_document_type">یہ فائل کی قسم قبول نہیں۔</string>
     <string name="err_document_missing">یہ دستاویز اب موجود نہیں۔ دوبارہ اپ لوڈ کریں۔</string>

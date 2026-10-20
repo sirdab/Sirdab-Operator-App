@@ -347,17 +347,23 @@ data class AnalyticsEvent(val name: String, val properties: Map<String, Any> = e
          * The camera or the photo library opened for a stop's proof. One with no [photoProofAdded]
          * after it is a driver who backed out, or a photo the phone could not keep.
          *
-         * [source] is `camera` or `library`.
+         * [source] is `camera` or `library`. [proofType] is the contract's: `photo` for the photo
+         * that unlocks the step, `document` for the delivery note photographed as the POD.
          */
-        fun photoProofStarted(tripId: String, stopId: String, source: String) = event(
+        fun photoProofStarted(tripId: String, stopId: String, source: String, proofType: String = "photo") = event(
             "Photo Proof Started",
             "trip_id" to tripId,
             "stop_id" to stopId,
             "source" to source,
+            "proof_type" to proofType,
         )
 
-        fun photoProofAdded(tripId: String, stopId: String) =
-            event("Photo Proof Added", "trip_id" to tripId, "stop_id" to stopId)
+        fun photoProofAdded(tripId: String, stopId: String, proofType: String = "photo") = event(
+            "Photo Proof Added",
+            "trip_id" to tripId,
+            "stop_id" to stopId,
+            "proof_type" to proofType,
+        )
 
         /** [stopId] is the stop being worked when the sheet opened, if there is one. */
         fun exceptionReportOpened(tripId: String, stopId: String?) =
