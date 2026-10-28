@@ -16,9 +16,12 @@ import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.DriverDocumentKind
 import co.sirdab.driver.shared.core.model.DriverDocumentStatus
 import co.sirdab.driver.shared.core.model.Nationality
+import co.sirdab.driver.shared.feature.onboarding.api.domain.City
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DetailsDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
 import co.sirdab.driver.shared.feature.onboarding.api.domain.OnboardingGap
+import co.sirdab.driver.shared.feature.onboarding.api.domain.PreferredRoute
+import co.sirdab.driver.shared.feature.onboarding.api.domain.RoutesDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckType
 import io.ktor.http.HttpStatusCode
@@ -105,6 +108,98 @@ class DriverOnboardingRepositoryTmsTest {
         assertThat(body).contains(""""nationality":"SA"""")
         assertThat(body).contains(""""licenceNumber":"DL-2020202"""")
         assertThat(body).contains(""""licenceExpiresAt":"2027-09-21"""")
+    }
+
+    @Test
+    fun `the home city and routes are named from the profile's own list of cities`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                Api.PROFILE -> respondJson(
+                    profileJson(
+                        homeCityId = RIYADH,
+                        preferredRoutes = listOf(routeJson(RIYADH, JEDDAH), routeJson(JEDDAH, UNNAMED)),
+                        cities = listOf(cityJson(RIYADH, "Riyadh", "الرياض"), cityJson(JEDDAH, "Jeddah")),
+                    ),
+                )
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+
+        val profile = (harness.onboarding.refresh() as AppResult.Success).data
+
+        assertThat(profile.homeCity?.displayName("ar")).isEqualTo("الرياض")
+        assertThat(profile.homeCity?.displayName("en")).isEqualTo("Riyadh")
+        assertThat(profile.preferredRoutes.map { it.origin.name to it.destination.name })
+            .containsExactly("Riyadh" to "Jeddah", "Jeddah" to "")
+        // A city the server did not name is kept by its id: the PATCH replaces the whole list, and
+        // dropping the route here would delete it on the driver's next save.
+        assertThat(profile.preferredRoutes.last().destination.id).isEqualTo(UNNAMED)
+    }
+
+    @Test
+    fun `the home city and routes are sent as ids, the whole list at once`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                Api.PROFILE -> respondJson(profileJson(homeCityId = RIYADH))
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+        val riyadh = City(RIYADH, "Riyadh", "الرياض")
+        val jeddah = City(JEDDAH, "Jeddah", null)
+
+        val result = harness.onboarding.saveRoutes(
+            RoutesDraft(homeCity = riyadh, routes = listOf(PreferredRoute(riyadh, jeddah))),
+        )
+
+        assertThat(result).isInstanceOf(AppResult.Success::class)
+        val call = harness.calls.single { it.path == Api.PROFILE }
+        assertThat(call.method).isEqualTo("PATCH")
+        val body = call.body.orEmpty()
+        assertThat(body).contains(""""homeCityId":"$RIYADH"""")
+        assertThat(body).contains(
+            """"preferredRoutes":[{"originCityId":"$RIYADH","destinationCityId":"$JEDDAH"}]""",
+        )
+        // Only what this screen edits: a name left out is a name left alone.
+        assertThat(body).doesNotContain(""""name"""")
+    }
+
+    @Test
+    fun `removing the last route sends an empty list rather than leaving the field out`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                Api.PROFILE -> respondJson(profileJson(homeCityId = RIYADH))
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+
+        harness.onboarding.saveRoutes(RoutesDraft(homeCity = City(RIYADH, "Riyadh", null)))
+
+        // Left out, the server would keep the routes the driver just removed.
+        assertThat(harness.bodyOf(Api.PROFILE).orEmpty()).contains(""""preferredRoutes":[]""")
+    }
+
+    @Test
+    fun `a city search sends what was typed, and a blank one asks for the biggest`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                Api.CITIES -> respondJson(
+                    """{"items":[{"id":"$JEDDAH","name":"Jeddah","nameAr":"جدة","countryCode":"SA",
+                       "regionId":null,"regionName":"Makkah","governorateId":null,"governorateName":null,
+                       "tier":1,"lat":21.5,"lng":39.2}],"nextCursor":null}""",
+                )
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+
+        val found = (harness.onboarding.searchCities("  jed ") as AppResult.Success).data
+
+        assertThat(found).containsExactly(City(JEDDAH, "Jeddah", "جدة"))
+        assertThat(harness.calls.last().query).isEqualTo("q=jed")
+
+        harness.onboarding.searchCities(" ")
+
+        // The contract refuses a blank `q`, so there is none.
+        assertThat(harness.calls.last().query).isEqualTo("")
     }
 
     @Test
@@ -365,3 +460,7 @@ class DriverOnboardingRepositoryTmsTest {
         assertThat(harness.onboarding.profile.value?.name).isEqualTo("Nayef")
     }
 }
+
+private const val RIYADH = "c1000000-0000-4000-8000-000000000001"
+private const val JEDDAH = "c1000000-0000-4000-8000-000000000002"
+private const val UNNAMED = "c1000000-0000-4000-8000-000000000099"

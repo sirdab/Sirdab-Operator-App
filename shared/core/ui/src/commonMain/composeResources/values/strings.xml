@@ -287,4 +287,22 @@
     <string name="signup_identity">Which do you carry?</string>
     <string name="review_banner">Your account is under review. Tap to see where each document is.</string>
     <string name="review_under_way">Your account is under review. We will tell you as soon as it is approved.</string>
+    <string name="routes_title">Where you drive</string>
+    <string name="routes_subtitle">Your home city and the routes you like to take help us offer you loads that suit you.</string>
+    <string name="routes_row">Home city and routes</string>
+    <string name="routes_home_city">Home city</string>
+    <string name="routes_preferred">Preferred routes</string>
+    <string name="routes_preferred_hint">Optional. Add up to %1$d routes you would rather take.</string>
+    <string name="routes_from">From</string>
+    <string name="routes_to">To</string>
+    <string name="routes_add">Add route</string>
+    <string name="routes_full">That is the most routes you can add. Remove one to add another.</string>
+    <string name="routes_save">Save</string>
+    <string name="routes_not_set">Not set yet</string>
+    <string name="routes_search">Search for a city</string>
+    <string name="routes_no_match">No city matches that name.</string>
+    <plurals name="routes_count">
+        <item quantity="one">%1$d route</item>
+        <item quantity="other">%1$d routes</item>
+    </plurals>
 </resources>

@@ -134,6 +134,8 @@ private fun AppNavHost(
                         // Pushed over the shell, like the checklist: the driver is looking at
                         // where their documents stand, not being held somewhere.
                         onOpenReview = { backStack.add(OnboardingRoute.UnderReview) },
+                        // The same screen sign-up opens. Saving pops it, back onto the profile tab.
+                        onOpenRoutes = { backStack.add(OnboardingRoute.Routes) },
                     )
                 }
                 tripEntries(
@@ -152,6 +154,7 @@ private fun NavKey.screenView(): AnalyticsEvent? = when (this) {
     OnboardingRoute.SignUp -> AnalyticsEvent.screenViewed("sign_up_checklist")
     OnboardingRoute.SignUpDetails -> AnalyticsEvent.screenViewed("sign_up_details")
     OnboardingRoute.SignUpTruck -> AnalyticsEvent.screenViewed("sign_up_truck")
+    OnboardingRoute.Routes -> AnalyticsEvent.screenViewed("routes")
     OnboardingRoute.UnderReview -> AnalyticsEvent.screenViewed("under_review")
     OnboardingRoute.Blocked -> AnalyticsEvent.screenViewed("blocked")
     is TripRoute.Detail -> AnalyticsEvent.screenViewed("trip_detail", tripId = tripId)

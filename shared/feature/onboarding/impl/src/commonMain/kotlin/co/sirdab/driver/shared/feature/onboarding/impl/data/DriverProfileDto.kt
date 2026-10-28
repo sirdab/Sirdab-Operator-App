@@ -6,9 +6,11 @@ import co.sirdab.driver.shared.core.model.EquipmentBody
 import co.sirdab.driver.shared.core.model.EquipmentSize
 import co.sirdab.driver.shared.core.model.EquipmentTemperature
 import co.sirdab.driver.shared.core.model.Nationality
+import co.sirdab.driver.shared.feature.onboarding.api.domain.City
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfileStatus
 import co.sirdab.driver.shared.feature.onboarding.api.domain.OnboardingGap
+import co.sirdab.driver.shared.feature.onboarding.api.domain.PreferredRoute
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileDocument
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileTruck
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileWorkspace
@@ -24,6 +26,10 @@ internal data class DriverProfileDto(
     val nationality: String? = null,
     val licenceNumber: String? = null,
     val licenceExpiresAt: String? = null,
+    val homeCityId: String? = null,
+    val preferredRoutes: List<PreferredRouteDto> = emptyList(),
+    /** The name of every city [homeCityId] and [preferredRoutes] mention, and no others. */
+    val cities: List<CityDto> = emptyList(),
     val status: String = "pending_verification",
     val onboardingCompletedAt: String? = null,
     /** What onboarding still wants, in the server's own words. */
@@ -32,6 +38,25 @@ internal data class DriverProfileDto(
     val documents: List<ProfileDocumentDto> = emptyList(),
     val workspaces: List<ProfileWorkspaceDto> = emptyList(),
 )
+
+/** Ids only, here and in the PATCH: the names come once, in the profile's `cities`. */
+@Serializable
+internal data class PreferredRouteDto(
+    val originCityId: String,
+    val destinationCityId: String,
+)
+
+/** A city in the profile's `cities`, and in `GET /api/v1/cities`, which sends more than this. */
+@Serializable
+internal data class CityDto(
+    val id: String,
+    val name: String,
+    val nameAr: String? = null,
+)
+
+/** `GET /api/v1/cities` (contracts 10.43.0). One page is all the app reads: the search narrows it. */
+@Serializable
+internal data class CitiesDto(val items: List<CityDto> = emptyList())
 
 @Serializable
 internal data class ProfileTruckDto(
@@ -65,13 +90,20 @@ internal data class ProfileWorkspaceDto(
     val carrierId: String,
 )
 
-/** `PATCH /api/driver/profile`. Every field optional: only what the driver just filled in is sent. */
+/**
+ * `PATCH /api/driver/profile`. Every field optional: only what the driver just filled in is sent.
+ *
+ * A null is left out of the body rather than sent, which for [preferredRoutes] is the difference
+ * between keeping the list and clearing it.
+ */
 @Serializable
 internal data class UpdateProfileDto(
     val name: String? = null,
     val nationality: String? = null,
     val licenceNumber: String? = null,
     val licenceExpiresAt: String? = null,
+    val homeCityId: String? = null,
+    val preferredRoutes: List<PreferredRouteDto>? = null,
 )
 
 /** `POST /api/driver/profile/trucks`. All three axes are required: a truck missing one never matches. */
@@ -151,49 +183,63 @@ internal fun TruckTypeDto.toDomain(): TruckType? = TruckType(
     temperature = EquipmentTemperature.fromWire(temperature) ?: return null,
 )
 
-internal fun DriverProfileDto.toDomain(): DriverProfile = DriverProfile(
-    userId = userId,
-    name = name,
-    phone = phone,
-    nationality = Nationality.fromWire(nationality),
-    licenceNumber = licenceNumber,
-    licenceExpiresAt = licenceExpiresAt,
-    status = DriverProfileStatus.fromWire(status),
-    onboardingCompletedAt = onboardingCompletedAt,
-    missing = missing.map(OnboardingGap::fromWire),
-    trucks = trucks.map { truck ->
-        ProfileTruck(
-            id = truck.id,
-            licencePlate = truck.licencePlate,
-            // An unknown axis value is a contract that moved on without the app. Falling back keeps
-            // the profile readable; the pickers are built off the enums, so the swap when the
-            // vocabulary widens is an enum and its labels.
-            bodyType = EquipmentBody.fromWire(truck.bodyType) ?: EquipmentBody.BOX,
-            sizeClass = EquipmentSize.fromWire(truck.sizeClass) ?: EquipmentSize.MEDIUM,
-            temperature = EquipmentTemperature.fromWire(truck.temperature) ?: EquipmentTemperature.AMBIENT,
-            capacityKg = truck.capacityKg,
-        )
-    },
-    documents = documents.mapNotNull { doc ->
-        // A kind this build cannot name is a document it cannot render or replace, and inventing a
-        // placeholder for it would put a row on the checklist that does nothing.
-        val kind = DriverDocumentKind.fromWire(doc.kind) ?: return@mapNotNull null
-        ProfileDocument(
-            id = doc.id,
-            kind = kind,
-            truckId = doc.truckId,
-            status = DriverDocumentStatus.fromWire(doc.status),
-            rejectionReason = doc.rejectionReason,
-            uploadedAt = doc.uploadedAt,
-            downloadUrl = doc.downloadUrl,
-        )
-    },
-    workspaces = workspaces.map {
-        ProfileWorkspace(
-            workspaceId = it.workspaceId,
-            workspaceName = it.workspaceName,
-            driverId = it.driverId,
-            carrierId = it.carrierId,
-        )
-    },
-)
+internal fun CityDto.toDomain(): City = City(id = id, name = name, nameAr = nameAr)
+
+internal fun DriverProfileDto.toDomain(): DriverProfile {
+    // The server names every city it refers to, so a miss is a city it could not find. Kept with a
+    // blank name rather than dropped: the PATCH replaces the whole list, and saving a list with a
+    // route quietly missing would delete it.
+    val citiesById = cities.associate { it.id to it.toDomain() }
+    fun city(id: String) = citiesById[id] ?: City(id = id, name = "", nameAr = null)
+
+    return DriverProfile(
+        userId = userId,
+        name = name,
+        phone = phone,
+        nationality = Nationality.fromWire(nationality),
+        licenceNumber = licenceNumber,
+        licenceExpiresAt = licenceExpiresAt,
+        homeCity = homeCityId?.let(::city),
+        preferredRoutes = preferredRoutes.map {
+            PreferredRoute(origin = city(it.originCityId), destination = city(it.destinationCityId))
+        },
+        status = DriverProfileStatus.fromWire(status),
+        onboardingCompletedAt = onboardingCompletedAt,
+        missing = missing.map(OnboardingGap::fromWire),
+        trucks = trucks.map { truck ->
+            ProfileTruck(
+                id = truck.id,
+                licencePlate = truck.licencePlate,
+                // An unknown axis value is a contract that moved on without the app. Falling back
+                // keeps the profile readable; the pickers are built off the enums, so the swap when
+                // the vocabulary widens is an enum and its labels.
+                bodyType = EquipmentBody.fromWire(truck.bodyType) ?: EquipmentBody.BOX,
+                sizeClass = EquipmentSize.fromWire(truck.sizeClass) ?: EquipmentSize.MEDIUM,
+                temperature = EquipmentTemperature.fromWire(truck.temperature) ?: EquipmentTemperature.AMBIENT,
+                capacityKg = truck.capacityKg,
+            )
+        },
+        documents = documents.mapNotNull { doc ->
+            // A kind this build cannot name is a document it cannot render or replace, and inventing
+            // a placeholder for it would put a row on the checklist that does nothing.
+            val kind = DriverDocumentKind.fromWire(doc.kind) ?: return@mapNotNull null
+            ProfileDocument(
+                id = doc.id,
+                kind = kind,
+                truckId = doc.truckId,
+                status = DriverDocumentStatus.fromWire(doc.status),
+                rejectionReason = doc.rejectionReason,
+                uploadedAt = doc.uploadedAt,
+                downloadUrl = doc.downloadUrl,
+            )
+        },
+        workspaces = workspaces.map {
+            ProfileWorkspace(
+                workspaceId = it.workspaceId,
+                workspaceName = it.workspaceName,
+                driverId = it.driverId,
+                carrierId = it.carrierId,
+            )
+        },
+    )
+}

@@ -10,6 +10,7 @@ import co.sirdab.driver.shared.feature.onboarding.impl.presentation.otp.OtpViewM
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.phone.PhoneViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.BlockedViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.ReviewViewModel
+import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.RoutesViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpChecklistViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpDetailsViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpTruckViewModel
@@ -30,6 +31,7 @@ val onboardingModule: Module = module {
     viewModelOf(::SignUpChecklistViewModel)
     viewModelOf(::SignUpDetailsViewModel)
     viewModelOf(::SignUpTruckViewModel)
+    viewModelOf(::RoutesViewModel)
     viewModelOf(::ReviewViewModel)
     viewModelOf(::BlockedViewModel)
     viewModel { (phone: String) -> OtpViewModel(phone, get(), get()) }

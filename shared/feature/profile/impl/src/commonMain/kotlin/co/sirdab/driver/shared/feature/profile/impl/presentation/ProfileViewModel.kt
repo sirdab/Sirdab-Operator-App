@@ -12,7 +12,9 @@ import co.sirdab.driver.shared.core.model.DriverVerification
 import co.sirdab.driver.shared.core.preferences.locale.AppLanguage
 import co.sirdab.driver.shared.core.preferences.locale.LanguageStore
 import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
+import co.sirdab.driver.shared.feature.onboarding.api.domain.City
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
+import co.sirdab.driver.shared.feature.onboarding.api.domain.PreferredRoute
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileDocument
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileWorkspace
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +48,13 @@ data class ProfileUiState(
     val workspaces: List<ProfileWorkspace> = emptyList(),
     /** The one the session is stamped into, which is the one the API answers for. */
     val activeWorkspaceId: String? = null,
+    /**
+     * False until the profile has been read. Before then there is no telling a driver who has not
+     * set a home city from one whose profile has not arrived, and "not set" would be a guess.
+     */
+    val routesKnown: Boolean = false,
+    val homeCity: City? = null,
+    val preferredRoutes: List<PreferredRoute> = emptyList(),
 ) {
     /** Offering a switch between one fleet and itself would be noise. */
     val canSwitchFleet: Boolean get() = workspaces.size > 1
@@ -104,6 +113,9 @@ class ProfileViewModel(
                 workspaces = profile?.workspaces.orEmpty(),
                 ownDocuments = profile?.documents.orEmpty(),
                 isUnderReview = profile?.isUnderReview == true,
+                routesKnown = profile != null,
+                homeCity = profile?.homeCity,
+                preferredRoutes = profile?.preferredRoutes.orEmpty(),
             )
         },
     ) { driver, lang, session ->
@@ -116,6 +128,9 @@ class ProfileViewModel(
             activeWorkspaceId = session.activeWorkspaceId,
             ownDocuments = session.ownDocuments,
             isUnderReview = session.isUnderReview,
+            routesKnown = session.routesKnown,
+            homeCity = session.homeCity,
+            preferredRoutes = session.preferredRoutes,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ProfileUiState())
 
@@ -126,6 +141,9 @@ class ProfileViewModel(
         val workspaces: List<ProfileWorkspace>,
         val ownDocuments: List<ProfileDocument>,
         val isUnderReview: Boolean,
+        val routesKnown: Boolean,
+        val homeCity: City?,
+        val preferredRoutes: List<PreferredRoute>,
     )
 
     /**

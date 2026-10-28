@@ -289,4 +289,22 @@
     <string name="signup_identity">आपके पास कौन सा दस्तावेज़ है?</string>
     <string name="review_banner">आपका खाता समीक्षा में है। हर दस्तावेज़ की स्थिति देखने के लिए दबाएँ।</string>
     <string name="review_under_way">आपका खाता समीक्षा में है। मंज़ूरी मिलते ही हम आपको बता देंगे।</string>
+    <string name="routes_title">आपका शहर और रास्ते</string>
+    <string name="routes_subtitle">आपके रहने का शहर और पसंदीदा रास्ते जानकर हम आपको आपके हिसाब के लोड दिखा पाते हैं।</string>
+    <string name="routes_row">रहने का शहर और रास्ते</string>
+    <string name="routes_home_city">रहने का शहर</string>
+    <string name="routes_preferred">पसंदीदा रास्ते</string>
+    <string name="routes_preferred_hint">वैकल्पिक। %1$d तक ऐसे रास्ते जोड़ें जिन पर आप चलना पसंद करते हैं।</string>
+    <string name="routes_from">कहाँ से</string>
+    <string name="routes_to">कहाँ तक</string>
+    <string name="routes_add">रास्ता जोड़ें</string>
+    <string name="routes_full">आप ज़्यादा से ज़्यादा रास्ते जोड़ चुके हैं। नया जोड़ने के लिए एक हटाएँ।</string>
+    <string name="routes_save">सेव करें</string>
+    <string name="routes_not_set">अभी तय नहीं</string>
+    <string name="routes_search">शहर खोजें</string>
+    <string name="routes_no_match">इस नाम का कोई शहर नहीं मिला।</string>
+    <plurals name="routes_count">
+        <item quantity="one">%1$d रास्ता</item>
+        <item quantity="other">%1$d रास्ते</item>
+    </plurals>
 </resources>

@@ -76,6 +76,10 @@ data class AnalyticsEvent(val name: String, val properties: Map<String, Any> = e
 
         fun detailsSaveFailed(error: AppError) = event("Details Save Failed", *error.properties())
 
+        fun routesSaved(routeCount: Int) = event("Routes Saved", "route_count" to routeCount)
+
+        fun routesSaveFailed(error: AppError) = event("Routes Save Failed", *error.properties())
+
         fun truckAdded(
             body: EquipmentBody,
             size: EquipmentSize,

@@ -23,6 +23,9 @@ sealed interface OnboardingRoute : NavKey {
     /** The truck, or trucks. */
     @Serializable data object SignUpTruck : OnboardingRoute
 
+    /** Home city and preferred routes. Opened from sign-up and from the profile tab alike. */
+    @Serializable data object Routes : OnboardingRoute
+
     /** Everything handed over; ops has not approved it yet. */
     @Serializable data object UnderReview : OnboardingRoute
 

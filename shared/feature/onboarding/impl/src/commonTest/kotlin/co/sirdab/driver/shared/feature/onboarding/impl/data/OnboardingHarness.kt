@@ -50,7 +50,7 @@ internal class OnboardingHarness(
     val calls: MutableList<Call>,
 ) {
     /** What was asked of the server, and with what. */
-    data class Call(val method: String, val path: String, val body: String?)
+    data class Call(val method: String, val path: String, val body: String?, val query: String = "")
 
     fun paths(): List<String> = calls.map { it.path }
 
@@ -72,6 +72,7 @@ internal fun harness(
                     method = request.method.value,
                     path = request.url.encodedPath,
                     body = (request.body as? TextContent)?.text,
+                    query = request.url.encodedQuery,
                 )
                 handler(request)
             }
@@ -112,6 +113,7 @@ internal object Api {
     const val PROFILE = "/api/driver/profile"
     const val TRUCKS = "/api/driver/profile/trucks"
     const val TRUCK_TYPES = "/api/driver/equipment-types"
+    const val CITIES = "/api/v1/cities"
     const val DOCUMENTS = "/api/driver/profile/documents"
     const val ME = "/api/driver/me"
     const val EVENTS = "/api/driver/trips/t1/events"
@@ -172,6 +174,10 @@ internal fun profileJson(
     trucks: List<String> = emptyList(),
     documents: List<String> = emptyList(),
     workspaces: List<String> = emptyList(),
+    homeCityId: String? = null,
+    /** `{"originCityId":…,"destinationCityId":…}` objects, as [routeJson] writes them. */
+    preferredRoutes: List<String> = emptyList(),
+    cities: List<String> = emptyList(),
 ): String = """
 {
   "userId": "p2",
@@ -180,6 +186,9 @@ internal fun profileJson(
   "nationality": null,
   "licenceNumber": ${licenceNumber?.quoted() ?: "null"},
   "licenceExpiresAt": null,
+  "homeCityId": ${homeCityId?.quoted() ?: "null"},
+  "preferredRoutes": ${preferredRoutes.joinToString(prefix = "[", postfix = "]")},
+  "cities": ${cities.joinToString(prefix = "[", postfix = "]")},
   "status": "$status",
   "onboardingCompletedAt": ${onboardingCompletedAt?.quoted() ?: "null"},
   "missing": ${missing.joinToString(prefix = "[", postfix = "]") { it.quoted() }},
@@ -210,6 +219,12 @@ internal fun documentJson(
  "status":"$status","rejectionReason":${rejectionReason?.quoted() ?: "null"},"expiresAt":null,
  "uploadedAt":"2026-09-22T08:00:00+03:00","downloadUrl":null}
 """
+
+internal fun routeJson(origin: String, destination: String): String =
+    """{"originCityId":"$origin","destinationCityId":"$destination"}"""
+
+internal fun cityJson(id: String, name: String, nameAr: String? = null): String =
+    """{"id":"$id","name":"$name","nameAr":${nameAr?.quoted() ?: "null"}}"""
 
 internal fun workspaceJson(id: String = "ws-1"): String =
     """{"workspaceId":"$id","workspaceName":"Sirdab B2B","driverId":"drv-7","carrierId":"c-1"}"""

@@ -8,6 +8,7 @@ import co.sirdab.driver.shared.feature.onboarding.impl.presentation.otp.OtpScree
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.phone.PhoneScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.splash.SplashScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.BlockedScreen
+import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.RoutesScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpChecklistScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpDetailsScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpTruckScreen
@@ -45,6 +46,7 @@ fun EntryProviderScope<NavKey>.onboardingEntries(
         SignUpChecklistScreen(
             onOpenDetails = { onNavigate(OnboardingRoute.SignUpDetails) },
             onOpenTruck = { onNavigate(OnboardingRoute.SignUpTruck) },
+            onOpenRoutes = { onNavigate(OnboardingRoute.Routes) },
             onCompleted = onDestination,
         )
     }
@@ -53,6 +55,9 @@ fun EntryProviderScope<NavKey>.onboardingEntries(
     }
     entry<OnboardingRoute.SignUpTruck> {
         SignUpTruckScreen(onSaved = onBack)
+    }
+    entry<OnboardingRoute.Routes> {
+        RoutesScreen(onSaved = onBack)
     }
     entry<OnboardingRoute.UnderReview> {
         UnderReviewScreen(

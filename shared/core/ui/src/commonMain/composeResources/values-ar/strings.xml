@@ -284,4 +284,26 @@
     <string name="signup_identity">أي وثيقة تحمل؟</string>
     <string name="review_banner">حسابك قيد المراجعة. اضغط لمعرفة موقف كل مستند.</string>
     <string name="review_under_way">حسابك قيد المراجعة. سنخبرك فور اعتماده.</string>
+    <string name="routes_title">مدينتك ومساراتك</string>
+    <string name="routes_subtitle">مدينة إقامتك والمسارات التي تفضّلها تساعدنا على عرض الشحنات المناسبة لك.</string>
+    <string name="routes_row">مدينة الإقامة والمسارات</string>
+    <string name="routes_home_city">مدينة الإقامة</string>
+    <string name="routes_preferred">المسارات المفضّلة</string>
+    <string name="routes_preferred_hint">اختياري. أضف حتى %1$d مسارًا تفضّله.</string>
+    <string name="routes_from">من</string>
+    <string name="routes_to">إلى</string>
+    <string name="routes_add">إضافة مسار</string>
+    <string name="routes_full">وصلت إلى الحد الأقصى للمسارات. احذف مسارًا لتضيف غيره.</string>
+    <string name="routes_save">حفظ</string>
+    <string name="routes_not_set">لم تُحدَّد بعد</string>
+    <string name="routes_search">ابحث عن مدينة</string>
+    <string name="routes_no_match">لا توجد مدينة بهذا الاسم.</string>
+    <plurals name="routes_count">
+        <item quantity="zero">%1$d مسار</item>
+        <item quantity="one">مسار واحد</item>
+        <item quantity="two">مساران</item>
+        <item quantity="few">%1$d مسارات</item>
+        <item quantity="many">%1$d مسارًا</item>
+        <item quantity="other">%1$d مسار</item>
+    </plurals>
 </resources>

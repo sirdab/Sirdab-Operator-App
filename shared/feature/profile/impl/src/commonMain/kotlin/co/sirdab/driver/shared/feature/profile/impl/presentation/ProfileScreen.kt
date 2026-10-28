@@ -17,9 +17,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Surface
@@ -62,6 +65,9 @@ import co.sirdab.driver.shared.core.ui.generated.resources.profile_documents
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_fleet
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_logout
 import co.sirdab.driver.shared.core.ui.generated.resources.review_under_way
+import co.sirdab.driver.shared.core.ui.generated.resources.routes_count
+import co.sirdab.driver.shared.core.ui.generated.resources.routes_not_set
+import co.sirdab.driver.shared.core.ui.generated.resources.routes_row
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_item_rejected
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_delete_account
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_language
@@ -69,6 +75,7 @@ import co.sirdab.driver.shared.core.ui.generated.resources.profile_settings
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_vehicle
 import co.sirdab.driver.shared.core.ui.theme.Radius
 import co.sirdab.driver.shared.core.ui.theme.Spacing
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -76,6 +83,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ProfileScreen(
     onLoggedOut: () -> Unit,
+    onOpenRoutes: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -131,6 +139,39 @@ fun ProfileScreen(
                         Text(stringResource(Res.string.profile_vehicle), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(Spacing.xxs))
                         Text(listOf(equipmentLabel(v.bodyType, v.sizeClass, v.temperature), v.plate).filter { it.isNotEmpty() }.joinToString(" • "), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            // Home city and routes: the driver's own, whichever fleet they are looking at, and edited on
+            // the same screen sign-up asks for them on.
+            if (state.routesKnown) {
+                Spacer(Modifier.height(Spacing.md))
+                Surface(
+                    onClick = onOpenRoutes,
+                    shape = RoundedCornerShape(Radius.lg),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(Modifier.padding(Spacing.md), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(Res.string.routes_row), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.height(Spacing.xxs))
+                            Text(
+                                state.homeCity?.displayName(lang) ?: stringResource(Res.string.routes_not_set),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            val routeCount = state.preferredRoutes.size
+                            if (routeCount > 0) {
+                                Text(
+                                    pluralStringResource(Res.plurals.routes_count, routeCount, routeCount),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }

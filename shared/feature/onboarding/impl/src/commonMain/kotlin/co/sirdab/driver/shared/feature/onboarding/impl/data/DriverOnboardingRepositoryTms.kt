@@ -11,9 +11,11 @@ import co.sirdab.driver.shared.core.network.ApiFailure
 import co.sirdab.driver.shared.core.network.ApiSuccess
 import co.sirdab.driver.shared.core.network.TmsApiClient
 import co.sirdab.driver.shared.core.network.apiFailure
+import co.sirdab.driver.shared.feature.onboarding.api.domain.City
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DetailsDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
+import co.sirdab.driver.shared.feature.onboarding.api.domain.RoutesDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,6 +59,33 @@ class DriverOnboardingRepositoryTms(
         ),
         deserializer = DriverProfileDto.serializer(),
     ).toProfile()
+
+    override suspend fun saveRoutes(draft: RoutesDraft): AppResult<DriverProfile> = api.patch(
+        path = PATH,
+        body = api.encode(
+            UpdateProfileDto.serializer(),
+            UpdateProfileDto(
+                homeCityId = draft.homeCity?.id,
+                // Always sent, empty or not: this is the whole list, and an empty one is the driver
+                // removing the last route.
+                preferredRoutes = draft.routes.map {
+                    PreferredRouteDto(originCityId = it.origin.id, destinationCityId = it.destination.id)
+                },
+            ),
+        ),
+        deserializer = DriverProfileDto.serializer(),
+    ).toProfile()
+
+    override suspend fun searchCities(query: String): AppResult<List<City>> =
+        api.get(
+            path = CITIES_PATH,
+            deserializer = CitiesDto.serializer(),
+            // The contract refuses a blank `q`, so no query is no parameter.
+            query = query.trim().takeIf { it.isNotEmpty() }?.let { mapOf("q" to it) }.orEmpty(),
+        ).fold(
+            onSuccess = { success -> AppResult.Success(success.value.items.map { it.toDomain() }) },
+            onFailure = { AppResult.Failure(it.toOnboardingError()) },
+        )
 
     override suspend fun truckTypes(): AppResult<List<TruckType>> =
         api.get(TRUCK_TYPES_PATH, TruckTypesDto.serializer()).fold(
@@ -173,6 +202,7 @@ class DriverOnboardingRepositoryTms(
         const val PATH = "api/driver/profile"
         const val TRUCKS_PATH = "api/driver/profile/trucks"
         const val TRUCK_TYPES_PATH = "api/driver/equipment-types"
+        const val CITIES_PATH = "api/v1/cities"
         const val DOCUMENTS_PATH = "api/driver/profile/documents"
     }
 }

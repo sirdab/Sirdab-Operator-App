@@ -92,6 +92,25 @@ data class ProfileDocument(
     val downloadUrl: String?,
 )
 
+/** A city as the TMS names it: in English always, and in Arabic when someone has given it one. */
+data class City(
+    val id: String,
+    val name: String,
+    val nameAr: String?,
+) {
+    /** The Arabic name in Arabic when there is one, and [name] everywhere else. */
+    fun displayName(language: String): String =
+        nameAr?.takeIf { language == "ar" && it.isNotBlank() } ?: name
+}
+
+/**
+ * A city-to-city run the driver would rather take.
+ *
+ * One way only: a driver who likes Riyadh to Jeddah may still not want the trip back, and the
+ * server keeps the two apart.
+ */
+data class PreferredRoute(val origin: City, val destination: City)
+
 /** A fleet that has this driver on its roster. */
 data class ProfileWorkspace(
     val workspaceId: String,
@@ -114,6 +133,9 @@ data class DriverProfile(
     val nationality: Nationality?,
     val licenceNumber: String?,
     val licenceExpiresAt: String?,
+    /** Where the driver usually lives. Null until they say. */
+    val homeCity: City?,
+    val preferredRoutes: List<PreferredRoute>,
     val status: DriverProfileStatus,
     /** Set once, the first time [missing] empties, and never cleared. */
     val onboardingCompletedAt: String?,

@@ -51,6 +51,7 @@ import co.sirdab.driver.shared.core.media.CapturedImage
 import co.sirdab.driver.shared.core.media.PhotoSource
 import co.sirdab.driver.shared.core.media.rememberPhotoCapture
 import co.sirdab.driver.shared.core.platform.browser.UrlOpener
+import co.sirdab.driver.shared.core.platform.locale.AppLocale
 import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverDocumentKind
@@ -66,6 +67,8 @@ import co.sirdab.driver.shared.core.ui.components.TagChip
 import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.doc_view
+import co.sirdab.driver.shared.core.ui.generated.resources.routes_count
+import co.sirdab.driver.shared.core.ui.generated.resources.routes_row
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_checklist_subtitle
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_checklist_title
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_item_done
@@ -85,6 +88,7 @@ import co.sirdab.driver.shared.core.ui.generated.resources.stop_take_photo
 import co.sirdab.driver.shared.core.ui.generated.resources.trips_retry
 import co.sirdab.driver.shared.core.ui.theme.Radius
 import co.sirdab.driver.shared.core.ui.theme.Spacing
+import co.sirdab.driver.shared.feature.onboarding.api.domain.City
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverDestination
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
@@ -97,6 +101,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -107,6 +112,15 @@ sealed interface ChecklistItem {
 
     /** Name and licence, filled in on their own screen. */
     data class Details(override val done: Boolean) : ChecklistItem
+
+    /**
+     * Home city and preferred routes, on their own screen.
+     *
+     * The app's ask rather than the server's: `missing` never names it, so [done] is read off the
+     * profile and finishing sign-up does not wait for it. The row is here so a new driver is asked
+     * while they are filling things in anyway, not left to find it in the profile tab.
+     */
+    data class Routes(override val done: Boolean, val homeCity: City?, val routeCount: Int) : ChecklistItem
 
     /** At least one truck, added on its own screen. */
     data class Truck(override val done: Boolean, val plates: List<String>) : ChecklistItem
@@ -265,12 +279,14 @@ class SignUpChecklistViewModel(
 fun SignUpChecklistScreen(
     onOpenDetails: () -> Unit,
     onOpenTruck: () -> Unit,
+    onOpenRoutes: () -> Unit,
     onCompleted: (DriverDestination) -> Unit,
     viewModel: SignUpChecklistViewModel = koinViewModel(),
     urlOpener: UrlOpener = koinInject(),
 ) {
     val state by viewModel.state.collectAsState()
     val profile = state.profile
+    val lang = AppLocale.current()
 
     // Finishing is something the app is told, not something it decides: the server empties
     // `missing` and stamps onboardingCompletedAt, and the write that did it answers with both.
@@ -375,6 +391,21 @@ fun SignUpChecklistScreen(
                             subtitle = profile.name.takeIf { it.isNotBlank() },
                             status = if (item.done) RowStatus.DONE else RowStatus.TODO,
                             onClick = onOpenDetails,
+                        )
+                    }
+                    items.filterIsInstance<ChecklistItem.Routes>().forEach { item ->
+                        Spacer(Modifier.height(Spacing.xs))
+                        ChecklistRow(
+                            title = stringResource(Res.string.routes_row),
+                            subtitle = item.homeCity?.let { city ->
+                                listOfNotNull(
+                                    city.displayName(lang),
+                                    item.routeCount.takeIf { it > 0 }
+                                        ?.let { pluralStringResource(Res.plurals.routes_count, it, it) },
+                                ).joinToString(" · ")
+                            },
+                            status = if (item.done) RowStatus.DONE else RowStatus.TODO,
+                            onClick = onOpenRoutes,
                         )
                     }
 
@@ -515,6 +546,7 @@ fun DriverProfile.checklist(): List<ChecklistItem> = buildList {
             done = !isMissing(OnboardingGap.Name) && !isMissing(OnboardingGap.Licence),
         ),
     )
+    add(ChecklistItem.Routes(done = homeCity != null, homeCity = homeCity, routeCount = preferredRoutes.size))
     add(
         ChecklistItem.Truck(
             done = !isMissing(OnboardingGap.Truck),

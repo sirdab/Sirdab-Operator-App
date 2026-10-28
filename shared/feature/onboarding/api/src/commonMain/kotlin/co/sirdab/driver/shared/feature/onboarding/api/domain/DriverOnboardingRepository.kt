@@ -28,6 +28,33 @@ data class DetailsDraft(
             isIsoDate(licenceExpiresAt)
 }
 
+/** Where the driver lives and the runs they would rather take. Both go in the same PATCH. */
+data class RoutesDraft(
+    val homeCity: City? = null,
+    val routes: List<PreferredRoute> = emptyList(),
+) {
+    /** The home city is what the screen is for. Routes are welcome, not required. */
+    val canSubmit: Boolean get() = homeCity != null
+
+    val isFull: Boolean get() = routes.size >= MAX_PREFERRED_ROUTES
+
+    /**
+     * [route] on the end, unless it is already there or the list is full. The server de-duplicates
+     * anyway; doing it here keeps a row from showing twice until the save.
+     */
+    fun withRoute(route: PreferredRoute): RoutesDraft {
+        val known = routes.any {
+            it.origin.id == route.origin.id && it.destination.id == route.destination.id
+        }
+        return if (known || isFull) this else copy(routes = routes + route)
+    }
+
+    companion object {
+        /** The contract's cap. A longer list is refused as a validation failure. */
+        const val MAX_PREFERRED_ROUTES = 20
+    }
+}
+
 /**
  * A truck type the driver may give a truck: one the workspaces they drive for run, or Sirdab B2B's
  * for a driver in none yet.
@@ -94,6 +121,18 @@ interface DriverOnboardingRepository {
 
     /** `PATCH /api/driver/profile`. Partial by design: send only what the driver just filled in. */
     suspend fun saveDetails(draft: DetailsDraft): AppResult<DriverProfile>
+
+    /**
+     * `PATCH /api/driver/profile` with the home city and the routes. The list replaces the one the
+     * server holds, so an empty list clears it.
+     */
+    suspend fun saveRoutes(draft: RoutesDraft): AppResult<DriverProfile>
+
+    /**
+     * `GET /api/v1/cities`: active cities whose English or Arabic name contains [query], biggest
+     * first. A blank query lists the biggest, which covers most of what a driver will look for.
+     */
+    suspend fun searchCities(query: String): AppResult<List<City>>
 
     /**
      * `GET /api/driver/equipment-types`: the truck types this driver may pick. Empty when none of
