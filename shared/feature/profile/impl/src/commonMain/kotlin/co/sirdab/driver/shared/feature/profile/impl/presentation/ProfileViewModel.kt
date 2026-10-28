@@ -16,6 +16,7 @@ import co.sirdab.driver.shared.feature.onboarding.api.domain.City
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.PreferredRoute
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileDocument
+import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileTruck
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileWorkspace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -52,9 +53,11 @@ data class ProfileUiState(
      * False until the profile has been read. Before then there is no telling a driver who has not
      * set a home city from one whose profile has not arrived, and "not set" would be a guess.
      */
-    val routesKnown: Boolean = false,
+    val profileKnown: Boolean = false,
     val homeCity: City? = null,
     val preferredRoutes: List<PreferredRoute> = emptyList(),
+    /** The driver's own trucks, with any type change they have asked for. */
+    val trucks: List<ProfileTruck> = emptyList(),
 ) {
     /** Offering a switch between one fleet and itself would be noise. */
     val canSwitchFleet: Boolean get() = workspaces.size > 1
@@ -113,9 +116,10 @@ class ProfileViewModel(
                 workspaces = profile?.workspaces.orEmpty(),
                 ownDocuments = profile?.documents.orEmpty(),
                 isUnderReview = profile?.isUnderReview == true,
-                routesKnown = profile != null,
+                profileKnown = profile != null,
                 homeCity = profile?.homeCity,
                 preferredRoutes = profile?.preferredRoutes.orEmpty(),
+                trucks = profile?.trucks.orEmpty(),
             )
         },
     ) { driver, lang, session ->
@@ -128,9 +132,10 @@ class ProfileViewModel(
             activeWorkspaceId = session.activeWorkspaceId,
             ownDocuments = session.ownDocuments,
             isUnderReview = session.isUnderReview,
-            routesKnown = session.routesKnown,
+            profileKnown = session.profileKnown,
             homeCity = session.homeCity,
             preferredRoutes = session.preferredRoutes,
+            trucks = session.trucks,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ProfileUiState())
 
@@ -141,9 +146,10 @@ class ProfileViewModel(
         val workspaces: List<ProfileWorkspace>,
         val ownDocuments: List<ProfileDocument>,
         val isUnderReview: Boolean,
-        val routesKnown: Boolean,
+        val profileKnown: Boolean,
         val homeCity: City?,
         val preferredRoutes: List<PreferredRoute>,
+        val trucks: List<ProfileTruck>,
     )
 
     /**

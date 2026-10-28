@@ -69,12 +69,15 @@ import co.sirdab.driver.shared.core.ui.generated.resources.routes_count
 import co.sirdab.driver.shared.core.ui.generated.resources.routes_not_set
 import co.sirdab.driver.shared.core.ui.generated.resources.routes_row
 import co.sirdab.driver.shared.core.ui.generated.resources.signup_item_rejected
+import co.sirdab.driver.shared.core.ui.generated.resources.truck_change_pending
+import co.sirdab.driver.shared.core.ui.generated.resources.truck_change_rejected
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_delete_account
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_language
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_settings
 import co.sirdab.driver.shared.core.ui.generated.resources.profile_vehicle
 import co.sirdab.driver.shared.core.ui.theme.Radius
 import co.sirdab.driver.shared.core.ui.theme.Spacing
+import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileTruck
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -84,6 +87,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ProfileScreen(
     onLoggedOut: () -> Unit,
     onOpenRoutes: () -> Unit,
+    onOpenTrucks: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -131,8 +135,12 @@ fun ProfileScreen(
                 }
             }
 
-            // Vehicle
-            driver.vehicle?.let { v ->
+            // Vehicle: the driver's own trucks once the profile is in, where a wrong type can be changed.
+            // Until then, or for a driver whose profile has none, the truck the session knows.
+            if (state.profileKnown && state.trucks.isNotEmpty()) {
+                Spacer(Modifier.height(Spacing.md))
+                TrucksCard(trucks = state.trucks, onClick = onOpenTrucks)
+            } else driver.vehicle?.let { v ->
                 Spacer(Modifier.height(Spacing.md))
                 Surface(shape = RoundedCornerShape(Radius.lg), color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(Spacing.md)) {
@@ -145,7 +153,7 @@ fun ProfileScreen(
 
             // Home city and routes: the driver's own, whichever fleet they are looking at, and edited on
             // the same screen sign-up asks for them on.
-            if (state.routesKnown) {
+            if (state.profileKnown) {
                 Spacer(Modifier.height(Spacing.md))
                 Surface(
                     onClick = onOpenRoutes,
@@ -297,6 +305,50 @@ fun ProfileScreen(
             },
             onDismiss = { confirmingLogout = false },
         )
+    }
+}
+
+/** Each truck as type and plate, and where a change the driver asked for stands. */
+@Composable
+private fun TrucksCard(trucks: List<ProfileTruck>, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(Radius.lg),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(Modifier.padding(Spacing.md), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
+                Text(stringResource(Res.string.profile_vehicle), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                trucks.forEach { truck ->
+                    Text(
+                        listOf(equipmentLabel(truck.bodyType, truck.sizeClass, truck.temperature), truck.licencePlate)
+                            .filter { it.isNotEmpty() }
+                            .joinToString(" • "),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    val pending = truck.pendingChange
+                    val rejection = truck.changeRejection
+                    when {
+                        pending != null -> Text(
+                            stringResource(
+                                Res.string.truck_change_pending,
+                                equipmentLabel(pending.bodyType, pending.sizeClass, pending.temperature),
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        rejection != null -> Text(
+                            stringResource(Res.string.truck_change_rejected, rejection.reason),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+            Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 

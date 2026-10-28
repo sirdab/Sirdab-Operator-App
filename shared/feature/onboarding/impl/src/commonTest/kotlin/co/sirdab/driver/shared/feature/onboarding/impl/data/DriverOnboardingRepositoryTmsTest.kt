@@ -314,6 +314,96 @@ class DriverOnboardingRepositoryTmsTest {
     }
 
     @Test
+    fun `a truck's pending type change and the last rejection are read from the profile`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                Api.PROFILE -> respondJson(
+                    profileJson(
+                        status = "active",
+                        missing = emptyList(),
+                        trucks = listOf(
+                            truckJson(id = "t1", pendingChange = truckChangeJson("box", "heavy", "frozen")),
+                            truckJson(id = "t2", plate = "JED 1", rejectionReason = "The istimara says open."),
+                            truckJson(id = "t3", plate = "DMM 2", pendingChange = truckChangeJson("hover", "light", "ambient")),
+                        ),
+                    ),
+                )
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+
+        val profile = (harness.onboarding.refresh() as AppResult.Success).data
+        val (requested, rejected, unknown) = profile.trucks
+
+        assertThat(profile.truckChangesReviewed).isEqualTo(true)
+        // The truck is still what it was; the request sits beside it.
+        assertThat(requested.sizeClass).isEqualTo(EquipmentSize.LIGHT)
+        assertThat(requested.pendingChange?.sizeClass).isEqualTo(EquipmentSize.HEAVY)
+        assertThat(requested.pendingChange?.temperature).isEqualTo(EquipmentTemperature.FROZEN)
+        assertThat(rejected.pendingChange).isNull()
+        assertThat(rejected.changeRejection?.reason).isEqualTo("The istimara says open.")
+        // A body this build cannot name is not guessed at: the driver did not ask for a box.
+        assertThat(unknown.pendingChange).isNull()
+    }
+
+    @Test
+    fun `changing a truck's type sends its own plate and capacity with the new axes`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                Api.TRUCKS -> respondJson(
+                    truckJson(pendingChange = truckChangeJson("open", "medium", "ambient")),
+                    HttpStatusCode.Created,
+                )
+                Api.PROFILE -> respondJson(
+                    profileJson(
+                        status = "active",
+                        missing = emptyList(),
+                        trucks = listOf(truckJson(pendingChange = truckChangeJson("open", "medium", "ambient"))),
+                    ),
+                )
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+        harness.onboarding.refresh()
+        val truck = harness.onboarding.profile.value!!.trucks.single()
+
+        val result = harness.onboarding.changeTruckType(
+            truck,
+            TruckType("Dyna 6 m", null, EquipmentBody.OPEN, EquipmentSize.MEDIUM, EquipmentTemperature.AMBIENT),
+        )
+
+        val body = harness.bodyOf(Api.TRUCKS).orEmpty()
+        // The plate is how the server knows which truck; a different one would be a second truck.
+        assertThat(body).contains(""""licencePlate":"RUH 9002"""")
+        assertThat(body).contains(""""bodyType":"open","sizeClass":"medium","temperature":"ambient"""")
+        // Left out, the capacity would be cleared by a change that was only about the type.
+        assertThat(body).contains(""""capacityKg":4000""")
+        // Read back, because the truck alone would not move the profile the screens are showing.
+        assertThat(harness.paths()).containsExactly(Api.PROFILE, Api.TRUCKS, Api.PROFILE)
+        val changed = (result as AppResult.Success).data.trucks.single()
+        assertThat(changed.bodyType).isEqualTo(EquipmentBody.BOX)
+        assertThat(changed.pendingChange?.bodyType).isEqualTo(EquipmentBody.OPEN)
+    }
+
+    @Test
+    fun `withdrawing a change deletes the truck's request and answers with the profile`() = runTest {
+        val harness = harness { request ->
+            when (request.url.encodedPath) {
+                "${Api.TRUCKS}/t1/change" -> respondJson(
+                    profileJson(status = "active", missing = emptyList(), trucks = listOf(truckJson())),
+                )
+                else -> error("unexpected ${request.url.encodedPath}")
+            }
+        }
+
+        val result = harness.onboarding.withdrawTruckChange("t1")
+
+        assertThat(harness.calls.single().method).isEqualTo("DELETE")
+        assertThat((result as AppResult.Success).data.trucks.single().pendingChange).isNull()
+        assertThat(harness.onboarding.profile.value).isEqualTo(result.data)
+    }
+
+    @Test
     fun `a document is minted then uploaded and confirmed`() = runTest {
         var uploadedBytes = 0
         val harness = harness { request ->

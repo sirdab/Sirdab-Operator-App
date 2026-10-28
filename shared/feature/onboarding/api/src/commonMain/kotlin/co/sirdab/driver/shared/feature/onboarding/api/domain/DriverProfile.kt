@@ -74,7 +74,22 @@ data class ProfileTruck(
     val sizeClass: EquipmentSize,
     val temperature: EquipmentTemperature,
     val capacityKg: Int?,
+    /** A new type the driver asked for and ops has still to decide on. Until then the truck keeps its own. */
+    val pendingChange: TruckTypeChange? = null,
+    /** Why ops turned down the last change asked for. The next request clears it. */
+    val changeRejection: TruckChangeRejection? = null,
 )
+
+/** The type a driver has asked for their truck: all three axes, as one of the offered types has them. */
+data class TruckTypeChange(
+    val bodyType: EquipmentBody,
+    val sizeClass: EquipmentSize,
+    val temperature: EquipmentTemperature,
+    val requestedAt: String,
+)
+
+/** [reason] is ops' own words, shown verbatim, like a rejected document's. */
+data class TruckChangeRejection(val reason: String, val rejectedAt: String)
 
 /**
  * A document the driver has submitted.
@@ -148,6 +163,12 @@ data class DriverProfile(
     val onboardingComplete: Boolean get() = onboardingCompletedAt != null
 
     val hasWorkspace: Boolean get() = workspaces.isNotEmpty()
+
+    /**
+     * True once ops has verified the driver. From then on a new type for a truck is a request ops
+     * approves or rejects; before that, nobody has checked the truck yet and the type is just changed.
+     */
+    val truckChangesReviewed: Boolean get() = status != DriverProfileStatus.PENDING_VERIFICATION
 
     /** The document currently filling a slot, or null when nothing has been uploaded for it. */
     fun documentFor(kind: DriverDocumentKind, truckId: String? = null): ProfileDocument? =

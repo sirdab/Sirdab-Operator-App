@@ -15,6 +15,7 @@ import co.sirdab.driver.shared.feature.onboarding.api.domain.City
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DetailsDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverProfile
+import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileTruck
 import co.sirdab.driver.shared.feature.onboarding.api.domain.RoutesDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckDraft
 import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckType
@@ -105,23 +106,37 @@ class DriverOnboardingRepositoryTms(
         val type = draft.type ?: return AppResult.Failure(
             AppError("Pick a truck type.", reason = AppErrorReason.EQUIPMENT_NOT_OFFERED),
         )
-        val created = api.post(
+        return postTruck(draft.licencePlate.trim(), type, draft.capacityKg)
+    }
+
+    /**
+     * The same call as adding, keyed on the plate. The capacity goes back as it is: the server
+     * writes whatever this carries, and leaving it out would clear it.
+     */
+    override suspend fun changeTruckType(truck: ProfileTruck, type: TruckType): AppResult<DriverProfile> =
+        postTruck(truck.licencePlate, type, truck.capacityKg)
+
+    override suspend fun withdrawTruckChange(truckId: String): AppResult<DriverProfile> =
+        api.delete("$TRUCKS_PATH/$truckId/change", DriverProfileDto.serializer()).toProfile()
+
+    private suspend fun postTruck(licencePlate: String, type: TruckType, capacityKg: Int?): AppResult<DriverProfile> {
+        val written = api.post(
             path = TRUCKS_PATH,
             body = api.encode(
                 AddTruckDto.serializer(),
                 AddTruckDto(
-                    licencePlate = draft.licencePlate.trim(),
+                    licencePlate = licencePlate,
                     // As the list sent them: the server checks the combination against it.
                     bodyType = type.bodyType.wire,
                     sizeClass = type.sizeClass.wire,
                     temperature = type.temperature.wire,
-                    capacityKg = draft.capacityKg,
+                    capacityKg = capacityKg,
                 ),
             ),
             deserializer = ProfileTruckDto.serializer(),
         )
 
-        return created.fold(
+        return written.fold(
             onSuccess = { refresh() },
             onFailure = { AppResult.Failure(it.toOnboardingError()) },
         )

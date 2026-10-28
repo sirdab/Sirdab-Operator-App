@@ -204,9 +204,16 @@ internal fun truckJson(
     body: String = "box",
     size: String = "light",
     temperature: String = "chilled",
+    /** As [truckChangeJson] writes it. */
+    pendingChange: String? = null,
+    rejectionReason: String? = null,
 ): String =
     """{"id":"$id","licencePlate":"$plate","bodyType":"$body","sizeClass":"$size",""" +
-        """"temperature":"$temperature","capacityKg":4000}"""
+        """"temperature":"$temperature","capacityKg":4000,"pendingChange":${pendingChange ?: "null"},""" +
+        """"changeRejection":${rejectionReason?.let { """{"reason":${it.quoted()},"rejectedAt":"2026-10-27T09:00:00Z"}""" } ?: "null"}}"""
+
+internal fun truckChangeJson(body: String, size: String, temperature: String): String =
+    """{"bodyType":"$body","sizeClass":"$size","temperature":"$temperature","requestedAt":"2026-10-28T08:00:00Z"}"""
 
 internal fun documentJson(
     id: String = "d1",

@@ -136,6 +136,7 @@ private fun AppNavHost(
                         onOpenReview = { backStack.add(OnboardingRoute.UnderReview) },
                         // The same screen sign-up opens. Saving pops it, back onto the profile tab.
                         onOpenRoutes = { backStack.add(OnboardingRoute.Routes) },
+                        onOpenTrucks = { backStack.add(OnboardingRoute.Trucks) },
                     )
                 }
                 tripEntries(
@@ -155,6 +156,7 @@ private fun NavKey.screenView(): AnalyticsEvent? = when (this) {
     OnboardingRoute.SignUpDetails -> AnalyticsEvent.screenViewed("sign_up_details")
     OnboardingRoute.SignUpTruck -> AnalyticsEvent.screenViewed("sign_up_truck")
     OnboardingRoute.Routes -> AnalyticsEvent.screenViewed("routes")
+    OnboardingRoute.Trucks -> AnalyticsEvent.screenViewed("trucks")
     OnboardingRoute.UnderReview -> AnalyticsEvent.screenViewed("under_review")
     OnboardingRoute.Blocked -> AnalyticsEvent.screenViewed("blocked")
     is TripRoute.Detail -> AnalyticsEvent.screenViewed("trip_detail", tripId = tripId)

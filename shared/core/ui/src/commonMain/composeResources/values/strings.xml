@@ -305,4 +305,16 @@
         <item quantity="one">%1$d route</item>
         <item quantity="other">%1$d routes</item>
     </plurals>
+    <!-- Trucks on the profile, and type changes (contracts 10.51.0) -->
+    <string name="trucks_title">Your trucks</string>
+    <string name="trucks_subtitle">Is a truck down as the wrong type? Ask for a change. Got a new truck? Add it.</string>
+    <string name="trucks_add">Add another truck</string>
+    <string name="truck_change_type">Change type</string>
+    <string name="truck_change_title">Change truck type</string>
+    <string name="truck_change_review_note">We check every change before it applies. Until then, loads are matched to the type your truck has now.</string>
+    <string name="truck_change_send">Send for review</string>
+    <string name="truck_change_save">Save change</string>
+    <string name="truck_change_pending">Waiting for review: %1$s</string>
+    <string name="truck_change_withdraw">Withdraw</string>
+    <string name="truck_change_rejected">Change not approved: %1$s</string>
 </resources>

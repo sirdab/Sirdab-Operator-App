@@ -14,6 +14,7 @@ import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.Route
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpChecklistViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpDetailsViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpTruckViewModel
+import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.TrucksViewModel
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.splash.SplashViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
@@ -32,6 +33,7 @@ val onboardingModule: Module = module {
     viewModelOf(::SignUpDetailsViewModel)
     viewModelOf(::SignUpTruckViewModel)
     viewModelOf(::RoutesViewModel)
+    viewModelOf(::TrucksViewModel)
     viewModelOf(::ReviewViewModel)
     viewModelOf(::BlockedViewModel)
     viewModel { (phone: String) -> OtpViewModel(phone, get(), get()) }

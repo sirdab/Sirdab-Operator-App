@@ -306,4 +306,16 @@
         <item quantity="many">%1$d مسارًا</item>
         <item quantity="other">%1$d مسار</item>
     </plurals>
+    <!-- Trucks on the profile, and type changes (contracts 10.51.0) -->
+    <string name="trucks_title">شاحناتك</string>
+    <string name="trucks_subtitle">نوع الشاحنة مسجّل غلط؟ اطلب تغييره. عندك شاحنة جديدة؟ أضفها.</string>
+    <string name="trucks_add">أضف شاحنة ثانية</string>
+    <string name="truck_change_type">تغيير النوع</string>
+    <string name="truck_change_title">تغيير نوع الشاحنة</string>
+    <string name="truck_change_review_note">نراجع كل تغيير قبل ما يتطبّق. لين ذلك، الحمولات تتوافق مع نوع شاحنتك الحالي.</string>
+    <string name="truck_change_send">أرسل للمراجعة</string>
+    <string name="truck_change_save">احفظ التغيير</string>
+    <string name="truck_change_pending">بانتظار المراجعة: %1$s</string>
+    <string name="truck_change_withdraw">سحب الطلب</string>
+    <string name="truck_change_rejected">ما تمت الموافقة على التغيير: %1$s</string>
 </resources>

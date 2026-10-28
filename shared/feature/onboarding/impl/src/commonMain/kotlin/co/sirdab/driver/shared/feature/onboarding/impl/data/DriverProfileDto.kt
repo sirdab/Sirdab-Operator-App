@@ -14,7 +14,9 @@ import co.sirdab.driver.shared.feature.onboarding.api.domain.PreferredRoute
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileDocument
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileTruck
 import co.sirdab.driver.shared.feature.onboarding.api.domain.ProfileWorkspace
+import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckChangeRejection
 import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckType
+import co.sirdab.driver.shared.feature.onboarding.api.domain.TruckTypeChange
 import kotlinx.serialization.Serializable
 
 /** `GET`, `PATCH`, document confirm and truck delete all answer with this. */
@@ -66,6 +68,23 @@ internal data class ProfileTruckDto(
     val sizeClass: String,
     val temperature: String,
     val capacityKg: Int? = null,
+    /** Contracts 10.51.0. A verified driver's new type, waiting on ops. */
+    val pendingChange: TruckChangeDto? = null,
+    val changeRejection: TruckChangeRejectionDto? = null,
+)
+
+@Serializable
+internal data class TruckChangeDto(
+    val bodyType: String,
+    val sizeClass: String,
+    val temperature: String,
+    val requestedAt: String,
+)
+
+@Serializable
+internal data class TruckChangeRejectionDto(
+    val reason: String,
+    val rejectedAt: String,
 )
 
 @Serializable
@@ -185,6 +204,17 @@ internal fun TruckTypeDto.toDomain(): TruckType? = TruckType(
 
 internal fun CityDto.toDomain(): City = City(id = id, name = name, nameAr = nameAr)
 
+/**
+ * Unlike the truck's own type, no fallback: a guessed axis would tell the driver they asked for
+ * something they did not. A request this build cannot name is left off, and ops still sees it.
+ */
+internal fun TruckChangeDto.toDomain(): TruckTypeChange? = TruckTypeChange(
+    bodyType = EquipmentBody.fromWire(bodyType) ?: return null,
+    sizeClass = EquipmentSize.fromWire(sizeClass) ?: return null,
+    temperature = EquipmentTemperature.fromWire(temperature) ?: return null,
+    requestedAt = requestedAt,
+)
+
 internal fun DriverProfileDto.toDomain(): DriverProfile {
     // The server names every city it refers to, so a miss is a city it could not find. Kept with a
     // blank name rather than dropped: the PATCH replaces the whole list, and saving a list with a
@@ -217,6 +247,10 @@ internal fun DriverProfileDto.toDomain(): DriverProfile {
                 sizeClass = EquipmentSize.fromWire(truck.sizeClass) ?: EquipmentSize.MEDIUM,
                 temperature = EquipmentTemperature.fromWire(truck.temperature) ?: EquipmentTemperature.AMBIENT,
                 capacityKg = truck.capacityKg,
+                pendingChange = truck.pendingChange?.toDomain(),
+                changeRejection = truck.changeRejection?.let {
+                    TruckChangeRejection(reason = it.reason, rejectedAt = it.rejectedAt)
+                },
             )
         },
         documents = documents.mapNotNull { doc ->

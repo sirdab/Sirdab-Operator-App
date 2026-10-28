@@ -71,6 +71,7 @@ fun MainShell(
     onFixPaperwork: () -> Unit,
     onOpenReview: () -> Unit,
     onOpenRoutes: () -> Unit,
+    onOpenTrucks: () -> Unit,
     authRepository: AuthRepository = koinInject(),
     onboardingRepository: DriverOnboardingRepository = koinInject(),
     analytics: Analytics = koinInject(),
@@ -163,7 +164,11 @@ fun MainShell(
                 when (shown) {
                     MainTab.LOADS -> DriverPostingsScreen()
                     MainTab.TRIP -> DriverTripsScreen(onOpenTrip = onOpenTrip)
-                    MainTab.PROFILE -> ProfileScreen(onLoggedOut = onLoggedOut, onOpenRoutes = onOpenRoutes)
+                    MainTab.PROFILE -> ProfileScreen(
+                        onLoggedOut = onLoggedOut,
+                        onOpenRoutes = onOpenRoutes,
+                        onOpenTrucks = onOpenTrucks,
+                    )
                 }
             }
         }

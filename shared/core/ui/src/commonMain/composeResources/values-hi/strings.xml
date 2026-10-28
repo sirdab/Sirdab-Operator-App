@@ -307,4 +307,16 @@
         <item quantity="one">%1$d रास्ता</item>
         <item quantity="other">%1$d रास्ते</item>
     </plurals>
+    <!-- Trucks on the profile, and type changes (contracts 10.51.0) -->
+    <string name="trucks_title">आपके ट्रक</string>
+    <string name="trucks_subtitle">किसी ट्रक का प्रकार गलत दर्ज है? बदलाव माँगें। नया ट्रक लिया है? उसे जोड़ें।</string>
+    <string name="trucks_add">एक और ट्रक जोड़ें</string>
+    <string name="truck_change_type">प्रकार बदलें</string>
+    <string name="truck_change_title">ट्रक का प्रकार बदलें</string>
+    <string name="truck_change_review_note">हर बदलाव लागू होने से पहले हम उसकी जाँच करते हैं। तब तक लोड आपके ट्रक के मौजूदा प्रकार से मिलाए जाएँगे।</string>
+    <string name="truck_change_send">जाँच के लिए भेजें</string>
+    <string name="truck_change_save">बदलाव सेव करें</string>
+    <string name="truck_change_pending">जाँच बाकी: %1$s</string>
+    <string name="truck_change_withdraw">वापस लें</string>
+    <string name="truck_change_rejected">बदलाव मंज़ूर नहीं हुआ: %1$s</string>
 </resources>

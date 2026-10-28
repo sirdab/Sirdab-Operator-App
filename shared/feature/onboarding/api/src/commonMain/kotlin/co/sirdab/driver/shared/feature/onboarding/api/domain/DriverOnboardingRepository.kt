@@ -73,6 +73,10 @@ data class TruckType(
     /** The Arabic name in Arabic when the workspace gave one, and [name] everywhere else. */
     fun displayName(language: String): String =
         nameAr?.takeIf { language == "ar" && it.isNotBlank() } ?: name
+
+    /** True when a truck written in these three axes is this type. */
+    fun matches(bodyType: EquipmentBody, sizeClass: EquipmentSize, temperature: EquipmentTemperature): Boolean =
+        this.bodyType == bodyType && this.sizeClass == sizeClass && this.temperature == temperature
 }
 
 /** What the driver says about the truck they drive. */
@@ -145,6 +149,20 @@ interface DriverOnboardingRepository {
      * A type outside [truckTypes] fails with [co.sirdab.driver.shared.core.model.AppErrorReason.EQUIPMENT_NOT_OFFERED].
      */
     suspend fun addTruck(draft: TruckDraft): AppResult<DriverProfile>
+
+    /**
+     * `POST /api/driver/profile/trucks` again for a truck already on the profile: its own plate and
+     * capacity, with [type]'s axes.
+     *
+     * For a driver ops has verified, the server does not apply it. It becomes the truck's
+     * [ProfileTruck.pendingChange], replacing any earlier one, until ops approve or reject it; until
+     * then the truck keeps its type, in every fleet. Before verification it changes the truck at
+     * once. The profile read back says which happened.
+     */
+    suspend fun changeTruckType(truck: ProfileTruck, type: TruckType): AppResult<DriverProfile>
+
+    /** `DELETE /api/driver/profile/trucks/:id/change`: take back a pending change. Nothing else moves. */
+    suspend fun withdrawTruckChange(truckId: String): AppResult<DriverProfile>
 
     /** `DELETE /api/driver/profile/trucks/:id`. The server refuses the last one. */
     suspend fun removeTruck(truckId: String): AppResult<DriverProfile>

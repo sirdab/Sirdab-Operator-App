@@ -282,7 +282,7 @@ fun SignUpTruckScreen(
  * retry, since the form cannot be submitted without a pick.
  */
 @Composable
-private fun TruckTypePicker(
+internal fun TruckTypePicker(
     types: List<TruckType>?,
     error: AppError?,
     selected: TruckType?,

@@ -99,6 +99,26 @@ data class AnalyticsEvent(val name: String, val properties: Map<String, Any> = e
 
         fun truckRemoveFailed(error: AppError) = event("Truck Remove Failed", *error.properties())
 
+        /** [pendingReview]: the server held the new type for ops rather than applying it. */
+        fun truckChangeRequested(
+            body: EquipmentBody,
+            size: EquipmentSize,
+            temperature: EquipmentTemperature,
+            pendingReview: Boolean,
+        ) = event(
+            "Truck Change Requested",
+            "body_type" to body.wire,
+            "size_class" to size.wire,
+            "temperature" to temperature.wire,
+            "pending_review" to pendingReview,
+        )
+
+        fun truckChangeFailed(error: AppError) = event("Truck Change Failed", *error.properties())
+
+        fun truckChangeWithdrawn() = event("Truck Change Withdrawn")
+
+        fun truckChangeWithdrawFailed(error: AppError) = event("Truck Change Withdraw Failed", *error.properties())
+
         /** [replacedRejected]: this photo answers one ops sent back. */
         fun documentUploaded(kind: DriverDocumentKind, replacedRejected: Boolean) = event(
             "Document Uploaded",

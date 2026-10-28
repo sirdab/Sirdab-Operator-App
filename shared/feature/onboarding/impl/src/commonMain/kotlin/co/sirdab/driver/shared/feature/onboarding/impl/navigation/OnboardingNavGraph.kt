@@ -12,6 +12,7 @@ import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.Route
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpChecklistScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpDetailsScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.SignUpTruckScreen
+import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.TrucksScreen
 import co.sirdab.driver.shared.feature.onboarding.impl.presentation.signup.UnderReviewScreen
 
 /**
@@ -58,6 +59,10 @@ fun EntryProviderScope<NavKey>.onboardingEntries(
     }
     entry<OnboardingRoute.Routes> {
         RoutesScreen(onSaved = onBack)
+    }
+    entry<OnboardingRoute.Trucks> {
+        // Adding pops back here, and the new truck is on the list.
+        TrucksScreen(onAddTruck = { onNavigate(OnboardingRoute.SignUpTruck) })
     }
     entry<OnboardingRoute.UnderReview> {
         UnderReviewScreen(
