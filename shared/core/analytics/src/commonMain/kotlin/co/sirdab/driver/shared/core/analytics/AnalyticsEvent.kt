@@ -368,6 +368,31 @@ data class AnalyticsEvent(val name: String, val properties: Map<String, Any> = e
             event("Stop Contact Called", "trip_id" to tripId, *stop.properties())
 
         /**
+         * One of the order's documents downloaded and handed to the phone's PDF viewer. [documentKey]
+         * is the sending system's own, such as `outbound_slip`; [kilobytes] is how much came over
+         * the driver's signal for it.
+         */
+        fun orderDocumentOpened(tripId: String, legId: String, documentKey: String, kilobytes: Int) = event(
+            "Order Document Opened",
+            "trip_id" to tripId,
+            "leg_id" to legId,
+            "document_key" to documentKey,
+            "kilobytes" to kilobytes,
+        )
+
+        /**
+         * A document the driver asked for and did not get. `error_reason` `document_unavailable` is
+         * the system that sent the order failing to hand it over, which is not the app's to fix.
+         */
+        fun orderDocumentFailed(tripId: String, legId: String, documentKey: String, error: AppError) = event(
+            "Order Document Failed",
+            "trip_id" to tripId,
+            "leg_id" to legId,
+            "document_key" to documentKey,
+            *error.properties(),
+        )
+
+        /**
          * The camera or the photo library opened for a stop's proof. One with no [photoProofAdded]
          * after it is a driver who backed out, or a photo the phone could not keep.
          *
@@ -447,6 +472,19 @@ data class AnalyticsEvent(val name: String, val properties: Map<String, Any> = e
 
         fun accountDeletionFailed(error: AppError) =
             event("Account Deletion Failed", *error.properties())
+
+        // Guide
+
+        /**
+         * The driver left the guide on [page] of [pageCount], counting from one. [finished] is the
+         * last page's button; anything else is Skip or the system back.
+         */
+        fun guideClosed(page: Int, pageCount: Int, finished: Boolean) = event(
+            "Guide Closed",
+            "page" to page,
+            "page_count" to pageCount,
+            "finished" to finished,
+        )
 
         /** Enough of a server message to tell failures apart without shipping whole bodies. */
         private const val MAX_TEXT = 200

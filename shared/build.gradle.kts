@@ -22,6 +22,7 @@ kotlin {
             api(projects.shared.feature.bidding.impl)
             api(projects.shared.feature.trip.impl)
             api(projects.shared.feature.profile.impl)
+            api(projects.shared.feature.guide.impl)
             api(projects.shared.feature.notifications.impl)
 
             implementation(libs.bundles.koin.common)

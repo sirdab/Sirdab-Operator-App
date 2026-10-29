@@ -13,6 +13,7 @@ import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
 import co.sirdab.driver.shared.core.model.Page
 import co.sirdab.driver.shared.core.model.TripLifecycle
+import co.sirdab.driver.shared.feature.trip.api.DownloadedDocument
 import co.sirdab.driver.shared.feature.trip.api.DriverTripRepository
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
@@ -51,6 +52,9 @@ private class FakeTrips(
     }
 
     override suspend fun trip(id: String): AppResult<DriverTrip> = AppResult.Success(fakeTrip(id))
+
+    override suspend fun legDocument(legId: String, key: String): AppResult<DownloadedDocument> =
+        error("the list never downloads a document")
 }
 
 /** Records only that a sync happened; the list VM asks for nothing else. */

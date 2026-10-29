@@ -110,6 +110,9 @@
     <string name="trip_pending_sync_note">محفوظة في جوالك وبترسل أول ما يرجع النت.</string>
     <string name="trip_dropped_sync">%1$d ما انقبلت</string>
     <string name="trip_dropped_sync_note">السيرفر رفضها فما انحفظت. راجع المحطات تحت وبلّغ المرسل.</string>
+    <string name="trip_documents">المستندات</string>
+    <string name="trip_document_download">تحميل</string>
+    <string name="trip_document_failed">ما قدرنا ننزّل المستند. تأكد من النت وحاول مرة ثانية.</string>
 
     <!-- الجنسيات -->
     <string name="nat_sa">سعودي</string>
@@ -279,6 +282,9 @@
     <string name="err_driver_not_verified">تقدر تقدّم عروض بعد ما ينعتمد حسابك.</string>
     <string name="err_rate_is_fixed">سعر هالشحنة ثابت، ما فيه سعر تغيّره.</string>
     <string name="err_manages_organization">أنت تدير شركة في سرداب. اطلب من مسؤول آخر إزالتك منها أولًا.</string>
+    <string name="err_document_unavailable">النظام اللي أرسل الطلب ما وفّر المستند. حاول بعد كم دقيقة.</string>
+    <string name="err_document_gone">هذا المستند ما عاد موجود في الطلب. اسحب الشاشة لتحت عشان تحدّثها.</string>
+    <string name="err_no_document_viewer">ما فيه تطبيق في جوالك يفتح ملفات PDF. نزّل تطبيق PDF وحاول مرة ثانية.</string>
     <string name="doc_view">عرض ما أرسلته</string>
     <string name="otp_wrong_number">الرقم غير صحيح؟</string>
     <string name="signup_identity">أي وثيقة تحمل؟</string>
@@ -318,4 +324,35 @@
     <string name="truck_change_pending">بانتظار المراجعة: %1$s</string>
     <string name="truck_change_withdraw">سحب الطلب</string>
     <string name="truck_change_rejected">ما تمت الموافقة على التغيير: %1$s</string>
+    <!-- Guide -->
+    <string name="guide_welcome_title">أهلاً بك في سرداب</string>
+    <string name="guide_welcome_body">هذي طريقة استخدام التطبيق، بخطوات قليلة وسهلة.</string>
+    <string name="guide_loads_title">دوّر على الشحنات</string>
+    <string name="guide_loads_body">افتح تبويب «%1$s» وتشوف الشحنات المناسبة لشاحنتك، مع المسار والسعر وكم باقي على إغلاق كل وحدة. اسحب الشاشة لتحت عشان تشوف الجديد.</string>
+    <string name="guide_bid_title">أرسل سعرك</string>
+    <string name="guide_bid_body">اضغط «%1$s»، اكتب سعرك واختر شاحنتك. إذا أحد عرض أقل منك، التطبيق يعلمك وتقدر تطابق سعره أو تنزل أكثر. الشحنة اللي سعرها ثابت يكفيها «%2$s».</string>
+    <string name="guide_trips_title">رحلاتك</string>
+    <string name="guide_trips_body">رحلاتك تطلع في تبويب «%1$s». افتح الرحلة واضغط «%2$s» أول ما تتحرك.</string>
+    <string name="guide_stops_title">في كل محطة</string>
+    <string name="guide_stops_body">اضغط «%1$s» لما توصل و«%2$s» لما تمشي. «%3$s» تفتح لك الخريطة و«%4$s» تتصل بالمحطة. ما فيه نت؟ اللي تضغطه ينحفظ في جوالك وينرسل بعدين.</string>
+    <string name="guide_proof_title">صورة الإثبات</string>
+    <string name="guide_proof_body">اضغط «%1$s» وصوّر الحمولة، بعدها يطلع لك «%2$s» أو «%3$s». وعند التسليم يطلب منك التطبيق صورة سند التسليم بعد توقيعه.</string>
+    <string name="guide_problem_title">صار شي؟</string>
+    <string name="guide_problem_body">متأخر؟ الشاحنة تعطلت؟ رفضوا الاستلام؟ افتح الرحلة واضغط «%1$s» وإحنا نوصّل البلاغ.</string>
+    <string name="guide_profile_title">ملفك</string>
+    <string name="guide_profile_body">من تبويب «%1$s» تحدّث مستنداتك وشاحناتك، وتحدد مدينتك ومساراتك، وتغيّر اللغة. وتقدر تفتح هذا الدليل مرة ثانية من هناك.</string>
+    <string name="guide_skip">تخطي</string>
+    <string name="guide_next">التالي</string>
+    <string name="guide_done">فهمت</string>
+    <string name="guide_open">طريقة استخدام التطبيق</string>
+    <string name="guide_welcome_tip">كل اللي تحتاجه موجود في التبويبات تحت الشاشة.</string>
+    <string name="guide_loads_tip">نعرض لك الشحنات حسب شاحنتك ومساراتك، فخلّها محدّثة في ملفك.</string>
+    <string name="guide_bid_tip">كل شحنة تبيّن متى يقفل التقديم عليها. وقبلها تقدر تغيّر سعرك من «%1$s».</string>
+    <string name="guide_trips_tip">اسحب شاشة الرحلة لتحت عشان تشوف آخر تعديلات المرسل.</string>
+    <string name="guide_stops_tip">المحطات مرقّمة بترتيب مشوارك، والرقم الملوّن هو المحطة اللي عليك الحين.</string>
+    <string name="guide_proof_tip">صوّرت من قبل؟ «%1$s» يخليك تختار الصورة من جوالك.</string>
+    <string name="guide_problem_tip">اختر وش صار وقد إيش المشكلة كبيرة. الملاحظة اختيارية.</string>
+    <string name="guide_profile_tip">إذا أحد مستنداتك يحتاج تعديل، يطلع لك تنبيه فوق في التطبيق.</string>
+    <string name="guide_sample_origin">الرياض</string>
+    <string name="guide_sample_destination">جدة</string>
 </resources>

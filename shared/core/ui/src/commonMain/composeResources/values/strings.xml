@@ -113,9 +113,12 @@
     <string name="doc_national_id_short">National ID</string>
     <string name="doc_driving_licence">Driving licence</string>
     <string name="trip_pending_sync">%1$d not sent yet</string>
-    <string name="trip_pending_sync_note">Saved on your phone. They\'ll send when you\'re back online.</string>
+    <string name="trip_pending_sync_note">Saved on your phone. They'll send when you're back online.</string>
     <string name="trip_dropped_sync">%1$d not accepted</string>
     <string name="trip_dropped_sync_note">The server refused these, so they were not saved. Check the stops below and tell your dispatcher.</string>
+    <string name="trip_documents">Documents</string>
+    <string name="trip_document_download">Download</string>
+    <string name="trip_document_failed">Couldn't download the document. Check your signal and try again.</string>
 
     <!-- Nationalities (ISO 3166-1 alpha-2 on the wire) -->
     <string name="nat_sa">Saudi</string>
@@ -166,7 +169,7 @@
     <string name="ek_delay">Running late</string>
     <string name="ek_damage">Cargo damaged</string>
     <string name="ek_refused">Delivery refused</string>
-    <string name="ek_access_denied">Can\'t get in</string>
+    <string name="ek_access_denied">Can't get in</string>
     <string name="ek_vehicle_breakdown">Truck broke down</string>
     <string name="ek_wrong_address">Wrong address</string>
     <string name="es_low">Minor</string>
@@ -175,10 +178,10 @@
 
     <!-- Sign-in problems -->
     <string name="err_not_provisioned">This part of the app is for drivers working with a carrier.</string>
-    <string name="err_not_a_driver">This account isn\'t a driver account.</string>
+    <string name="err_not_a_driver">This account isn't a driver account.</string>
     <string name="err_phone_missing">Enter your phone number again.</string>
     <string name="err_sign_in_failed">Sign-in failed. Please try again.</string>
-    <string name="err_unavailable">That isn\'t available yet.</string>
+    <string name="err_unavailable">That isn't available yet.</string>
 
     <!-- Postings board (TMS) -->
     <string name="postings_title">Available loads</string>
@@ -276,12 +279,15 @@
     <string name="paperwork_outstanding">Your paperwork is not complete (%1$d outstanding). Tap to finish.</string>
     <string name="err_unsent_work">Some of your work has not been sent yet. Try again when you have signal.</string>
     <string name="err_not_a_bidder">Your company bids on loads for you. Your trips show up in the Trip tab.</string>
-    <string name="err_bid_out_of_range">That price is outside this load\'s range.</string>
-    <string name="err_bid_decided">This bid has already been decided, so it can\'t be changed.</string>
+    <string name="err_bid_out_of_range">That price is outside this load's range.</string>
+    <string name="err_bid_decided">This bid has already been decided, so it can't be changed.</string>
     <string name="err_bidding_closed">This load is no longer open for bids.</string>
     <string name="err_driver_not_verified">You can bid once your account is approved.</string>
     <string name="err_rate_is_fixed">This load has a fixed price, so there is no price to change.</string>
     <string name="err_manages_organization">You manage a company in Sirdab. Ask another admin to remove you from it first.</string>
+    <string name="err_document_unavailable">The system that sent this order couldn't provide the document. Try again in a few minutes.</string>
+    <string name="err_document_gone">This document is no longer on the order. Pull down to refresh.</string>
+    <string name="err_no_document_viewer">Nothing on this phone can open a PDF. Install a PDF viewer and try again.</string>
     <string name="doc_view">View what you sent</string>
     <string name="otp_wrong_number">Wrong number?</string>
     <string name="signup_identity">Which do you carry?</string>
@@ -317,4 +323,35 @@
     <string name="truck_change_pending">Waiting for review: %1$s</string>
     <string name="truck_change_withdraw">Withdraw</string>
     <string name="truck_change_rejected">Change not approved: %1$s</string>
+    <!-- Guide: the walkthrough that opens once, and again from Profile. Bodies take the screens' own labels. -->
+    <string name="guide_welcome_title">Welcome to Sirdab</string>
+    <string name="guide_welcome_body">Here is how the app works, in a few short steps.</string>
+    <string name="guide_loads_title">Find loads</string>
+    <string name="guide_loads_body">Open the “%1$s” tab to see loads for your truck, with the route, the price and how long each one stays open. Pull down to check for new ones.</string>
+    <string name="guide_bid_title">Send your price</string>
+    <string name="guide_bid_body">Tap “%1$s”, enter your price and choose your truck. If someone offers less, the app tells you, and you can match them or go lower. A fixed-price load only needs “%2$s”.</string>
+    <string name="guide_trips_title">Your trips</string>
+    <string name="guide_trips_body">Your trips show up in the “%1$s” tab. Open one and tap “%2$s” when you set off.</string>
+    <string name="guide_stops_title">At each stop</string>
+    <string name="guide_stops_body">Tap “%1$s” when you get there and “%2$s” when you leave. “%3$s” opens the map and “%4$s” rings the stop. No signal? What you tap is saved on your phone and sent later.</string>
+    <string name="guide_proof_title">Photo proof</string>
+    <string name="guide_proof_body">Tap “%1$s” and photograph the load before you can tap “%2$s” or “%3$s”. When you deliver, the app also asks for a photo of the signed delivery note.</string>
+    <string name="guide_problem_title">Something wrong?</string>
+    <string name="guide_problem_body">Running late, broken down, delivery refused? Open the trip and tap “%1$s”, and we will pass it on.</string>
+    <string name="guide_profile_title">Your profile</string>
+    <string name="guide_profile_body">In the “%1$s” tab you keep your documents and trucks up to date, set your home city and routes, and change the language. You can open this guide again from there.</string>
+    <string name="guide_skip">Skip</string>
+    <string name="guide_next">Next</string>
+    <string name="guide_done">Got it</string>
+    <string name="guide_open">How to use the app</string>
+    <string name="guide_welcome_tip">Everything you need is in the tabs at the bottom of the screen.</string>
+    <string name="guide_loads_tip">Loads are picked to suit your truck and your routes, so keep both up to date in your profile.</string>
+    <string name="guide_bid_tip">Each load shows when bidding closes. Until then, you can change your price with “%1$s”.</string>
+    <string name="guide_trips_tip">Pull down on a trip to see the latest changes from your dispatcher.</string>
+    <string name="guide_stops_tip">Stops are numbered in the order you drive them. The coloured number is the stop to work on now.</string>
+    <string name="guide_proof_tip">Already took the photo? “%1$s” lets you pick it from your phone.</string>
+    <string name="guide_problem_tip">Pick what went wrong and how serious it is. A note is optional.</string>
+    <string name="guide_profile_tip">If a document needs fixing, a banner at the top of the app tells you.</string>
+    <string name="guide_sample_origin">Riyadh</string>
+    <string name="guide_sample_destination">Jeddah</string>
 </resources>

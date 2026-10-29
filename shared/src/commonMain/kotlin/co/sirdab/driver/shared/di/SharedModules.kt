@@ -9,6 +9,7 @@ import co.sirdab.driver.shared.core.network.TmsEnvironment
 import co.sirdab.driver.shared.core.network.di.networkModule
 import co.sirdab.driver.shared.core.platform.browser.platformUrlOpenerModule
 import co.sirdab.driver.shared.core.platform.dialer.platformDialerModule
+import co.sirdab.driver.shared.core.platform.documents.platformDocumentViewerModule
 import co.sirdab.driver.shared.core.platform.files.platformFileStoreModule
 import co.sirdab.driver.shared.core.platform.maps.platformMapLauncherModule
 import co.sirdab.driver.shared.core.preferences.di.preferencesModule
@@ -17,6 +18,7 @@ import co.sirdab.driver.shared.core.preferences.locale.LanguageStore
 import co.sirdab.driver.shared.core.queue.di.queueModule
 import co.sirdab.driver.shared.core.queue.di.queuePlatformModule
 import co.sirdab.driver.shared.feature.bidding.impl.biddingModule
+import co.sirdab.driver.shared.feature.guide.impl.guideModule
 import co.sirdab.driver.shared.feature.notifications.impl.notificationsModule
 import co.sirdab.driver.shared.feature.onboarding.impl.di.onboardingModule
 import co.sirdab.driver.shared.feature.profile.impl.profileModule
@@ -41,6 +43,7 @@ fun createTmsModules(
     platformDialerModule(),
     platformMapLauncherModule(),
     platformUrlOpenerModule(),
+    platformDocumentViewerModule(),
     platformFileStoreModule(),
     // Network and session
     networkModule(environment, logLevel),
@@ -51,6 +54,7 @@ fun createTmsModules(
     // Features
     onboardingModule,
     profileModule,
+    guideModule,
     tripModule,
     biddingModule,
     notificationsModule,

@@ -1,6 +1,7 @@
 package co.sirdab.driver.shared.feature.trip.api
 
 import androidx.navigation3.runtime.NavKey
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
 import co.sirdab.driver.shared.core.model.Page
@@ -21,7 +22,23 @@ interface DriverTripRepository {
     suspend fun trips(cursor: String? = null, limit: Int = 50): AppResult<Page<DriverTrip>>
 
     suspend fun trip(id: String): AppResult<DriverTrip>
+
+    /**
+     * One of the documents the order on [legId] lists, as PDF, by its key.
+     *
+     * Fetched fresh every time: the TMS keeps none of it, and asks the system that sent the order
+     * on the driver's behalf. That system can be down or refuse, which fails with
+     * [AppErrorReason.DOCUMENT_UNAVAILABLE]; a document the order has stopped listing, or a leg no
+     * longer on this driver's trip, fails with [AppErrorReason.DOCUMENT_GONE].
+     */
+    suspend fun legDocument(legId: String, key: String): AppResult<DownloadedDocument>
 }
+
+/** A document's PDF, and the file name the TMS gives it: the order's reference and the key. */
+class DownloadedDocument(
+    val bytes: ByteArray,
+    val fileName: String,
+)
 
 /** What a driver can record against a stop. Mirrors the contract's TripEventType. */
 enum class TripEventType(val wire: String) {

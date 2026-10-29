@@ -42,6 +42,15 @@ class HttpLoggerTest {
     }
 
     @Test
+    fun `keeps an order's pdf out of the log, but not the driver's own documents`() {
+        assertThat(isLoggableBody("http://host:4400/api/driver/legs/l1/documents/outbound_slip"))
+            .isEqualTo(false)
+        // Those calls are JSON, and the log is where a failed confirm is read.
+        assertThat(isLoggableBody("http://host:4400/api/driver/profile/documents/d1/confirm"))
+            .isEqualTo(true)
+    }
+
+    @Test
     fun `blanks the credential in a signed storage url`() {
         val line = "UPLOAD OK 200 1024B -> http://host:54321/storage/v1/object/upload/sign/x.jpg?token=eyJsecret"
         val body = """{"downloadUrl":"https://host/storage/v1/object/sign/doc.jpg?token=eyJread&download=1"}"""

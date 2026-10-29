@@ -5,8 +5,10 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
+import co.sirdab.driver.shared.core.model.AppErrorReason
 import co.sirdab.driver.shared.core.model.AppResult
 import co.sirdab.driver.shared.core.model.DriverTrip
+import co.sirdab.driver.shared.core.model.OrderDocument
 import co.sirdab.driver.shared.core.model.StopStatus
 import co.sirdab.driver.shared.core.model.StopType
 import co.sirdab.driver.shared.core.model.TripLifecycle
@@ -234,6 +236,85 @@ class DriverTripRepositoryHttpTest {
         assertThat(seen.headers[TmsApiClient.IDEMPOTENCY_KEY_HEADER]).isNull()
     }
 
+    @Test
+    fun `reads the documents a leg's order lists`() = runTest {
+        val repo = repository { respond(DOCUMENTS_JSON, HttpStatusCode.OK, jsonHeaders()) }
+
+        val leg = (repo.trip("t1") as AppResult.Success).data.legs.single()
+
+        assertThat(leg.documents).isEqualTo(
+            listOf(
+                OrderDocument("outbound_slip", "Outbound order slip", "إذن صرف"),
+                OrderDocument("ab_trip", "AB trip slip", null),
+            ),
+        )
+        // The sender's Arabic name where it gave one, and its English name everywhere else.
+        assertThat(leg.documents[0].name("ar")).isEqualTo("إذن صرف")
+        assertThat(leg.documents[0].name("ur")).isEqualTo("Outbound order slip")
+        assertThat(leg.documents[1].name("ar")).isEqualTo("AB trip slip")
+    }
+
+    @Test
+    fun `a leg from a server before documents has none`() = runTest {
+        val repo = repository { respond(DETAIL_JSON, HttpStatusCode.OK, jsonHeaders()) }
+
+        val leg = (repo.trip("t1") as AppResult.Success).data.legs.single()
+
+        assertThat(leg.documents).isEqualTo(emptyList())
+    }
+
+    @Test
+    fun `downloads a leg's document by its key`() = runTest {
+        lateinit var seen: HttpRequestData
+        val repo = repository { request ->
+            seen = request
+            respond(
+                byteArrayOf(0x25, 0x50, 0x44, 0x46),
+                HttpStatusCode.OK,
+                headersOf(
+                    "Content-Type" to listOf("application/pdf"),
+                    "Content-Disposition" to listOf("""attachment; filename="SO-1042-outbound_slip.pdf""""),
+                ),
+            )
+        }
+
+        val document = (repo.legDocument("l1", "outbound_slip") as AppResult.Success).data
+
+        assertThat(seen.url.encodedPath).isEqualTo("/api/driver/legs/l1/documents/outbound_slip")
+        assertThat(document.fileName).isEqualTo("SO-1042-outbound_slip.pdf")
+        assertThat(document.bytes.size).isEqualTo(4)
+    }
+
+    @Test
+    fun `names a sender that would not hand the document over`() = runTest {
+        val repo = repository {
+            respond(
+                """{"error":{"code":"document_unavailable","message":"The system that sent this order could not provide the document."}}""",
+                HttpStatusCode.BadGateway,
+                jsonHeaders(),
+            )
+        }
+
+        val error = (repo.legDocument("l1", "outbound_slip") as AppResult.Failure).error
+
+        assertThat(error.reason).isEqualTo(AppErrorReason.DOCUMENT_UNAVAILABLE)
+    }
+
+    @Test
+    fun `names a document the order no longer lists`() = runTest {
+        val repo = repository {
+            respond(
+                """{"error":{"code":"not_found","message":"That resource does not exist."}}""",
+                HttpStatusCode.NotFound,
+                jsonHeaders(),
+            )
+        }
+
+        val error = (repo.legDocument("l1", "gone") as AppResult.Failure).error
+
+        assertThat(error.reason).isEqualTo(AppErrorReason.DOCUMENT_GONE)
+    }
+
     private fun jsonHeaders() = headersOf("Content-Type", ContentType.Application.Json.toString())
 
     private fun repository(
@@ -268,6 +349,18 @@ class DriverTripRepositoryHttpTest {
              "address":{"id":"a2","label":"Store","city":"Jeddah"},
              "contact":null}
           ]
+        }
+        """
+
+        const val DOCUMENTS_JSON = """
+        {
+          "id": "t1", "reference": "TRP-000001", "status": "assigned", "inCity": false, "stopCount": 2,
+          "legs": [{"id":"l1","sequence":1,"originAddressId":"a1","destinationAddressId":"a2",
+                    "documents":[
+                      {"key":"outbound_slip","name":"Outbound order slip","nameAr":"إذن صرف"},
+                      {"key":"ab_trip","name":"AB trip slip","nameAr":null}
+                    ]}],
+          "stops": []
         }
         """
 

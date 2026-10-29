@@ -40,10 +40,12 @@ import co.sirdab.driver.shared.core.ui.generated.resources.tab_profile
 import co.sirdab.driver.shared.core.ui.generated.resources.tab_trip
 import co.sirdab.driver.shared.core.ui.theme.Spacing
 import co.sirdab.driver.shared.feature.bidding.impl.presentation.DriverPostingsScreen
+import co.sirdab.driver.shared.feature.guide.impl.GuideStore
 import co.sirdab.driver.shared.feature.profile.impl.presentation.ProfileScreen
 import co.sirdab.driver.shared.feature.trip.impl.presentation.DriverTripsScreen
 import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
 import co.sirdab.driver.shared.feature.onboarding.api.domain.DriverOnboardingRepository
+import kotlinx.coroutines.flow.first
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -72,8 +74,10 @@ fun MainShell(
     onOpenReview: () -> Unit,
     onOpenRoutes: () -> Unit,
     onOpenTrucks: () -> Unit,
+    onOpenGuide: (canBid: Boolean) -> Unit,
     authRepository: AuthRepository = koinInject(),
     onboardingRepository: DriverOnboardingRepository = koinInject(),
+    guideStore: GuideStore = koinInject(),
     analytics: Analytics = koinInject(),
 ) {
     // Carrying no fleet is an ordinary, permanent state, not a queue: a driver signs themselves up,
@@ -83,6 +87,9 @@ fun MainShell(
     // nobody with standing to give one, so nothing is withheld on the strength of it.
     val verification by authRepository.observeVerification().collectAsState(initial = null)
     val canWork = verification?.canAcceptLoads != false
+    // Only an independent carrier's driver bids; a company's driver is refused the board. No answer
+    // yet keeps it, and the board explains itself if refused.
+    val canBid = verification?.canBid != false
 
     // A driver who finished sign-up can still owe something later: ops rejects a document, a
     // licence lapses, a truck is added to their profile. The server reopens `missing` for it and
@@ -94,15 +101,24 @@ fun MainShell(
     // closed is the common case, and there is no push to tell us about it.
     LaunchedEffect(Unit) { onboardingRepository.refresh() }
 
+    // The first time this driver reaches the app proper, the guide opens over it. The store
+    // answers yes once per driver, so coming back here from a trip or a language change, or on any
+    // later launch, leaves them be.
+    LaunchedEffect(Unit) {
+        if (guideStore.claimFirstShow()) {
+            // Read now rather than taken from the composition that started this: the verdict can
+            // land while the store answers, and it decides whether the board gets pages.
+            onOpenGuide(authRepository.observeVerification().first()?.canBid != false)
+        }
+    }
+
     // Every tab, whatever the driver may do with them. A driver waiting on approval has handed over
     // everything asked of them, and meeting that with one lonely tab reads as a broken account
     // rather than a queue — so the app is whole, the board and the trip list say plainly that
     // nothing has arrived yet, and the banner says why.
     val tabs = listOfNotNull(
-        // Only an independent carrier's driver bids; a company's driver is refused the board, so
-        // they get no tab for it. No answer yet keeps it, and the board explains itself if refused.
-        TabSpec(MainTab.LOADS, Icons.Default.LocalShipping, Res.string.tab_loads)
-            .takeIf { verification?.canBid != false },
+        // No board, no tab for it.
+        TabSpec(MainTab.LOADS, Icons.Default.LocalShipping, Res.string.tab_loads).takeIf { canBid },
         TabSpec(MainTab.TRIP, Icons.Default.Map, Res.string.tab_trip),
         TabSpec(MainTab.PROFILE, Icons.Default.Person, Res.string.tab_profile),
     )
@@ -168,6 +184,7 @@ fun MainShell(
                         onLoggedOut = onLoggedOut,
                         onOpenRoutes = onOpenRoutes,
                         onOpenTrucks = onOpenTrucks,
+                        onOpenGuide = { onOpenGuide(canBid) },
                     )
                 }
             }

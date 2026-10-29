@@ -1,6 +1,7 @@
 package co.sirdab.driver.shared.feature.trip.impl.data
 
 import co.sirdab.driver.shared.core.model.DriverTrip
+import co.sirdab.driver.shared.core.model.OrderDocument
 import co.sirdab.driver.shared.core.model.StopAddress
 import co.sirdab.driver.shared.core.model.StopContact
 import co.sirdab.driver.shared.core.model.StopStatus
@@ -47,6 +48,15 @@ internal data class DriverTripLegDto(
     val sequence: Int,
     val originAddressId: String,
     val destinationAddressId: String,
+    /** Contracts 10.52.0. Absent from an older server, which had none to list. */
+    val documents: List<OrderDocumentDto> = emptyList(),
+)
+
+@Serializable
+internal data class OrderDocumentDto(
+    val key: String,
+    val name: String,
+    val nameAr: String? = null,
 )
 
 @Serializable
@@ -124,7 +134,15 @@ internal fun DriverTripDetailDto.toDomain(): DriverTrip = DriverTrip(
     scheduledAtMillis = scheduledAt.toEpochMillisOrNull(),
     inCity = inCity,
     stopCount = stopCount,
-    legs = legs.map { TripLeg(it.id, it.sequence, it.originAddressId, it.destinationAddressId) },
+    legs = legs.map { leg ->
+        TripLeg(
+            id = leg.id,
+            sequence = leg.sequence,
+            originAddressId = leg.originAddressId,
+            destinationAddressId = leg.destinationAddressId,
+            documents = leg.documents.map { OrderDocument(it.key, it.name, it.nameAr) },
+        )
+    },
     // The server sends them in running order; sorting here means a client never depends on that.
     stops = stops.sortedBy { it.sequenceNumber }.map { it.toDomain() },
 )

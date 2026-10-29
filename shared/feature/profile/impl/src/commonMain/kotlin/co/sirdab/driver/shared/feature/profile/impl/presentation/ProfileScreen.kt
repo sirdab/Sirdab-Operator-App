@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,6 +59,7 @@ import co.sirdab.driver.shared.core.ui.generated.resources.delete_account_body
 import co.sirdab.driver.shared.core.ui.generated.resources.delete_account_confirm
 import co.sirdab.driver.shared.core.ui.generated.resources.delete_account_title
 import co.sirdab.driver.shared.core.ui.generated.resources.delete_account_unsent
+import co.sirdab.driver.shared.core.ui.generated.resources.guide_open
 import co.sirdab.driver.shared.core.ui.generated.resources.logout_body
 import co.sirdab.driver.shared.core.ui.generated.resources.logout_title
 import co.sirdab.driver.shared.core.ui.generated.resources.logout_unsent
@@ -88,6 +90,7 @@ fun ProfileScreen(
     onLoggedOut: () -> Unit,
     onOpenRoutes: () -> Unit,
     onOpenTrucks: () -> Unit,
+    onOpenGuide: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -253,6 +256,11 @@ fun ProfileScreen(
                 }
             }
 
+            // Settings — the guide. It opens by itself once, and Skip is one tap away, so this is
+            // where a driver comes back to it.
+            Spacer(Modifier.height(Spacing.md))
+            GuideRow(onClick = onOpenGuide)
+
             // Settings — leaving
             Spacer(Modifier.height(Spacing.lg))
             LogoutRow(
@@ -382,6 +390,26 @@ private fun ConfirmDestructiveDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(Res.string.common_cancel)) }
         },
     )
+}
+
+@Composable
+private fun GuideRow(onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(Radius.md),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            Modifier.padding(Spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Text(stringResource(Res.string.guide_open), style = MaterialTheme.typography.bodyLarge)
+        }
+    }
 }
 
 @Composable

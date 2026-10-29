@@ -1,5 +1,6 @@
 package co.sirdab.driver.shared.feature.trip.impl.presentation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -22,10 +23,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Directions
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +52,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import co.sirdab.driver.shared.core.model.DriverTrip
+import co.sirdab.driver.shared.core.model.TripLeg
 import co.sirdab.driver.shared.core.model.TripStop
 import co.sirdab.driver.shared.core.media.CapturedImage
 import co.sirdab.driver.shared.core.media.PhotoSource
@@ -57,12 +63,16 @@ import co.sirdab.driver.shared.core.platform.maps.MapLauncher
 import co.sirdab.driver.shared.core.platform.locale.AppLocale
 import co.sirdab.driver.shared.core.ui.components.ChipTone
 import co.sirdab.driver.shared.core.ui.components.TagChip
+import co.sirdab.driver.shared.core.ui.components.labelRes
 import co.sirdab.driver.shared.core.ui.generated.resources.Res
 import co.sirdab.driver.shared.core.ui.generated.resources.common_back
 import co.sirdab.driver.shared.core.ui.generated.resources.common_ok
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_dropped_sync
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_dropped_sync_note
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_detail_title
+import co.sirdab.driver.shared.core.ui.generated.resources.trip_document_failed
+import co.sirdab.driver.shared.core.ui.generated.resources.trip_document_download
+import co.sirdab.driver.shared.core.ui.generated.resources.trip_documents
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_stop_arrived
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_stop_call
 import co.sirdab.driver.shared.core.ui.generated.resources.trip_stop_navigate
@@ -98,11 +108,13 @@ fun DriverTripDetailScreen(
     tripId: String,
     onBack: () -> Unit,
     viewModel: DriverTripDetailViewModel = koinViewModel { parametersOf(tripId) },
+    documents: TripDocumentsViewModel = koinViewModel { parametersOf(tripId) },
     dialer: PhoneDialer = koinInject(),
     maps: MapLauncher = koinInject(),
 ) {
     val state by viewModel.state.collectAsState()
     val pending by viewModel.pendingWrites.collectAsState()
+    val documentState by documents.state.collectAsState()
     val lang = AppLocale.current()
     val trip = state.trip
 
@@ -208,6 +220,21 @@ fun DriverTripDetailScreen(
                             ) {
                                 Text(stringResource(Res.string.trip_start))
                             }
+                        }
+                    }
+
+                    // Before the problem button, because the slip is what the gate asks for
+                    // first. Only legs whose order came with paperwork are listed.
+                    val withDocuments = trip.legs.filter { it.documents.isNotEmpty() }.sortedBy { it.sequence }
+                    if (withDocuments.isNotEmpty()) {
+                        item {
+                            DocumentsCard(
+                                trip = trip,
+                                legs = withDocuments,
+                                lang = lang,
+                                state = documentState,
+                                onOpen = documents::open,
+                            )
                         }
                     }
 
@@ -594,6 +621,121 @@ private fun DroppedBanner(count: Int, lang: String, onDismiss: () -> Unit) {
             )
             OutlinedButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
                 Text(stringResource(Res.string.common_ok))
+            }
+        }
+    }
+}
+
+/**
+ * The paperwork of the orders on this trip, as the system that sent them holds it: the slip the
+ * gate asks for at a pickup, the one the receiver signs at a drop-off.
+ *
+ * Grouped under each leg's two stops only when the trip carries more than one order, so a driver
+ * with two loads on board can tell whose slip is whose. A trip with one is just its documents.
+ */
+@Composable
+private fun DocumentsCard(
+    trip: DriverTrip,
+    legs: List<TripLeg>,
+    lang: String,
+    state: TripDocumentsUiState,
+    onOpen: (legId: String, key: String) -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(Radius.lg),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            Text(
+                stringResource(Res.string.trip_documents),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            legs.forEach { leg ->
+                if (legs.size > 1) LegRoute(trip, leg)
+                leg.documents.forEach { document ->
+                    val ref = DocumentRef(leg.id, document.key)
+                    DocumentRow(
+                        name = document.name(lang),
+                        downloading = state.downloading == ref,
+                        enabled = state.downloading == null,
+                        onClick = { onOpen(leg.id, document.key) },
+                    )
+                    state.failure?.takeIf { it.document == ref }?.let { failure ->
+                        Text(
+                            stringResource(failure.reason?.labelRes() ?: Res.string.trip_document_failed),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Where a leg starts and ends, by its stops' names. An arrow that turns round for Arabic. */
+@Composable
+private fun LegRoute(trip: DriverTrip, leg: TripLeg) {
+    val stops = trip.stops.filter { it.legId == leg.id }
+    val from = stops.firstOrNull()?.address?.label ?: return
+    val to = stops.lastOrNull()?.address?.label ?: return
+    Row(
+        Modifier.padding(top = Spacing.xxs),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xxs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(from, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Icon(
+            Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(14.dp),
+        )
+        Text(to, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/**
+ * One document: what the sender calls it, and a download mark that turns into a spinner while it
+ * comes. Every other row waits meanwhile, since only one comes at a time.
+ */
+@Composable
+private fun DocumentRow(name: String, downloading: Boolean, enabled: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(Radius.md),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            Modifier.padding(horizontal = Spacing.sm, vertical = Spacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.PictureAsPdf,
+                contentDescription = null,
+                tint = AppColors.Red.c600,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                name,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+            )
+            if (downloading) {
+                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            } else {
+                Icon(
+                    Icons.Default.Download,
+                    contentDescription = stringResource(Res.string.trip_document_download),
+                    tint = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                )
             }
         }
     }

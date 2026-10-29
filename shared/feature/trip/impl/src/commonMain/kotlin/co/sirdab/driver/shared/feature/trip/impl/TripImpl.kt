@@ -6,6 +6,7 @@ import co.sirdab.driver.shared.feature.trip.impl.data.DriverTripRepositoryHttp
 import co.sirdab.driver.shared.feature.trip.impl.data.TripEventRecorderQueued
 import co.sirdab.driver.shared.feature.trip.impl.presentation.DriverTripDetailViewModel
 import co.sirdab.driver.shared.feature.trip.impl.presentation.DriverTripsViewModel
+import co.sirdab.driver.shared.feature.trip.impl.presentation.TripDocumentsViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.bind
@@ -17,4 +18,5 @@ val tripModule: Module = module {
     single { TripEventRecorderQueued(queue = get(), files = get(), analytics = get()) } bind TripEventRecorder::class
     viewModel { DriverTripsViewModel(get(), get(), get()) }
     viewModel { (tripId: String) -> DriverTripDetailViewModel(tripId, get(), get(), get()) }
+    viewModel { (tripId: String) -> TripDocumentsViewModel(tripId, get(), get(), get()) }
 }

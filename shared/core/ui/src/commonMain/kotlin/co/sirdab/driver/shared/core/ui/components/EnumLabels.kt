@@ -32,6 +32,9 @@ import co.sirdab.driver.shared.core.ui.generated.resources.err_sign_in_failed
 import co.sirdab.driver.shared.core.ui.generated.resources.err_document_missing
 import co.sirdab.driver.shared.core.ui.generated.resources.err_document_too_large
 import co.sirdab.driver.shared.core.ui.generated.resources.err_document_type
+import co.sirdab.driver.shared.core.ui.generated.resources.err_document_unavailable
+import co.sirdab.driver.shared.core.ui.generated.resources.err_document_gone
+import co.sirdab.driver.shared.core.ui.generated.resources.err_no_document_viewer
 import co.sirdab.driver.shared.core.ui.generated.resources.err_driver_suspended
 import co.sirdab.driver.shared.core.ui.generated.resources.err_equipment_not_offered
 import co.sirdab.driver.shared.core.ui.generated.resources.err_last_truck
@@ -129,6 +132,9 @@ fun AppErrorReason.labelRes(): StringResource = when (this) {
     AppErrorReason.DRIVER_NOT_VERIFIED -> Res.string.err_driver_not_verified
     AppErrorReason.RATE_IS_FIXED -> Res.string.err_rate_is_fixed
     AppErrorReason.MANAGES_ORGANIZATION -> Res.string.err_manages_organization
+    AppErrorReason.DOCUMENT_UNAVAILABLE -> Res.string.err_document_unavailable
+    AppErrorReason.DOCUMENT_GONE -> Res.string.err_document_gone
+    AppErrorReason.NO_DOCUMENT_VIEWER -> Res.string.err_no_document_viewer
 }
 
 fun Nationality.labelRes(): StringResource = when (this) {

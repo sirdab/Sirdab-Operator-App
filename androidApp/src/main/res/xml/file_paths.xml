@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The one directory the camera app is granted write access to.
+  The only directories other apps are ever granted access to.
 
-  Scoped to `cache/camera` rather than the whole cache: the grant is handed to
-  another application, and it should reach exactly the file being photographed
-  into and nothing else this app has stored.
+  `cache/camera` is the one the camera app may write into, and `cache/documents`
+  the one a PDF viewer may read an order's slip from. Scoped to those two rather
+  than the whole cache: each grant is handed to another application, and it
+  should reach exactly the file in question and nothing else this app has stored.
 -->
 <paths>
     <cache-path name="camera" path="camera/" />
+    <cache-path name="documents" path="documents/" />
 </paths>

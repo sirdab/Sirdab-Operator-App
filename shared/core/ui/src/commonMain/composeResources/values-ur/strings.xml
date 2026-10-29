@@ -118,6 +118,9 @@
     <string name="trip_pending_sync_note">آپ کے فون میں محفوظ ہیں۔ آن لائن ہونے پر بھیج دیے جائیں گے۔</string>
     <string name="trip_dropped_sync">%1$d قبول نہیں ہوئے</string>
     <string name="trip_dropped_sync_note">سرور نے انہیں مسترد کر دیا، اس لیے یہ محفوظ نہیں ہوئے۔ نیچے اسٹاپ دیکھیں اور اپنے ڈسپیچر کو بتائیں۔</string>
+    <string name="trip_documents">دستاویزات</string>
+    <string name="trip_document_download">ڈاؤن لوڈ</string>
+    <string name="trip_document_failed">دستاویز ڈاؤن لوڈ نہیں ہو سکی۔ سگنل دیکھیں اور دوبارہ کوشش کریں۔</string>
 
     <!-- Nationalities -->
     <string name="nat_sa">سعودی</string>
@@ -284,6 +287,9 @@
     <string name="err_driver_not_verified">اکاؤنٹ منظور ہونے کے بعد آپ پیشکش دے سکیں گے۔</string>
     <string name="err_rate_is_fixed">اس لوڈ کی قیمت مقرر ہے، اسے تبدیل نہیں کیا جا سکتا۔</string>
     <string name="err_manages_organization">آپ سرداب میں ایک کمپنی کا انتظام کرتے ہیں۔ پہلے کسی دوسرے ایڈمن سے کہیں کہ آپ کو اس سے ہٹا دے۔</string>
+    <string name="err_document_unavailable">جس سسٹم نے یہ آرڈر بھیجا وہ دستاویز فراہم نہیں کر سکا۔ چند منٹ بعد دوبارہ کوشش کریں۔</string>
+    <string name="err_document_gone">یہ دستاویز اب آرڈر میں نہیں ہے۔ تازہ کرنے کے لیے اسکرین نیچے کھینچیں۔</string>
+    <string name="err_no_document_viewer">اس فون میں PDF کھولنے والی کوئی ایپ نہیں۔ PDF ایپ انسٹال کر کے دوبارہ کوشش کریں۔</string>
     <string name="doc_view">جو بھیجا وہ دیکھیں</string>
     <string name="otp_wrong_number">نمبر غلط ہے؟</string>
     <string name="signup_identity">آپ کے پاس کون سی دستاویز ہے؟</string>
@@ -319,4 +325,35 @@
     <string name="truck_change_pending">جانچ باقی: %1$s</string>
     <string name="truck_change_withdraw">واپس لیں</string>
     <string name="truck_change_rejected">تبدیلی منظور نہیں ہوئی: %1$s</string>
+    <!-- Guide -->
+    <string name="guide_welcome_title">سرداب میں خوش آمدید</string>
+    <string name="guide_welcome_body">چند آسان مراحل میں دیکھیں کہ ایپ کیسے کام کرتی ہے۔</string>
+    <string name="guide_loads_title">لوڈ تلاش کریں</string>
+    <string name="guide_loads_body">اپنے ٹرک کے لیے لوڈ دیکھنے کو “%1$s” ٹیب کھولیں۔ ہر لوڈ کا راستہ، قیمت اور یہ کتنی دیر کھلا رہے گا، سب نظر آتا ہے۔ نئے لوڈ دیکھنے کے لیے اسکرین نیچے کھینچیں۔</string>
+    <string name="guide_bid_title">اپنی قیمت بھیجیں</string>
+    <string name="guide_bid_body">“%1$s” دبائیں، اپنی قیمت لکھیں اور اپنا ٹرک چنیں۔ اگر کوئی کم پیشکش دے تو ایپ آپ کو بتائے گی، اور آپ اس کے برابر کر سکتے ہیں یا مزید کم کر سکتے ہیں۔ مقررہ قیمت والے لوڈ پر بس “%2$s” دبائیں۔</string>
+    <string name="guide_trips_title">آپ کے سفر</string>
+    <string name="guide_trips_body">آپ کے سفر “%1$s” ٹیب میں نظر آتے ہیں۔ سفر کھولیں اور روانہ ہوتے وقت “%2$s” دبائیں۔</string>
+    <string name="guide_stops_title">ہر اسٹاپ پر</string>
+    <string name="guide_stops_body">پہنچ کر “%1$s” دبائیں اور جاتے وقت “%2$s”۔ “%3$s” نقشہ کھولتا ہے اور “%4$s” سے اسٹاپ پر فون ہوتا ہے۔ سگنل نہیں؟ جو آپ دباتے ہیں وہ فون میں محفوظ رہتا ہے اور بعد میں بھیج دیا جاتا ہے۔</string>
+    <string name="guide_proof_title">تصویر کا ثبوت</string>
+    <string name="guide_proof_body">“%1$s” دبا کر لوڈ کی تصویر لیں، پھر “%2$s” یا “%3$s” کا بٹن آئے گا۔ ڈیلیوری پر ایپ دستخط شدہ ڈیلیوری نوٹ کی تصویر بھی مانگے گی۔</string>
+    <string name="guide_problem_title">کوئی مسئلہ؟</string>
+    <string name="guide_problem_body">دیر ہو رہی ہے، ٹرک خراب ہو گیا، یا ڈیلیوری سے انکار؟ سفر کھولیں اور “%1$s” دبائیں، ہم آگے پہنچا دیں گے۔</string>
+    <string name="guide_profile_title">آپ کی پروفائل</string>
+    <string name="guide_profile_body">“%1$s” ٹیب میں اپنی دستاویزات اور ٹرک اپ ڈیٹ رکھیں، اپنا شہر اور راستے چنیں، اور زبان بدلیں۔ یہ گائیڈ بھی وہیں سے دوبارہ کھول سکتے ہیں۔</string>
+    <string name="guide_skip">چھوڑیں</string>
+    <string name="guide_next">اگلا</string>
+    <string name="guide_done">سمجھ گیا</string>
+    <string name="guide_open">ایپ کیسے استعمال کریں</string>
+    <string name="guide_welcome_tip">آپ کی ضرورت کی ہر چیز اسکرین کے نیچے والے ٹیبز میں ہے۔</string>
+    <string name="guide_loads_tip">لوڈ آپ کے ٹرک اور راستوں کے مطابق دکھائے جاتے ہیں، اس لیے دونوں کو اپنی پروفائل میں اپ ڈیٹ رکھیں۔</string>
+    <string name="guide_bid_tip">ہر لوڈ پر لکھا ہوتا ہے کہ بولی کب بند ہوگی۔ تب تک آپ “%1$s” سے اپنی قیمت بدل سکتے ہیں۔</string>
+    <string name="guide_trips_tip">ڈسپیچر کی تازہ تبدیلیاں دیکھنے کے لیے سفر کی اسکرین نیچے کھینچیں۔</string>
+    <string name="guide_stops_tip">اسٹاپ اسی ترتیب سے نمبر وار ہیں جس میں آپ جائیں گے۔ رنگین نمبر والا اسٹاپ وہ ہے جس پر ابھی کام کرنا ہے۔</string>
+    <string name="guide_proof_tip">تصویر پہلے لے چکے ہیں؟ “%1$s” سے اسے اپنے فون سے چن لیں۔</string>
+    <string name="guide_problem_tip">بتائیں کیا ہوا اور مسئلہ کتنا سنگین ہے۔ نوٹ لکھنا ضروری نہیں۔</string>
+    <string name="guide_profile_tip">اگر کسی دستاویز کو درست کرنا ہو تو ایپ کے اوپر ایک پیغام آپ کو بتا دے گا۔</string>
+    <string name="guide_sample_origin">ریاض</string>
+    <string name="guide_sample_destination">جدہ</string>
 </resources>

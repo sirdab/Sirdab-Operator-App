@@ -73,6 +73,15 @@ enum class AppErrorReason {
 
     /** An organization owner or admin, who has a company to hand over before they can leave. */
     MANAGES_ORGANIZATION,
+
+    /** The system that sent the order would not hand over one of its documents, or failed to. */
+    DOCUMENT_UNAVAILABLE,
+
+    /** A document the order no longer lists, or a leg no longer on this driver's trip. */
+    DOCUMENT_GONE,
+
+    /** The document arrived, but nothing on the phone can open a PDF. */
+    NO_DOCUMENT_VIEWER,
 }
 
 data class AppError(

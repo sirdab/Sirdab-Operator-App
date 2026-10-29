@@ -184,6 +184,72 @@ class TmsApiClientTest {
         assertThat(failure?.disposition).isEqualTo(FailureDisposition.Retry)
     }
 
+    @Test
+    fun `reads a file as bytes with the name the server gives it`() = runTest {
+        lateinit var seen: HttpRequestData
+        val pdf = byteArrayOf(0x25, 0x50, 0x44, 0x46)
+        val client = client(FixedToken("token-1")) { request ->
+            seen = request
+            respond(
+                pdf,
+                HttpStatusCode.OK,
+                headersOf(
+                    "Content-Type" to listOf("application/pdf"),
+                    "Content-Disposition" to listOf("""attachment; filename="SO-1042-outbound_slip.pdf""""),
+                ),
+            )
+        }
+
+        val file = client.getFile("api/driver/legs/l1/documents/outbound_slip").getOrNull()?.value
+
+        assertThat(file?.bytes?.toList()).isEqualTo(pdf.toList())
+        assertThat(file?.fileName).isEqualTo("SO-1042-outbound_slip.pdf")
+        assertThat(file?.contentType).isEqualTo("application/pdf")
+        assertThat(seen.headers["Authorization"]).isEqualTo("Bearer token-1")
+    }
+
+    @Test
+    fun `refreshes once on 401 for a file too`() = runTest {
+        val tokens = RefreshingToken()
+        var call = 0
+        val client = client(tokens) {
+            call++
+            if (call == 1) {
+                respond(
+                    """{"error":{"code":"unauthorized","message":"expired"}}""",
+                    HttpStatusCode.Unauthorized,
+                    jsonHeaders(),
+                )
+            } else {
+                respond(byteArrayOf(1, 2, 3), HttpStatusCode.OK, headersOf("Content-Type", "application/pdf"))
+            }
+        }
+
+        val result = client.getFile("api/driver/legs/l1/documents/slip")
+
+        assertThat(result.getOrNull()?.value?.bytes?.size).isEqualTo(3)
+        assertThat(tokens.refreshes).isEqualTo(1)
+        // No Content-Disposition, so no name to pass on.
+        assertThat(result.getOrNull()?.value?.fileName).isNull()
+    }
+
+    @Test
+    fun `a refused file is the error envelope, not a pdf of it`() = runTest {
+        val client = client(FixedToken("token-1")) {
+            respond(
+                """{"error":{"code":"document_unavailable","message":"The system that sent this order could not provide the document."}}""",
+                HttpStatusCode.BadGateway,
+                jsonHeaders(),
+            )
+        }
+
+        val failure = client.getFile("api/driver/legs/l1/documents/slip")
+            .exceptionOrNull()?.apiFailure as? ApiFailure.Http
+
+        assertThat(failure?.status).isEqualTo(502)
+        assertThat(failure?.rawCode).isEqualTo("document_unavailable")
+    }
+
     private fun jsonHeaders() = headersOf("Content-Type", ContentType.Application.Json.toString())
 
     private fun client(

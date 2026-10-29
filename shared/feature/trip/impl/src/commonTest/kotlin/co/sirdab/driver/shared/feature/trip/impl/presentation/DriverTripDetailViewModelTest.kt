@@ -15,6 +15,7 @@ import co.sirdab.driver.shared.core.model.StopStatus
 import co.sirdab.driver.shared.core.model.StopType
 import co.sirdab.driver.shared.core.model.TripLifecycle
 import co.sirdab.driver.shared.core.model.TripStop
+import co.sirdab.driver.shared.feature.trip.api.DownloadedDocument
 import co.sirdab.driver.shared.feature.trip.api.DriverTripRepository
 import co.sirdab.driver.shared.feature.trip.api.ExceptionKind
 import co.sirdab.driver.shared.feature.trip.api.ExceptionSeverity
@@ -81,6 +82,9 @@ private class FakeRepo(
         gate.await()
         return result
     }
+
+    override suspend fun legDocument(legId: String, key: String): AppResult<DownloadedDocument> =
+        error("documents have a view model of their own")
 }
 
 private class FakeRecorder(

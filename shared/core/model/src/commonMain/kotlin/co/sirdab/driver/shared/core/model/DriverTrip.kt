@@ -87,7 +87,28 @@ data class TripLeg(
     val sequence: Int,
     val originAddressId: String,
     val destinationAddressId: String,
+    /** The paperwork of the order this leg carries, such as its outbound or inbound slip. */
+    val documents: List<OrderDocument> = emptyList(),
 )
+
+/**
+ * A document the system that sent the order holds for it: an outbound or inbound order slip, the
+ * slip for a trip between two of its sites. The TMS fetches the PDF from that system when the
+ * driver asks for it, so only its name travels with the trip.
+ *
+ * [key] is what to ask for it by. The names are the sender's own, in English and, when it gave
+ * one, Arabic.
+ */
+@Serializable
+data class OrderDocument(
+    val key: String,
+    val name: String,
+    val nameAr: String? = null,
+) {
+    /** The sender's Arabic name for an Arabic reader, and its English one for everyone else. */
+    fun name(languageCode: String): String =
+        nameAr?.takeIf { languageCode == "ar" && it.isNotBlank() } ?: name
+}
 
 /**
  * A truck-day of work, as the TMS models it.

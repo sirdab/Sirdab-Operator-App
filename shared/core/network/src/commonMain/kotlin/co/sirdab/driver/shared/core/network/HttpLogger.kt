@@ -20,11 +20,17 @@ const val HTTP_LOG_TAG = "TmsApi"
  *
  * Storage uploads are the photo itself: a few hundred kilobytes of JPEG, which
  * would bury every useful line in the log and tell nobody anything. The call
- * is still logged, without its body, by [TmsApiClient.putBytes].
+ * is still logged, without its body, by [TmsApiClient.putBytes]. An order's
+ * documents are PDFs of up to 15 MB coming the other way, logged the same way
+ * by [TmsApiClient.getFile].
  */
-internal fun isLoggableBody(path: String): Boolean = !path.contains(STORAGE_PATH_MARKER)
+internal fun isLoggableBody(path: String): Boolean =
+    !path.contains(STORAGE_PATH_MARKER) && !LEG_DOCUMENT_PATH.containsMatchIn(path)
 
 private const val STORAGE_PATH_MARKER = "/storage/v1/"
+
+/** A leg's order document, and not the driver's own documents, whose calls are JSON. */
+private val LEG_DOCUMENT_PATH = Regex("""/legs/[^/]+/documents/""")
 
 /**
  * Blanks out credentials that live in a body rather than a header.

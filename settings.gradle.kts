@@ -62,6 +62,9 @@ include(":shared:feature:trip:impl")
 // Profile
 include(":shared:feature:profile:impl")
 
+// Guide
+include(":shared:feature:guide:impl")
+
 // Notifications
 include(":shared:feature:notifications:api")
 include(":shared:feature:notifications:impl")

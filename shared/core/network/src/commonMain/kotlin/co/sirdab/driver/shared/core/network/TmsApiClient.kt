@@ -9,8 +9,10 @@ import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readRawBytes
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.timeout
+import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -22,6 +24,16 @@ import kotlin.time.Instant
 
 /** A successful call, plus whether the server replayed an earlier identical write. */
 data class ApiSuccess<T>(val value: T, val replayed: Boolean = false)
+
+/**
+ * A file the API answered with instead of JSON. [fileName] is the one its `Content-Disposition`
+ * suggests, or null when it suggests none.
+ */
+class ApiFile(
+    val bytes: ByteArray,
+    val contentType: String?,
+    val fileName: String?,
+)
 
 typealias ApiResult<T> = Result<ApiSuccess<T>>
 
@@ -77,6 +89,36 @@ class TmsApiClient(
         path: String,
         deserializer: KSerializer<T>,
     ): ApiResult<T> = execute(HttpMethod.Delete, path, deserializer)
+
+    /**
+     * A GET answered with a file rather than JSON, such as an order's PDF.
+     *
+     * The same token, refresh and error envelope as [get]; only a success is read as bytes. The
+     * timeout is the upload's rather than a JSON call's: the server fetches the file from the
+     * system that holds it before it sends a byte, and then it is megabytes over whatever signal
+     * the driver has.
+     */
+    suspend fun getFile(path: String): ApiResult<ApiFile> {
+        val response = exchange(HttpMethod.Get, path, timeoutMillis = DOWNLOAD_TIMEOUT_MILLIS)
+            .getOrElse { return Result.failure(it) }
+        readServerDate(response)
+
+        if (!response.status.isSuccess()) {
+            val text = catching { response.bodyAsText() }.getOrDefault("")
+            return failure(parseError(response.status.value, text))
+        }
+
+        val bytes = catching { response.readRawBytes() }
+            .getOrElse { return failure(ApiFailure.Transport(it)) }
+        // The call is left out of the request log, which would print the file as text; this line
+        // is what says it happened.
+        logger.log("DOWNLOAD OK ${response.status.value} ${bytes.size}B <- $path")
+        val fileName = response.headers[HttpHeaders.ContentDisposition]
+            ?.let { runCatching { ContentDisposition.parse(it) }.getOrNull() }
+            ?.parameter(ContentDisposition.Parameters.FileName)
+            ?.takeIf { it.isNotBlank() }
+        return Result.success(ApiSuccess(ApiFile(bytes, response.headers[HttpHeaders.ContentType], fileName)))
+    }
 
     /**
      * PUT raw bytes to a URL the server minted.
@@ -145,17 +187,28 @@ class TmsApiClient(
         body: String? = null,
         idempotencyKey: String? = null,
     ): ApiResult<T> {
-        val first = send(method, path, query, body, idempotencyKey)
+        val response = exchange(method, path, query, body, idempotencyKey)
+            .getOrElse { return Result.failure(it) }
+        return interpret(response, deserializer)
+    }
+
+    /** Sends, and on a 401 refreshes once and sends again: same key and same body. */
+    private suspend fun exchange(
+        method: HttpMethod,
+        path: String,
+        query: Map<String, String> = emptyMap(),
+        body: String? = null,
+        idempotencyKey: String? = null,
+        timeoutMillis: Long? = null,
+    ): Result<HttpResponse> {
+        val first = send(method, path, query, body, idempotencyKey, timeoutMillis)
         val response = first.getOrElse { return Result.failure(it) }
 
-        // One refresh, one retry, same key and same body. A second 401 means the session is gone.
+        // A second 401 means the session is gone, and is answered as it stands.
         if (response.status.value == 401 && tokens.refresh()) {
-            val retried = send(method, path, query, body, idempotencyKey)
-            val retriedResponse = retried.getOrElse { return Result.failure(it) }
-            return interpret(retriedResponse, deserializer)
+            return send(method, path, query, body, idempotencyKey, timeoutMillis)
         }
-
-        return interpret(response, deserializer)
+        return Result.success(response)
     }
 
     private suspend fun send(
@@ -164,6 +217,7 @@ class TmsApiClient(
         query: Map<String, String>,
         body: String?,
         idempotencyKey: String?,
+        timeoutMillis: Long?,
     ): Result<HttpResponse> = catching {
         http.request(path.trimStart('/')) {
             this.method = method
@@ -171,6 +225,12 @@ class TmsApiClient(
             idempotencyKey?.let { header(IDEMPOTENCY_KEY_HEADER, it) }
             query.forEach { (key, value) -> parameter(key, value) }
             applyBody(body)
+            timeoutMillis?.let { millis ->
+                timeout {
+                    requestTimeoutMillis = millis
+                    socketTimeoutMillis = millis
+                }
+            }
         }
     }.recoverCatching { throw ApiFailureException(ApiFailure.Transport(it)) }
 
@@ -226,6 +286,7 @@ class TmsApiClient(
         const val IDEMPOTENCY_KEY_HEADER = "Idempotency-Key"
         const val IDEMPOTENCY_REPLAYED_HEADER = "Idempotency-Replayed"
         const val UPLOAD_TIMEOUT_MILLIS = 120_000L
+        const val DOWNLOAD_TIMEOUT_MILLIS = 120_000L
     }
 }
 

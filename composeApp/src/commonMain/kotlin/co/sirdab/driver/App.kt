@@ -31,6 +31,8 @@ import co.sirdab.driver.shared.core.analytics.AnalyticsEvent
 import co.sirdab.driver.shared.core.analytics.track
 import co.sirdab.driver.shared.core.preferences.locale.LanguageStore
 import co.sirdab.driver.shared.core.ui.theme.AppTheme
+import co.sirdab.driver.shared.feature.guide.impl.navigation.GuideRoute
+import co.sirdab.driver.shared.feature.guide.impl.navigation.guideEntries
 import co.sirdab.driver.shared.feature.trip.api.TripRoute
 import co.sirdab.driver.shared.feature.trip.impl.navigation.tripEntries
 import co.sirdab.driver.shared.feature.onboarding.api.domain.AuthRepository
@@ -137,10 +139,16 @@ private fun AppNavHost(
                         // The same screen sign-up opens. Saving pops it, back onto the profile tab.
                         onOpenRoutes = { backStack.add(OnboardingRoute.Routes) },
                         onOpenTrucks = { backStack.add(OnboardingRoute.Trucks) },
+                        // Pushed over the shell, so closing it puts the driver back on the tab
+                        // they were on: the first one on arrival, Profile when they asked again.
+                        onOpenGuide = { canBid -> backStack.add(GuideRoute(canBid)) },
                     )
                 }
                 tripEntries(
                     onBack = { backStack.removeLastOrNull() },
+                )
+                guideEntries(
+                    onClose = { backStack.removeLastOrNull() },
                 )
             },
         )
@@ -160,6 +168,7 @@ private fun NavKey.screenView(): AnalyticsEvent? = when (this) {
     OnboardingRoute.UnderReview -> AnalyticsEvent.screenViewed("under_review")
     OnboardingRoute.Blocked -> AnalyticsEvent.screenViewed("blocked")
     is TripRoute.Detail -> AnalyticsEvent.screenViewed("trip_detail", tripId = tripId)
+    is GuideRoute -> AnalyticsEvent.screenViewed("guide")
     else -> null
 }
 
